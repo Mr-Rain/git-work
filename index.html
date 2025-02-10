@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>浪漫页面：旋转的“杨馨茜”球体、跳动爱心与飘落爱心</title>
   <style>
     html, body {
@@ -21,8 +22,8 @@
   <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
-    
-    // 自适应全屏
+
+    // 自适应全屏，并适配不同设备
     function resizeCanvas() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
@@ -99,6 +100,9 @@
       const cy = canvas.height / 2 - canvas.height / 8;
       const scaleFactor = canvas.width / 8;
       
+      // 根据屏幕大小调整球体缩放比例
+      const scaleFactorAdjusted = canvas.width < 600 ? canvas.width / 10 : scaleFactor;
+
       // 更新旋转角度
       angleX += speedX;
       angleY += speedY;
@@ -125,8 +129,8 @@
         const x2d = x1 * perspective;
         const y2d = y1 * perspective;
         
-        const screenX = cx + x2d * scaleFactor;
-        const screenY = cy + y2d * scaleFactor;
+        const screenX = cx + x2d * scaleFactorAdjusted;
+        const screenY = cy + y2d * scaleFactorAdjusted;
         
         ctx.fillText(p.char, screenX, screenY);
       }
@@ -213,12 +217,11 @@
     // =========================
     function drawLoveText() {
       const time = Date.now() / 1000;
-      // alpha 在 0.0~1.0 之间周期性变化，产生渐隐渐显效果
       const alpha = 0.5 + 0.5 * Math.sin(time * 2);
       ctx.save();
       ctx.font = "40px cursive";
       ctx.textAlign = "center";
-      ctx.fillStyle = `rgba(255, 105, 180, ${alpha})`; // 使用粉红色
+      ctx.fillStyle = `rgba(255, 105, 180, ${alpha})`;
       ctx.shadowColor = "pink";
       ctx.shadowBlur = 15;
       ctx.fillText("永远爱你", canvas.width / 2, canvas.height * 0.15);

@@ -1,12 +1,231 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Love Page</title>
+  <meta charset="UTF-8">
+  <title>浪漫页面：旋转的“杨馨茜”球体、跳动爱心与飘落爱心</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: black;
+    }
+    canvas {
+      display: block;
+      background: black;
+    }
+  </style>
 </head>
 <body>
-    <h1>Welcome to the Love Page</h1>
-    <p>This is a basic HTML webpage.</p>
+  <canvas id="canvas"></canvas>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // 自适应全屏
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // =========================
+    // 1. 旋转球体（由“杨馨茜”构成）
+    // =========================
+    const numPoints = 1000;
+    const nameChars = "杨馨茜"; // 循环使用女朋友名字中的字符
+    const points = [];
+    const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+    
+    // 利用菲波那契算法在球面上均匀分布点，并为每个点分配一个字符（固定不变）
+    for (let i = 0; i < numPoints; i++) {
+      const y = 1 - (i / (numPoints - 1)) * 2;
+      const radius = Math.sqrt(1 - y * y);
+      const theta = goldenAngle * i;
+      const x = Math.cos(theta) * radius;
+      const z = Math.sin(theta) * radius;
+      const char = nameChars[i % nameChars.length];
+      points.push({ x, y, z, char });
+    }
+    
+    let angleX = 0;
+    let angleY = 0;
+    const speedX = 0.001;
+    const speedY = 0.002;
+
+    // =========================
+    // 2. 大爱心（跳动效果）
+    // =========================
+    const startTime = Date.now();
+    
+    // =========================
+    // 3. 飘落的爱心粒子
+    // =========================
+    const particles = [];
+    const numParticles = 50;
+    for (let i = 0; i < numParticles; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height - canvas.height, // 从画布上方开始
+        speed: 0.5 + Math.random() * 1.0,    // 下落速度
+        scale: 0.2 + Math.random() * 0.3,      // 粒子大小
+        rotation: Math.random() * 2 * Math.PI,
+        rotationSpeed: (Math.random() - 0.5) * 0.02,
+      });
+    }
+    
+    // =========================
+    // 4. 主动画函数
+    // =========================
+    function animate() {
+      // 清屏
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'black';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // -------------------------
+      // 绘制旋转球体
+      // -------------------------
+      ctx.font = "20px monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = "#00FF00";       // 代码雨风格绿色
+      ctx.shadowColor = "#00FF00";
+      ctx.shadowBlur = 10;
+      
+      // 球体中心（稍微上移，为下面的爱心留空间）
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2 - canvas.height / 8;
+      const scaleFactor = canvas.width / 8;
+      
+      // 更新旋转角度
+      angleX += speedX;
+      angleY += speedY;
+      const sinX = Math.sin(angleX);
+      const cosX = Math.cos(angleX);
+      const sinY = Math.sin(angleY);
+      const cosY = Math.cos(angleY);
+      
+      // 对球面每个点进行旋转和透视投影
+      for (let i = 0; i < points.length; i++) {
+        const p = points[i];
+        let { x, y, z } = p;
+        
+        // 绕 X 轴旋转
+        const y1 = y * cosX - z * sinX;
+        const z1 = y * sinX + z * cosX;
+        // 绕 Y 轴旋转
+        const x1 = x * cosY + z1 * sinY;
+        const z2 = -x * sinY + z1 * cosY;
+        
+        // 简单透视投影
+        const distance = 3;
+        const perspective = distance / (distance - z2);
+        const x2d = x1 * perspective;
+        const y2d = y1 * perspective;
+        
+        const screenX = cx + x2d * scaleFactor;
+        const screenY = cy + y2d * scaleFactor;
+        
+        ctx.fillText(p.char, screenX, screenY);
+      }
+
+      // -------------------------
+      // 绘制大爱心（跳动效果）
+      // -------------------------
+      const currentTime = Date.now();
+      const beat = 1 + 0.1 * Math.sin((currentTime - startTime) * 2 * Math.PI / 1000);
+      const heartX = canvas.width / 2;
+      const heartY = canvas.height * 0.8;
+      ctx.save();
+      ctx.translate(heartX, heartY);
+      ctx.scale(beat, beat);
+      drawHeart(50); // 参数为基础大小
+      ctx.restore();
+      
+      // -------------------------
+      // 更新并绘制飘落爱心粒子
+      // -------------------------
+      updateParticles();
+      drawParticles();
+      
+      // -------------------------
+      // 绘制顶部动态爱情宣言
+      // -------------------------
+      drawLoveText();
+      
+      requestAnimationFrame(animate);
+    }
+    
+    // =========================
+    // 绘制爱心图形函数
+    // size 为心形大小参数
+    // =========================
+    function drawHeart(size) {
+      ctx.beginPath();
+      // 从心形上部中间开始
+      ctx.moveTo(0, -size/3);
+      // 左侧曲线
+      ctx.bezierCurveTo(-size, -size, -size * 1.2, size/3, 0, size);
+      // 右侧曲线（对称）
+      ctx.bezierCurveTo(size * 1.2, size/3, size, -size, 0, -size/3);
+      ctx.closePath();
+      ctx.fillStyle = "red";
+      ctx.shadowColor = "red";
+      ctx.shadowBlur = 20;
+      ctx.fill();
+    }
+    
+    // =========================
+    // 更新飘落爱心粒子位置
+    // =========================
+    function updateParticles() {
+      for (let i = 0; i < particles.length; i++) {
+        let p = particles[i];
+        p.y += p.speed;        // 向下移动
+        p.rotation += p.rotationSpeed;
+        // 当粒子移出屏幕下方时，重置到画布上方
+        if (p.y - 50 * p.scale > canvas.height) {
+          p.y = -50;
+          p.x = Math.random() * canvas.width;
+        }
+      }
+    }
+    
+    // =========================
+    // 绘制飘落爱心粒子
+    // =========================
+    function drawParticles() {
+      for (let i = 0; i < particles.length; i++) {
+        let p = particles[i];
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation);
+        ctx.scale(p.scale, p.scale);
+        drawHeart(50);  // 复用大爱心绘制函数，不过通过缩放参数控制大小
+        ctx.restore();
+      }
+    }
+    
+    // =========================
+    // 绘制顶部动态爱情宣言
+    // =========================
+    function drawLoveText() {
+      const time = Date.now() / 1000;
+      // alpha 在 0.0~1.0 之间周期性变化，产生渐隐渐显效果
+      const alpha = 0.5 + 0.5 * Math.sin(time * 2);
+      ctx.save();
+      ctx.font = "40px cursive";
+      ctx.textAlign = "center";
+      ctx.fillStyle = `rgba(255, 105, 180, ${alpha})`; // 使用粉红色
+      ctx.shadowColor = "pink";
+      ctx.shadowBlur = 15;
+      ctx.fillText("永远爱你", canvas.width / 2, canvas.height * 0.15);
+      ctx.restore();
+    }
+    
+    animate();
+  </script>
 </body>
 </html>

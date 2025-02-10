@@ -1,1 +1,0 @@
-let demo:string = "Hello World";

@@ -1,0 +1,1983 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>星豪补光灯 - 随时随地去完美自拍</title>
+    <style>
+        :root {
+            --primary-color: #FF69B4;
+            --primary-dark: #FF1493;
+            --text-color: #333;
+            --light-text: #666;
+            --border-radius: 16px;
+        }
+        
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Microsoft YaHei', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            transition: background-color 0.5s;
+            background-color: #FFE4E1;
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+        
+        .container {
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+            padding: 10px;
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin: 15px 0;
+            color: var(--text-color);
+        }
+        
+        h2 {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 350px;
+            height: auto;
+            aspect-ratio: 3/4;
+            margin: 0 auto 20px;
+            border: 8px solid white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        #video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+        
+        /* 新增：视频滤镜容器 */
+        .video-filter {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .quick-actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .action-btn {
+            background-color: white;
+            color: var(--primary-color);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            font-size: 20px;
+        }
+        
+        .action-btn.primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .controls {
+            margin-top: 10px;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab-buttons {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 10px 15px;
+            margin: 0 5px;
+            font-size: 14px;
+            color: var(--light-text);
+            position: relative;
+        }
+        
+        .tab-btn.active {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+        
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--primary-color);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .color-options {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .color-option {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #ddd;
+            transition: transform 0.2s;
+            position: relative; /* 添加相对定位 */
+        }
+        
+        .color-option:hover, .color-option:active {
+            transform: scale(1.1);
+        }
+        
+        .color-option.active {
+            border: 2px solid var(--primary-color);
+        }
+        
+        /* 新增：颜色名称提示 */
+        .color-name-tooltip {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            color: var(--primary-color);
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            white-space: nowrap;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        .color-option:hover .color-name-tooltip,
+        .color-option.active .color-name-tooltip {
+            opacity: 1;
+        }
+        
+        /* 当前选中颜色显示 */
+        .current-color-name {
+            margin-top: 5px;
+            font-size: 14px;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+        
+        .slider-control {
+            margin: 15px 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+        }
+        
+        input[type="range"] {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+        }
+        
+        .value-display {
+            width: 40px;
+            text-align: right;
+            font-size: 14px;
+            color: var(--light-text);
+        }
+        
+        .custom-color {
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        input[type="color"] {
+            -webkit-appearance: none;
+            width: 35px;
+            height: 35px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+            border-radius: 50%;
+        }
+        
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 50%;
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover, button:active {
+            background-color: var(--primary-dark);
+        }
+        
+        .preset-scenes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .scene-option {
+            width: 70px;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .scene-preview {
+            width: 70px;
+            height: 70px;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .scene-name {
+            font-size: 12px;
+        }
+        
+        footer {
+            margin-top: 20px;
+            color: var(--light-text);
+            font-size: 12px;
+            padding: 10px;
+        }
+        
+        .tutorial-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .tutorial-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            max-width: 80%;
+            text-align: center;
+        }
+        
+        .tutorial-content img {
+            max-width: 100%;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+        
+        @media (max-height: 700px) {
+            .video-container {
+                aspect-ratio: 4/3;
+            }
+            
+            h1 {
+                margin: 10px 0;
+            }
+        }
+        
+        /* 加载动画 */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255,255,255,0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,105,180,0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 新增：我的照片样式 */
+        .photos-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 0 auto;
+            max-width: 100%;
+        }
+        
+        .photo-item {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            aspect-ratio: 3/4;
+            transition: transform 0.3s;
+        }
+        
+        .photo-item:hover {
+            transform: translateY(-5px);
+        }
+        
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .photo-actions {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            display: flex;
+            justify-content: space-around;
+            padding: 20px 8px 8px;
+        }
+        
+        .photo-action-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            color: var(--primary-color);
+            font-size: 16px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            margin: 0;
+            transition: transform 0.2s;
+        }
+        
+        .photo-action-btn:hover {
+            transform: scale(1.1);
+            background: white;
+        }
+        
+        .empty-photos {
+            text-align: center;
+            padding: 40px 0;
+            color: var(--light-text);
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+        
+        .empty-photos p {
+            margin: 0;
+            font-size: 14px;
+        }
+        
+        .empty-photos::before {
+            content: '📷';
+            display: block;
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+        
+        /* 分页控制样式 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 8px;
+        }
+        
+        .page-btn {
+            background-color: #f5f5f5;
+            color: var(--text-color);
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0;
+            transition: all 0.2s;
+        }
+        
+        .page-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .page-btn:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .page-nav {
+            background-color: #f5f5f5;
+            color: var(--text-color);
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0;
+        }
+        
+        .page-nav:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .page-nav:not(:disabled):hover {
+            background-color: #e0e0e0;
+        }
+        
+        /* 照片板块样式优化 */
+        .photos-header {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .photos-title {
+            font-size: 20px;
+            margin: 0;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+        
+        /* 优化清空按钮样式 */
+        .clear-photos-btn {
+            position: absolute;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            z-index: 5;
+            transition: transform 0.3s;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .clear-photos-btn:hover {
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .cat-icon {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        .cat-head {
+            width: 30px;
+            height: 30px;
+            background-color: #FF69B4;
+            border-radius: 50%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .cat-ear {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 15px solid #FF69B4;
+        }
+        
+        .cat-ear.left {
+            top: -8px;
+            left: 2px;
+            transform: rotate(-30deg);
+        }
+        
+        .cat-ear.right {
+            top: -8px;
+            right: 2px;
+            transform: rotate(30deg);
+        }
+        
+        .cat-eye {
+            width: 4px;
+            height: 8px;
+            background-color: white;
+            border-radius: 50%;
+            position: absolute;
+        }
+        
+        .cat-eye.left {
+            top: 10px;
+            left: 8px;
+        }
+        
+        .cat-eye.right {
+            top: 10px;
+            right: 8px;
+        }
+        
+        .cat-nose {
+            width: 5px;
+            height: 3px;
+            background-color: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 16px;
+        }
+        
+        .cat-mouth {
+            width: 8px;
+            height: 3px;
+            border-bottom: 2px solid white;
+            border-radius: 50%;
+            position: absolute;
+            top: 20px;
+        }
+        
+        .clear-tooltip {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            color: var(--primary-color);
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            white-space: nowrap;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        
+        .clear-photos-btn:hover .clear-tooltip {
+            opacity: 1;
+        }
+        
+        /* 照片预览模态框样式 */
+        .photo-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        
+        .photo-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 80vh;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal-img {
+            display: block;
+            max-width: 100%;
+            max-height: 80vh;
+            object-fit: contain;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 36px;
+            height: 36px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 1001;
+            transition: background-color 0.2s;
+        }
+        
+        .modal-close:hover {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        .modal-action-btn {
+            background-color: rgba(255, 255, 255, 0.9);
+            color: var(--primary-color);
+            border: none;
+            border-radius: 20px;
+            padding: 8px 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .modal-action-btn:hover {
+            background-color: white;
+        }
+        
+        .modal-action-btn i {
+            font-size: 18px;
+        }
+        
+        /* 美颜功能样式 */
+        .beauty-controls {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .beauty-title {
+            font-size: 18px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .beauty-title svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .beauty-slider {
+            margin-bottom: 15px;
+        }
+        
+        .beauty-slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .beauty-slider-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+            color: var(--primary-dark);
+        }
+        
+        .beauty-slider-label svg {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .beauty-slider-value {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .beauty-slider-container {
+            position: relative;
+            height: 4px;
+            background-color: rgba(255, 105, 180, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .beauty-slider-fill {
+            position: absolute;
+            height: 100%;
+            background-color: var(--primary-color);
+            left: 0;
+            top: 0;
+        }
+        
+        .beauty-slider-input {
+            position: absolute;
+            top: -8px;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            outline: none;
+            margin: 0;
+            padding: 0;
+            z-index: 2;
+            cursor: pointer;
+        }
+        
+        .beauty-slider-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        
+        .beauty-slider-input::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        
+        .beauty-reset {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            display: block;
+            margin: 15px auto 0;
+            transition: background-color 0.2s;
+        }
+        
+        .beauty-reset:hover {
+            background-color: var(--primary-dark);
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载动画 -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>正在准备您的美颜补光...</p>
+    </div>
+
+    <div class="container">
+        <h1>美颜补光灯</h1>
+        
+        <div class="video-container">
+            <video id="video" autoplay playsinline></video>
+            <div id="video-filter" class="video-filter"></div>
+        </div>
+        
+        <div class="quick-actions">
+            <button class="action-btn" id="fullscreen" title="全屏模式">
+                <i>⛶</i>
+            </button>
+            <button class="action-btn primary" id="screenshot" title="拍照保存">
+                <i>📷</i>
+            </button>
+            <button class="action-btn" id="toggle-camera" title="切换摄像头">
+                <i>🔄</i>
+            </button>
+        </div>
+        
+        <div class="controls">
+            <div class="tab-buttons">
+                <button class="tab-btn active" data-tab="colors">颜色</button>
+                <button class="tab-btn" data-tab="adjust">调整</button>
+                <button class="tab-btn" data-tab="scenes">场景</button>
+                <button class="tab-btn" data-tab="photos">我的照片</button>
+            </div>
+            
+            <div class="tab-content active" id="colors-tab">
+                <h2>选择补光颜色</h2>
+                <div class="color-options">
+                    <div class="color-option active" style="background-color: #FFE4E1;" data-color="#FFE4E1" data-name="柔和粉">
+                        <div class="color-name-tooltip">柔和粉</div>
+                    </div>
+                    <div class="color-option" style="background-color: #FFF0F5;" data-color="#FFF0F5" data-name="淡紫红">
+                        <div class="color-name-tooltip">淡紫红</div>
+                    </div>
+                    <div class="color-option" style="background-color: #FAEBD7;" data-color="#FAEBD7" data-name="古董白">
+                        <div class="color-name-tooltip">古董白</div>
+                    </div>
+                    <div class="color-option" style="background-color: #F0FFF0;" data-color="#F0FFF0" data-name="蜜瓜绿">
+                        <div class="color-name-tooltip">蜜瓜绿</div>
+                    </div>
+                    <div class="color-option" style="background-color: #E6E6FA;" data-color="#E6E6FA" data-name="薰衣草">
+                        <div class="color-name-tooltip">薰衣草</div>
+                    </div>
+                    <div class="color-option" style="background-color: #FFFFE0;" data-color="#FFFFE0" data-name="浅黄">
+                        <div class="color-name-tooltip">浅黄</div>
+                    </div>
+                    <div class="color-option" style="background-color: #FFCCE5;" data-color="#FFCCE5" data-name="少女粉">
+                        <div class="color-name-tooltip">少女粉</div>
+                    </div>
+                    <div class="color-option" style="background-color: #FFD1DC;" data-color="#FFD1DC" data-name="樱花粉">
+                        <div class="color-name-tooltip">樱花粉</div>
+                    </div>
+                    <div class="color-option" style="background-color: #F0E6FF;" data-color="#F0E6FF" data-name="梦幻紫">
+                        <div class="color-name-tooltip">梦幻紫</div>
+                    </div>
+                    <div class="color-option" style="background-color: #E0F7FA;" data-color="#E0F7FA" data-name="清新蓝">
+                        <div class="color-name-tooltip">清新蓝</div>
+                    </div>
+                    <div class="color-option" style="background-color: #FFF9C4;" data-color="#FFF9C4" data-name="香槟金">
+                        <div class="color-name-tooltip">香槟金</div>
+                    </div>
+                    <div class="color-option" style="background-color: #FCE4EC;" data-color="#FCE4EC" data-name="蜜桃粉">
+                        <div class="color-name-tooltip">蜜桃粉</div>
+                    </div>
+                </div>
+                
+                <div class="current-color-name" id="current-color-name">当前：柔和粉</div>
+                
+                <div class="custom-color">
+                    <input type="color" id="custom-color" value="#FFE4E1">
+                    <button id="apply-custom">应用自定义颜色</button>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="adjust-tab">
+                <h2>精细调整</h2>
+                
+                <div class="slider-control">
+                    <label for="brightness">亮度</label>
+                    <div class="slider-container">
+                        <input type="range" id="brightness" min="50" max="200" value="100">
+                        <span class="value-display" id="brightness-value">100%</span>
+                    </div>
+                </div>
+                
+                <div class="slider-control">
+                    <label for="saturation">饱和度</label>
+                    <div class="slider-container">
+                        <input type="range" id="saturation" min="0" max="300" value="100">
+                        <span class="value-display" id="saturation-value">100%</span>
+                    </div>
+                </div>
+                
+                <div class="slider-control">
+                    <label for="hue">色相</label>
+                    <div class="slider-container">
+                        <input type="range" id="hue" min="0" max="360" value="0">
+                        <span class="value-display" id="hue-value">0°</span>
+                    </div>
+                </div>
+                
+                <button id="reset-filters">重置调整</button>
+            </div>
+            
+            <div class="tab-content" id="scenes-tab">
+                <h2>美颜场景</h2>
+                
+                <div class="preset-scenes">
+                    <div class="scene-option" data-color="#FFD1DC" data-brightness="110" data-saturation="120" data-hue="0">
+                        <div class="scene-preview" style="background-color: #FFD1DC;"></div>
+                        <div class="scene-name">日系少女</div>
+                    </div>
+                    <div class="scene-option" data-color="#FFF0F5" data-brightness="105" data-saturation="90" data-hue="340">
+                        <div class="scene-preview" style="background-color: #FFF0F5;"></div>
+                        <div class="scene-name">柔光美白</div>
+                    </div>
+                    <div class="scene-option" data-color="#F0E6FF" data-brightness="100" data-saturation="110" data-hue="280">
+                        <div class="scene-preview" style="background-color: #F0E6FF;"></div>
+                        <div class="scene-name">紫色梦境</div>
+                    </div>
+                    <div class="scene-option" data-color="#E0F7FA" data-brightness="105" data-saturation="95" data-hue="180">
+                        <div class="scene-preview" style="background-color: #E0F7FA;"></div>
+                        <div class="scene-name">清新自然</div>
+                    </div>
+                    <div class="scene-option" data-color="#FFF9C4" data-brightness="115" data-saturation="105" data-hue="50">
+                        <div class="scene-preview" style="background-color: #FFF9C4;"></div>
+                        <div class="scene-name">暖阳黄昏</div>
+                    </div>
+                    <div class="scene-option" data-color="#FCE4EC" data-brightness="108" data-saturation="115" data-hue="10">
+                        <div class="scene-preview" style="background-color: #FCE4EC;"></div>
+                        <div class="scene-name">蜜桃甜心</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 修改我的照片标签页内容，优化布局 -->
+            <div class="tab-content" id="photos-tab">
+                <div class="photos-header">
+                    <h2 class="photos-title">我的照片</h2>
+                    
+                    <!-- 添加清空按钮 -->
+                    <button class="clear-photos-btn" id="clear-photos-btn">
+                        <div class="cat-icon">
+                            <div class="cat-head">
+                                <div class="cat-ear left"></div>
+                                <div class="cat-ear right"></div>
+                                <div class="cat-eye left"></div>
+                                <div class="cat-eye right"></div>
+                                <div class="cat-nose"></div>
+                                <div class="cat-mouth"></div>
+                            </div>
+                        </div>
+                        <span class="clear-tooltip">清空所有照片</span>
+                    </button>
+                </div>
+                
+                <div id="photos-container" class="photos-grid">
+                    <div class="empty-photos" id="empty-photos">
+                        <p>还没有照片，点击拍照按钮开始拍摄吧！</p>
+                    </div>
+                </div>
+                
+                <!-- 分页控制 -->
+                <div class="pagination" id="photos-pagination">
+                    <button class="page-nav" id="prev-page" disabled>&lt;</button>
+                    <div id="page-numbers"></div>
+                    <button class="page-nav" id="next-page" disabled>&gt;</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 添加照片预览模态框 -->
+        <div class="photo-modal" id="photo-modal">
+            <button class="modal-close" id="modal-close">×</button>
+            <div class="modal-content">
+                <img src="" alt="照片预览" class="modal-img" id="modal-img">
+            </div>
+            <div class="modal-actions">
+                <button class="modal-action-btn" id="modal-download">
+                    <span>💾</span> 保存照片
+                </button>
+                <button class="modal-action-btn" id="modal-delete">
+                    <span>🗑️</span> 删除照片
+                </button>
+            </div>
+        </div>
+        
+        <footer>
+            <p>调整背景颜色和亮度，找到最适合您的补光效果</p>
+            <p>© 2023 美颜补光灯 - 让您随时随地光彩照人</p>
+        </footer>
+    </div>
+    
+    <!-- 首次使用教程 -->
+    <div class="tutorial-overlay" id="tutorial" style="display: none;">
+        <div class="tutorial-content">
+            <h2>欢迎使用美颜补光灯</h2>
+            <p>这是一款专为女生设计的补光工具，利用屏幕发光为您提供完美自拍光线</p>
+            <img src="https://placeholder.pics/svg/300x200/DEDEDE/555555/使用教程" alt="使用教程">
+            <p>1. 选择适合您肤色的补光颜色<br>2. 调整亮度和饱和度<br>3. 尝试预设场景获得最佳效果</p>
+            <button id="close-tutorial">开始使用</button>
+        </div>
+    </div>
+    
+    <script>
+        // 页面加载完成后隐藏加载动画
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                document.getElementById('loading').style.display = 'none';
+                
+                // 检查是否首次访问
+                if (!localStorage.getItem('hasVisited')) {
+                    document.getElementById('tutorial').style.display = 'flex';
+                    localStorage.setItem('hasVisited', 'true');
+                }
+            }, 1500);
+        });
+        
+        // 关闭教程
+        document.getElementById('close-tutorial').addEventListener('click', function() {
+            document.getElementById('tutorial').style.display = 'none';
+        });
+        
+        // 标签切换功能
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                
+                // 移除所有标签的active类
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                // 为当前标签添加active类
+                this.classList.add('active');
+                document.getElementById(tabId + '-tab').classList.add('active');
+                
+                // 如果切换到照片标签，刷新照片列表
+                if (tabId === 'photos') {
+                    renderPhotos();
+                    updatePagination();
+                }
+            });
+        });
+        
+        // 获取摄像头访问权限
+        const video = document.getElementById('video');
+        let currentStream = null;
+        let facingMode = "user"; // 默认使用前置摄像头
+        
+        function startCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
+            
+            const constraints = {
+                video: {
+                    facingMode: facingMode,
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }
+            };
+            
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then(function(stream) {
+                    currentStream = stream;
+                    video.srcObject = stream;
+                })
+                .catch(function(error) {
+                    console.error("无法访问摄像头: ", error);
+                    alert("无法访问摄像头，请确保您已授予摄像头访问权限。");
+                });
+        }
+        
+        // 初始化摄像头
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            startCamera();
+        } else {
+            alert("您的浏览器不支持摄像头访问。请尝试使用Chrome、Firefox或Safari的最新版本。");
+        }
+        
+        // 切换摄像头
+        document.getElementById('toggle-camera').addEventListener('click', function() {
+            facingMode = facingMode === "user" ? "environment" : "user";
+            startCamera();
+        });
+        
+        // 颜色选择功能
+        const colorOptions = document.querySelectorAll('.color-option');
+        const currentColorName = document.getElementById('current-color-name');
+        
+        colorOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                // 移除其他选项的active类
+                colorOptions.forEach(opt => opt.classList.remove('active'));
+                // 为当前选项添加active类
+                this.classList.add('active');
+                // 更改背景颜色
+                document.body.style.backgroundColor = this.dataset.color;
+                // 更新当前颜色名称
+                currentColorName.textContent = '当前：' + this.dataset.name;
+            });
+        });
+        
+        // 获取滤镜相关元素
+        const brightnessSlider = document.getElementById('brightness');
+        const brightnessValue = document.getElementById('brightness-value');
+        const saturationSlider = document.getElementById('saturation');
+        const saturationValue = document.getElementById('saturation-value');
+        const hueSlider = document.getElementById('hue');
+        const hueValue = document.getElementById('hue-value');
+        const videoFilter = document.getElementById('video-filter');
+        
+        // 更新滤镜函数 - 完全重写
+        function updateFilters(brightness, saturation, hue) {
+            // 更新滑块值
+            brightnessSlider.value = brightness;
+            saturationSlider.value = saturation;
+            hueSlider.value = hue;
+            
+            // 更新显示的数值
+            brightnessValue.textContent = brightness + '%';
+            saturationValue.textContent = saturation + '%';
+            hueValue.textContent = hue + '°';
+            
+            // 应用所有滤镜效果
+            applyAllFilters();
+        }
+        
+        // 新增：统一滤镜应用函数
+        function applyAllFilters() {
+            // 获取调整参数
+            const brightness = parseInt(brightnessSlider.value);
+            const saturation = parseInt(saturationSlider.value);
+            const hue = parseInt(hueSlider.value);
+            
+            // 获取美颜参数（如果存在）
+            let smoothing = 0;
+            if (typeof smoothingSlider !== 'undefined' && smoothingSlider) {
+                smoothing = parseInt(smoothingSlider.value || 0);
+            }
+            
+            // 计算滤镜效果
+            const blurValue = smoothing * 0.05; // 0-5px的模糊
+            
+            // 构建完整滤镜字符串
+            const adjustFilter = `brightness(${brightness}%) saturate(${saturation}%) hue-rotate(${hue}deg)`;
+            const beautyFilter = smoothing > 0 ? `blur(${blurValue}px)` : '';
+            const finalFilter = beautyFilter + ' ' + adjustFilter;
+            
+            // 应用滤镜到视频层
+            const videoFilter = document.getElementById('video-filter');
+            if (videoFilter) {
+                videoFilter.style.filter = finalFilter;
+                console.log("应用完整滤镜:", finalFilter);
+            } else {
+                console.error("找不到视频滤镜层元素");
+            }
+        }
+        
+        // 监听亮度变化
+        brightnessSlider.addEventListener('input', function() {
+            const brightnessVal = parseInt(this.value);
+            brightnessValue.textContent = brightnessVal + '%';
+            applyAllFilters();
+        });
+        
+        // 监听饱和度变化
+        saturationSlider.addEventListener('input', function() {
+            const saturationVal = parseInt(this.value);
+            saturationValue.textContent = saturationVal + '%';
+            applyAllFilters();
+        });
+        
+        // 监听色相变化
+        hueSlider.addEventListener('input', function() {
+            const hueVal = parseInt(this.value);
+            hueValue.textContent = hueVal + '°';
+            applyAllFilters();
+        });
+        
+        // 重置滤镜按钮
+        document.getElementById('reset-filters').addEventListener('click', function() {
+            updateFilters(100, 100, 0);
+        });
+        
+        // 自定义颜色
+        const customColorInput = document.getElementById('custom-color');
+        document.getElementById('apply-custom').addEventListener('click', function() {
+            const customColor = customColorInput.value;
+            document.body.style.backgroundColor = customColor;
+            
+            // 移除其他选项的active类
+            colorOptions.forEach(opt => opt.classList.remove('active'));
+            
+            // 更新当前颜色名称为自定义颜色
+            currentColorName.textContent = '当前：自定义颜色';
+        });
+        
+        // 场景预设
+        const sceneOptions = document.querySelectorAll('.scene-option');
+        sceneOptions.forEach(scene => {
+            scene.addEventListener('click', function() {
+                const color = this.dataset.color;
+                const brightness = this.dataset.brightness;
+                const saturation = this.dataset.saturation;
+                const hue = this.dataset.hue;
+                
+                document.body.style.backgroundColor = color;
+                updateFilters(brightness, saturation, hue);
+                
+                // 移除颜色选项的active类
+                colorOptions.forEach(opt => {
+                    if(opt.dataset.color === color) {
+                        opt.classList.add('active');
+                        currentColorName.textContent = '当前：' + opt.dataset.name;
+                    } else {
+                        opt.classList.remove('active');
+                    }
+                });
+            });
+        });
+        
+        // 全屏模式
+        document.getElementById('fullscreen').addEventListener('click', function() {
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            } else if (document.documentElement.mozRequestFullScreen) { // Firefox
+                document.documentElement.mozRequestFullScreen();
+            } else if (document.documentElement.webkitRequestFullscreen) { // Chrome, Safari
+                document.documentElement.webkitRequestFullscreen();
+            } else if (document.documentElement.msRequestFullscreen) { // IE/Edge
+                document.documentElement.msRequestFullscreen();
+            }
+        });
+        
+        // 照片管理功能 - 添加原始高质量照片存储
+        let myPhotos = []; // 存储压缩后的照片用于显示
+        let originalPhotos = []; // 存储原始高质量照片用于下载
+        let currentPage = 1;
+        const photosPerPage = 3; // 每页显示3张照片
+        
+        // 从本地存储加载照片
+        function loadPhotos() {
+            const savedPhotos = localStorage.getItem('beautyLightPhotos');
+            const savedOriginals = localStorage.getItem('beautyLightOriginalPhotos');
+            
+            if (savedPhotos) {
+                try {
+                    myPhotos = JSON.parse(savedPhotos);
+                    
+                    // 如果有原始照片数据，也加载它
+                    if (savedOriginals) {
+                        originalPhotos = JSON.parse(savedOriginals);
+                    } else {
+                        // 兼容旧数据，如果没有原始照片，复制压缩照片
+                        originalPhotos = [...myPhotos];
+                    }
+                    
+                    // 确保两个数组长度一致
+                    if (originalPhotos.length !== myPhotos.length) {
+                        // 如果不一致，以压缩照片为准
+                        originalPhotos = originalPhotos.slice(0, myPhotos.length);
+                        while (originalPhotos.length < myPhotos.length) {
+                            originalPhotos.push(myPhotos[originalPhotos.length]);
+                        }
+                    }
+                    
+                    renderPhotos();
+                    updatePagination();
+                } catch (e) {
+                    console.error("加载照片失败:", e);
+                    myPhotos = [];
+                    originalPhotos = [];
+                    localStorage.removeItem('beautyLightPhotos');
+                    localStorage.removeItem('beautyLightOriginalPhotos');
+                }
+            }
+        }
+        
+        // 保存照片到本地存储 - 分别存储压缩版和原始版
+        function savePhotosToStorage() {
+            try {
+                // 限制存储的照片数量，防止超出配额
+                const maxPhotos = 20; // 最多保存20张照片
+                if (myPhotos.length > maxPhotos) {
+                    myPhotos = myPhotos.slice(0, maxPhotos);
+                    originalPhotos = originalPhotos.slice(0, maxPhotos);
+                    showToast(`已达到最大存储限制(${maxPhotos}张)，最早的照片已被删除`);
+                }
+                
+                // 保存压缩照片
+                localStorage.setItem('beautyLightPhotos', JSON.stringify(myPhotos));
+                
+                // 保存原始照片
+                try {
+                    localStorage.setItem('beautyLightOriginalPhotos', JSON.stringify(originalPhotos));
+                } catch (storageError) {
+                    // 如果原始照片太大导致存储失败，只保存压缩照片
+                    console.warn("原始照片太大，无法全部保存:", storageError);
+                    // 确保两个数组长度一致
+                    originalPhotos = [...myPhotos];
+                    localStorage.removeItem('beautyLightOriginalPhotos');
+                }
+            } catch (e) {
+                console.error("保存照片失败:", e);
+                showToast("存储空间不足，无法保存更多照片");
+            }
+        }
+        
+        // 压缩图片函数 - 返回较低质量的图片
+        function compressImage(base64, quality = 0.3) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    // 计算压缩后的尺寸，最大宽度300像素
+                    const maxWidth = 300;
+                    let width = img.width;
+                    let height = img.height;
+                    
+                    if (width > maxWidth) {
+                        height = (height * maxWidth) / width;
+                        width = maxWidth;
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // 使用较低质量的JPEG格式
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                    resolve(compressedDataUrl);
+                };
+                img.src = base64;
+            });
+        }
+        
+        // 照片预览模态框功能
+        const photoModal = document.getElementById('photo-modal');
+        const modalImg = document.getElementById('modal-img');
+        const modalClose = document.getElementById('modal-close');
+        const modalDownload = document.getElementById('modal-download');
+        const modalDelete = document.getElementById('modal-delete');
+        let currentPhotoIndex = -1;
+        
+        // 打开照片预览模态框
+        function openPhotoModal(photoUrl, index) {
+            modalImg.src = photoUrl;
+            currentPhotoIndex = index;
+            photoModal.classList.add('active');
+            
+            // 禁止背景滚动
+            document.body.style.overflow = 'hidden';
+            
+            console.log("打开模态框，照片索引:", index);
+        }
+        
+        // 关闭照片预览模态框
+        function closePhotoModal() {
+            photoModal.classList.remove('active');
+            
+            // 延迟清除图片源，避免闪烁
+            setTimeout(() => {
+                modalImg.src = '';
+                currentPhotoIndex = -1;
+            }, 300);
+            
+            // 恢复背景滚动
+            document.body.style.overflow = '';
+        }
+        
+        // 关闭按钮事件
+        modalClose.addEventListener('click', closePhotoModal);
+        
+        // 点击模态框背景也可关闭
+        photoModal.addEventListener('click', function(e) {
+            if (e.target === photoModal) {
+                closePhotoModal();
+            }
+        });
+        
+        // 模态框中的下载按钮
+        modalDownload.addEventListener('click', function() {
+            console.log("点击了模态框下载按钮，当前索引:", currentPhotoIndex);
+            if (currentPhotoIndex >= 0 && currentPhotoIndex < originalPhotos.length) {
+                downloadPhoto(originalPhotos[currentPhotoIndex], currentPhotoIndex);
+            } else {
+                console.error("无效的照片索引:", currentPhotoIndex);
+                showToast("无法下载照片，请重试");
+            }
+        });
+        
+        // 模态框中的删除按钮
+        modalDelete.addEventListener('click', function() {
+            console.log("点击了模态框删除按钮，当前索引:", currentPhotoIndex);
+            if (currentPhotoIndex >= 0 && currentPhotoIndex < myPhotos.length) {
+                // 先关闭模态框
+                closePhotoModal();
+                
+                // 然后删除照片
+                setTimeout(() => {
+                    deletePhoto(currentPhotoIndex);
+                }, 300);
+            } else {
+                console.error("无效的照片索引:", currentPhotoIndex);
+                showToast("无法删除照片，请重试");
+            }
+        });
+        
+        // 修改渲染照片列表函数，添加点击预览功能
+        function renderPhotos() {
+            const photosContainer = document.getElementById('photos-container');
+            const paginationContainer = document.getElementById('photos-pagination');
+            
+            if (!photosContainer) {
+                console.error("找不到照片容器元素");
+                return;
+            }
+            
+            // 清空当前内容
+            photosContainer.innerHTML = '';
+            
+            if (myPhotos.length === 0) {
+                // 创建新的空状态提示
+                const emptyState = document.createElement('div');
+                emptyState.className = 'empty-photos';
+                emptyState.id = 'empty-photos';
+                
+                const emptyText = document.createElement('p');
+                emptyText.textContent = '还没有照片，点击拍照按钮开始拍摄吧！';
+                
+                emptyState.appendChild(emptyText);
+                photosContainer.appendChild(emptyState);
+                
+                // 隐藏分页
+                if (paginationContainer) {
+                    paginationContainer.style.display = 'none';
+                }
+                return;
+            }
+            
+            // 显示分页
+            if (paginationContainer) {
+                paginationContainer.style.display = 'flex';
+            }
+            
+            // 计算当前页的照片
+            const startIndex = (currentPage - 1) * photosPerPage;
+            const endIndex = Math.min(startIndex + photosPerPage, myPhotos.length);
+            const currentPagePhotos = myPhotos.slice(startIndex, endIndex);
+            
+            // 有照片时，创建照片网格
+            currentPagePhotos.forEach((photo, index) => {
+                const actualIndex = startIndex + index; // 计算在完整数组中的索引
+                
+                const photoItem = document.createElement('div');
+                photoItem.className = 'photo-item';
+                
+                const img = document.createElement('img');
+                img.src = photo;
+                photoItem.appendChild(img);
+                
+                // 添加点击预览功能
+                photoItem.addEventListener('click', function(e) {
+                    // 如果点击的是操作按钮，不触发预览
+                    if (e.target.closest('.photo-actions')) {
+                        return;
+                    }
+                    console.log("点击照片，打开预览，索引:", actualIndex);
+                    openPhotoModal(photo, actualIndex);
+                });
+                
+                const actions = document.createElement('div');
+                actions.className = 'photo-actions';
+                
+                const downloadBtn = document.createElement('button');
+                downloadBtn.className = 'photo-action-btn';
+                downloadBtn.innerHTML = '💾';
+                downloadBtn.title = '保存';
+                downloadBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // 阻止事件冒泡
+                    downloadPhoto(originalPhotos[actualIndex] || myPhotos[actualIndex], actualIndex);
+                });
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'photo-action-btn';
+                deleteBtn.innerHTML = '🗑️';
+                deleteBtn.title = '删除';
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // 阻止事件冒泡
+                    deletePhoto(actualIndex);
+                });
+                
+                actions.appendChild(downloadBtn);
+                actions.appendChild(deleteBtn);
+                
+                photoItem.appendChild(actions);
+                photosContainer.appendChild(photoItem);
+            });
+        }
+        
+        // 更新分页控制
+        function updatePagination() {
+            const pageNumbers = document.getElementById('page-numbers');
+            const prevBtn = document.getElementById('prev-page');
+            const nextBtn = document.getElementById('next-page');
+            
+            if (!pageNumbers) return;
+            
+            // 计算总页数
+            const totalPages = Math.ceil(myPhotos.length / photosPerPage);
+            
+            // 清空页码
+            pageNumbers.innerHTML = '';
+            
+            // 如果没有照片，隐藏分页
+            if (totalPages === 0) {
+                document.getElementById('photos-pagination').style.display = 'none';
+                return;
+            }
+            
+            // 显示分页
+            document.getElementById('photos-pagination').style.display = 'flex';
+            
+            // 创建页码按钮
+            for (let i = 1; i <= totalPages; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.className = 'page-btn' + (i === currentPage ? ' active' : '');
+                pageBtn.textContent = i;
+                pageBtn.addEventListener('click', () => {
+                    currentPage = i;
+                    renderPhotos();
+                    updatePagination();
+                });
+                pageNumbers.appendChild(pageBtn);
+            }
+            
+            // 更新上一页/下一页按钮状态
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage === totalPages;
+            
+            // 添加上一页/下一页事件
+            prevBtn.onclick = function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderPhotos();
+                    updatePagination();
+                }
+            };
+            
+            nextBtn.onclick = function() {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderPhotos();
+                    updatePagination();
+                }
+            };
+        }
+        
+        // 下载照片 - 使用原始高质量照片
+        function downloadPhoto(photoUrl, index) {
+            // 使用原始高质量照片
+            const highQualityPhoto = originalPhotos[index] || photoUrl;
+            
+            const link = document.createElement('a');
+            link.download = '美颜照片_' + new Date().toISOString().slice(0, 19).replace(/:/g, '-') + '.png';
+            link.href = highQualityPhoto;
+            link.click();
+            
+            // 显示下载成功提示
+            showToast('高质量照片已保存到设备');
+        }
+        
+        // 删除照片 - 同时删除压缩版和原始版
+        function deletePhoto(index) {
+            if (confirm('确定要删除这张照片吗？')) {
+                myPhotos.splice(index, 1);
+                originalPhotos.splice(index, 1);
+                savePhotosToStorage();
+                
+                // 如果当前页没有照片了且不是第一页，则返回上一页
+                const totalPages = Math.ceil(myPhotos.length / photosPerPage);
+                if (currentPage > totalPages && currentPage > 1) {
+                    currentPage--;
+                }
+                
+                renderPhotos();
+                updatePagination();
+                showToast('照片已删除');
+            }
+        }
+        
+        // 显示提示信息
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.style.position = 'fixed';
+            toast.style.bottom = '20px';
+            toast.style.left = '50%';
+            toast.style.transform = 'translateX(-50%)';
+            toast.style.backgroundColor = 'rgba(0,0,0,0.7)';
+            toast.style.color = 'white';
+            toast.style.padding = '10px 20px';
+            toast.style.borderRadius = '20px';
+            toast.style.zIndex = '1000';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.5s';
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 500);
+            }, 2000);
+        }
+        
+        // 修改截图功能，保存原始高质量照片和压缩照片
+        document.getElementById('screenshot').addEventListener('click', async function() {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            const ctx = canvas.getContext('2d');
+            
+            // 绘制视频帧
+            if (facingMode === "user") {
+                ctx.translate(canvas.width, 0);
+                ctx.scale(-1, 1);
+            }
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // 获取原始高质量照片URL
+            const originalPhotoUrl = canvas.toDataURL('image/png'); // 使用PNG格式，最高质量
+            
+            // 压缩照片用于显示
+            const compressedPhotoUrl = await compressImage(originalPhotoUrl);
+            
+            // 添加到照片数组
+            myPhotos.unshift(compressedPhotoUrl); // 压缩版用于显示
+            originalPhotos.unshift(originalPhotoUrl); // 原始版用于下载
+            savePhotosToStorage();
+            
+            // 确保回到第一页，显示最新照片
+            currentPage = 1;
+            
+            // 先渲染照片列表，再切换到照片标签
+            renderPhotos();
+            updatePagination();
+            
+            // 切换到我的照片标签
+            tabButtons.forEach(btn => {
+                if (btn.getAttribute('data-tab') === 'photos') {
+                    // 触发点击事件
+                    btn.click();
+                }
+            });
+            
+            // 显示拍照成功提示
+            showToast('照片已保存到"我的照片"');
+        });
+        
+        // 修改清空照片功能，同时清空两个数组
+        document.getElementById('clear-photos-btn').addEventListener('click', function() {
+            if (myPhotos.length === 0) {
+                showToast('没有照片可清空');
+                return;
+            }
+            
+            if (confirm('确定要清空所有照片吗？此操作不可恢复！')) {
+                // 清空照片数组
+                myPhotos = [];
+                originalPhotos = [];
+                
+                // 清空本地存储
+                localStorage.removeItem('beautyLightPhotos');
+                localStorage.removeItem('beautyLightOriginalPhotos');
+                
+                // 重置当前页为第1页
+                currentPage = 1;
+                
+                // 更新界面
+                renderPhotos();
+                updatePagination();
+                
+                // 显示清空成功提示
+                showToast('所有照片已清空');
+            }
+        });
+        
+        // 确保在页面加载完成后初始化滤镜
+        window.addEventListener('DOMContentLoaded', function() {
+            // 确保视频滤镜层存在
+            if (!document.getElementById('video-filter')) {
+                const videoContainer = document.querySelector('.video-container');
+                if (videoContainer) {
+                    const filterDiv = document.createElement('div');
+                    filterDiv.id = 'video-filter';
+                    filterDiv.className = 'video-filter';
+                    videoContainer.appendChild(filterDiv);
+                    console.log("创建了视频滤镜层");
+                }
+            }
+            
+            // 初始化滤镜
+            setTimeout(function() {
+                updateFilters(100, 100, 0);
+            }, 1000);
+        });
+        
+        // 在视频加载后再次确保滤镜正确应用
+        video.addEventListener('loadeddata', function() {
+            console.log("视频已加载，应用所有滤镜");
+            applyAllFilters();
+        });
+        
+        // 添加键盘事件支持
+        document.addEventListener('keydown', function(e) {
+            // ESC键关闭模态框
+            if (e.key === 'Escape' && photoModal.classList.contains('active')) {
+                closePhotoModal();
+            }
+        });
+        
+        // 美颜功能实现
+        let smoothingSlider, whiteningSlider, eyeSlider, faceSlider;
+        let smoothingValue, whiteningValue, eyeValue, faceValue;
+        let smoothingFill, whiteningFill, eyeFill, faceFill;
+        
+        // 在DOMContentLoaded事件中初始化这些变量
+        window.addEventListener('DOMContentLoaded', function() {
+            // 尝试获取美颜相关元素
+            smoothingSlider = document.getElementById('smoothing');
+            whiteningSlider = document.getElementById('whitening');
+            eyeSlider = document.getElementById('eye');
+            faceSlider = document.getElementById('face');
+            
+            smoothingValue = document.getElementById('smoothing-value');
+            whiteningValue = document.getElementById('whitening-value');
+            eyeValue = document.getElementById('eye-value');
+            faceValue = document.getElementById('face-value');
+            
+            smoothingFill = document.getElementById('smoothing-fill');
+            whiteningFill = document.getElementById('whitening-fill');
+            eyeFill = document.getElementById('eye-fill');
+            faceFill = document.getElementById('face-fill');
+            
+            // 如果美颜滑块存在，添加事件监听器
+            if (smoothingSlider) {
+                smoothingSlider.addEventListener('input', function() {
+                    updateBeautyEffects();
+                });
+            }
+            
+            if (whiteningSlider) {
+                whiteningSlider.addEventListener('input', function() {
+                    updateBeautyEffects();
+                });
+            }
+            
+            if (eyeSlider) {
+                eyeSlider.addEventListener('input', function() {
+                    updateBeautyEffects();
+                });
+            }
+            
+            if (faceSlider) {
+                faceSlider.addEventListener('input', function() {
+                    updateBeautyEffects();
+                });
+            }
+            
+            // 重置美颜按钮
+            const resetBeautyBtn = document.getElementById('reset-beauty');
+            if (resetBeautyBtn) {
+                resetBeautyBtn.addEventListener('click', resetBeautyEffects);
+            }
+            
+            // 确保视频滤镜层存在
+            if (!document.getElementById('video-filter')) {
+                const videoContainer = document.querySelector('.video-container');
+                if (videoContainer) {
+                    const filterDiv = document.createElement('div');
+                    filterDiv.id = 'video-filter';
+                    filterDiv.className = 'video-filter';
+                    videoContainer.appendChild(filterDiv);
+                    console.log("创建了视频滤镜层");
+                }
+            }
+            
+            // 初始化滤镜
+            setTimeout(function() {
+                updateFilters(100, 100, 0);
+                // 如果有美颜设置，加载它
+                if (smoothingSlider) {
+                    loadBeautySettings();
+                }
+            }, 1000);
+        });
+        
+        // 更新美颜效果函数
+        function updateBeautyEffects() {
+            if (!smoothingSlider) return;
+            
+            const smoothing = parseInt(smoothingSlider.value);
+            const whitening = parseInt(whiteningSlider.value);
+            const eye = parseInt(eyeSlider.value);
+            const face = parseInt(faceSlider.value);
+            
+            // 更新显示值
+            if (smoothingValue) smoothingValue.textContent = `${smoothing}%`;
+            if (whiteningValue) whiteningValue.textContent = `${whitening}%`;
+            if (eyeValue) eyeValue.textContent = `${eye}%`;
+            if (faceValue) faceValue.textContent = `${face}%`;
+            
+            // 更新滑块填充
+            if (smoothingFill) smoothingFill.style.width = `${smoothing}%`;
+            if (whiteningFill) whiteningFill.style.width = `${whitening}%`;
+            if (eyeFill) eyeFill.style.width = `${eye}%`;
+            if (faceFill) faceFill.style.width = `${face}%`;
+            
+            // 应用所有滤镜
+            applyAllFilters();
+            
+            // 保存美颜设置到本地存储
+            const beautySettings = {
+                smoothing,
+                whitening,
+                eye,
+                face
+            };
+            localStorage.setItem('beautyLightBeautySettings', JSON.stringify(beautySettings));
+        }
+        
+        // 加载保存的美颜设置
+        function loadBeautySettings() {
+            if (!smoothingSlider) return;
+            
+            const savedSettings = localStorage.getItem('beautyLightBeautySettings');
+            if (savedSettings) {
+                try {
+                    const settings = JSON.parse(savedSettings);
+                    
+                    // 设置滑块值
+                    smoothingSlider.value = settings.smoothing || 0;
+                    whiteningSlider.value = settings.whitening || 0;
+                    eyeSlider.value = settings.eye || 0;
+                    faceSlider.value = settings.face || 0;
+                    
+                    // 更新效果
+                    updateBeautyEffects();
+                } catch (e) {
+                    console.error("加载美颜设置失败:", e);
+                    resetBeautyEffects();
+                }
+            } else {
+                // 默认设置一些美颜效果
+                smoothingSlider.value = 30;
+                whiteningSlider.value = 20;
+                eyeSlider.value = 0;
+                faceSlider.value = 0;
+                updateBeautyEffects();
+            }
+        }
+        
+        // 重置美颜效果
+        function resetBeautyEffects() {
+            if (!smoothingSlider) return;
+            
+            smoothingSlider.value = 0;
+            whiteningSlider.value = 0;
+            eyeSlider.value = 0;
+            faceSlider.value = 0;
+            updateBeautyEffects();
+        }
+    </script>
+</body>
+</html> 

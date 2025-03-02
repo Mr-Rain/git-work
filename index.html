@@ -1,261 +1,291 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>我的创意空间</title>
     <style>
-        @font-face {
-            font-family: 'HanSans';
-            src: url('https://cdn.jsdelivr.net/npm/chinese-fonts@5.0.0/source-han-sans/regular.min.woff2') format('woff2');
+        /* 基础样式设置 */
+        :root {
+            --primary-color: #8C52FF;
+            --primary-dark: #6E3AD9;
+            --secondary-color: #FF2E93;
+            --accent-color: #00E9FF;
+            --dark-bg: #121212;
+            --card-bg: #1E1E1E;
+            --text-light: #FFFFFF;
+            --text-secondary: rgba(255, 255, 255, 0.7);
         }
-        body {
+        
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #121212, #1A1A2E);
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* 动画背景 */
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
             overflow: hidden;
-            background: linear-gradient(45deg, #1a1a2e, #16213e, #0f3460);
-            touch-action: none;
-            height: 100vh;
         }
-        canvas {
-            display: block;
-            position: relative;
-            z-index: 3;
-        }
-        .background-effect {
-            position: fixed;
-            width: 100vw;
-            height: 100vh;
-            background: radial-gradient(circle at 50% 50%, 
-                rgba(255,255,255,0.1) 0%,
-                rgba(0,0,0,0) 70%);
-            animation: pulse 8s infinite;
-            z-index: 1;
-        }
-        .heart {
+        
+        .stars {
             position: absolute;
-            pointer-events: none;
-            font-size: 30px;
-            animation: heart 800ms ease-out;
-            filter: drop-shadow(0 0 5px #ff69b4);
-            z-index: 4;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 50px 160px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 90px 40px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 130px 80px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 160px 120px, #fff, rgba(0,0,0,0));
+            background-repeat: repeat;
+            background-size: 200px 200px;
+            animation: twinkle 4s infinite;
         }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.2); opacity: 0.5; }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
         }
-        @keyframes heart {
-            0% { opacity: 1; transform: scale(1); }
-            100% { opacity: 0; transform: scale(3); }
+        
+        /* 主要内容布局 */
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 0;
         }
-        .love-text {
-            position: fixed;
-            top: 15%;
-            left: 50%;
-            transform: translateX(-50%);
-            font-family: cursive;
-            color: #FF69B4;
-            text-shadow: 0 0 15px rgba(255,105,180,0.5);
-            z-index: 2;
+        
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin: 20px 0;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+        
+        /* 卡片布局 */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(140, 82, 255, 0.3);
+        }
+        
+        .card-image {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+        }
+        
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        
+        .card:hover .card-image img {
+            transform: scale(1.05);
+        }
+        
+        .card-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            height: 50%;
+        }
+        
+        .card-content {
+            padding: 20px;
+        }
+        
+        .card-title {
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+            color: var(--text-light);
+        }
+        
+        .card-description {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        .card-link {
+            display: inline-block;
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .card-link:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(110, 58, 217, 0.5);
+        }
+        
+        /* 底部样式 */
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 60px;
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+                padding: 20px 0;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
+            .cards {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* 悬浮动画 */
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
     </style>
 </head>
 <body>
-    <div class="background-effect"></div>
-    <div class="love-text" id="loveText">我永远爱你杨馨茜</div>
-    <canvas id="canvas"></canvas>
+    <div class="background">
+        <div class="stars"></div>
+    </div>
+    
+    <div class="container">
+        <header>
+            <h1 class="floating">我的创意空间</h1>
+            <p class="subtitle">探索创意，感受科技与艺术的美妙</p>
+        </header>
+        
+        <div class="cards">
+            <!-- 心形动画卡片 -->
+            <div class="card">
+                <div class="card-image">
+                    <img src="https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80" alt="爱心动画">
+                    <div class="card-overlay"></div>
+                </div>
+                <div class="card-content">
+                    <h2 class="card-title">心动时刻</h2>
+                    <p class="card-description">唯美浪漫的3D心形动画，让爱意在空间中流转，营造温馨感人的氛围。</p>
+                    <a href="yxq.html" class="card-link">体验一下</a>
+                </div>
+            </div>
+            
+            <!-- 太阳系卡片 -->
+            <div class="card">
+                <div class="card-image">
+                    <img src="https://images.unsplash.com/photo-1462331940025-496dfbfc7564?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1112&q=80" alt="太阳系九星连珠">
+                    <div class="card-overlay"></div>
+                </div>
+                <div class="card-content">
+                    <h2 class="card-title">太阳系九星连珠</h2>
+                    <p class="card-description">探索宇宙奥秘，观赏罕见的九大行星排列奇观，感受浩瀚宇宙的神奇魅力。</p>
+                    <a href="planet.html" class="card-link">探索宇宙</a>
+                </div>
+            </div>
+            
+            <!-- 补光灯自拍卡片 -->
+            <div class="card">
+                <div class="card-image">
+                    <img src="https://images.unsplash.com/photo-1526047932273-341f2a7631f9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=880&q=80" alt="星豪补光灯">
+                    <div class="card-overlay"></div>
+                </div>
+                <div class="card-content">
+                    <h2 class="card-title">星豪补光灯</h2>
+                    <p class="card-description">随时随地拍出完美自拍，专业补光效果让你在各种光线环境下都能光彩照人。</p>
+                    <a href="photo.html" class="card-link">开始自拍</a>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2023 创意空间 - 用科技点亮生活</p>
+        </footer>
+    </div>
+    
     <script>
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        const hearts = [];
-        
-        // 高清适配
-        const dpr = window.devicePixelRatio || 1;
-        function resizeCanvas() {
-            canvas.width = window.innerWidth * dpr;
-            canvas.height = window.innerHeight * dpr;
-            canvas.style.width = window.innerWidth + 'px';
-            canvas.style.height = window.innerHeight + 'px';
-            ctx.scale(dpr, dpr);
-            document.getElementById('loveText').style.fontSize = `${Math.min(window.innerWidth/10, 50)}px`;
-        }
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-
-        // 显示参数
-        const chars = ["杨", "馨", "茜"];
-        const points = [];
-        const baseFontSize = 12;
-        const rotationSpeed = 0.01;
-
-        // 生成球体点阵
-        function initSphere() {
-            const numPoints = 300;
-            const angleStep = Math.PI * (3 - Math.sqrt(5));
-            const radius = Math.min(window.innerWidth, window.innerHeight) * 0.3;
-
-            for (let i = 0; i < numPoints; i++) {
-                const y = 1 - (i / numPoints) * 2;
-                const radiusAtY = Math.sqrt(1 - y * y);
-                const angle = i * angleStep;
-                
-                points.push({
-                    x: Math.cos(angle) * radiusAtY * radius,
-                    y: y * radius,
-                    z: Math.sin(angle) * radiusAtY * radius,
-                    char: chars[i % chars.length]
+        // 添加星星闪烁动画效果
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.card');
+            
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    card.style.borderColor = getRandomColor();
                 });
+            });
+            
+            function getRandomColor() {
+                const colors = ['#8C52FF', '#FF2E93', '#00E9FF', '#FFDE59', '#00FF85'];
+                return colors[Math.floor(Math.random() * colors.length)];
             }
-        }
-
-        // 投影函数
-
-        // point: 3D坐标
-        // rotationX: X轴旋转角度
-        function project(point, rotationX, rotationY) {
-            let x = point.x * Math.cos(rotationY) - point.z * Math.sin(rotationY);
-            let z = point.z * Math.cos(rotationY) + point.x * Math.sin(rotationY);
-            let y = point.y * Math.cos(rotationX) - z * Math.sin(rotationX);
-            const depth = z * Math.cos(rotationX) + point.y * Math.sin(rotationX);
-
-            const scale = 600 / (600 - depth);
-            return {
-                x: window.innerWidth/2 + x * scale,
-                y: window.innerHeight/2 + y * scale,
-                scale: Math.min(2, Math.max(0.8, scale))
-            };
-        }
-
-        // 创建动态爱心
-        function createHeart(x, y) {
-            const heart = document.createElement('div');
-            heart.className = 'heart';
-            heart.style.left = `${x - 15}px`;
-            heart.style.top = `${y - 15}px`;
-            heart.innerHTML = '❤';
-            document.body.appendChild(heart);
-            
-            heart.style.setProperty('--hue', Math.random() * 360);
-            heart.style.animation = `heart ${800 + Math.random()*500}ms cubic-bezier(0.4, 0, 0.2, 1)`;
-            
-            setTimeout(() => heart.remove(), 1000);
-        }
-
-        // 爱心雨粒子系统
-        const particles = [];
-        function createParticle() {
-            return {
-                x: Math.random() * canvas.width,
-                y: -50,
-                speed: 0.5 + Math.random() * 1.5,
-                scale: 0.2 + Math.random() * 0.3,
-                rotation: Math.random() * Math.PI * 2,
-                rotationSpeed: (Math.random() - 0.5) * 0.02
-            };
-        }
-        
-        // 初始化爱心雨
-        for (let i = 0; i < 50; i++) {
-            particles.push(createParticle());
-        }
-
-        // 更新爱心雨
-        function updateParticles() {
-            particles.forEach(p => {
-                p.y += p.speed;
-                p.rotation += p.rotationSpeed;
-                if (p.y > canvas.height + 100) {
-                    Object.assign(p, createParticle());
-                }
-            });
-        }
-
-        // 绘制爱心雨
-        function drawParticles() {
-            ctx.save();
-            ctx.fillStyle = '#FF69B4';
-            particles.forEach(p => {
-                ctx.save();
-                ctx.translate(p.x, p.y);
-                ctx.rotate(p.rotation);
-                ctx.scale(p.scale, p.scale);
-                
-                // 绘制爱心形状
-                ctx.beginPath();
-                ctx.moveTo(0, -0.5);
-                ctx.bezierCurveTo(-1, -1, -1.5, 0.5, 0, 2);
-                ctx.bezierCurveTo(1.5, 0.5, 1, -1, 0, -0.5);
-                ctx.closePath();
-                ctx.fill();
-                
-                ctx.restore();
-            });
-            ctx.restore();
-        }
-
-        // 动画循环
-        let rotationX = 0;
-        let rotationY = 0;
-        const startTime = Date.now();
-        
-        function animate() {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // 绘制旋转球体
-            ctx.fillStyle = `hsl(${Date.now()/30 % 360}, 80%, 60%)`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-
-            const sortedPoints = points.map(p => {
-                const pos = project(p, rotationX, rotationY);
-                return { ...pos, char: p.char };
-            }).sort((a, b) => b.scale - a.scale);
-
-            sortedPoints.forEach(pos => {
-                ctx.font = `${Math.round(pos.scale * baseFontSize)}px "HanSans", "Microsoft YaHei", sans-serif`;
-                ctx.fillText(pos.char, pos.x, pos.y);
-            });
-
-            // 绘制爱心雨
-            updateParticles();
-            drawParticles();
-
-            // 绘制跳动大爱心
-            const beat = Math.sin((Date.now() - startTime)/600) * 0.1 + 1;
-            ctx.save();
-            ctx.translate(canvas.width/2, canvas.height*0.8);
-            ctx.scale(beat, beat);
-            ctx.fillStyle = '#FF1493';
-            ctx.beginPath();
-            ctx.moveTo(0, -25);
-            ctx.bezierCurveTo(-50, -50, -60, 25, 0, 100);
-            ctx.bezierCurveTo(60, 25, 50, -50, 0, -25);
-            ctx.fill();
-            ctx.restore();
-
-            rotationX += rotationSpeed * 0.6;
-            rotationY += rotationSpeed * 0.8;
-            requestAnimationFrame(animate);
-        }
-
-        // 交互事件
-        canvas.addEventListener('click', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            createHeart(x, y);
         });
-
-        // 初始化
-        initSphere();
-        animate();
-
-        // 动态文字特效
-        let textAlpha = 1;
-        setInterval(() => {
-            textAlpha = 0.5 + 0.5 * Math.sin(Date.now()/500);
-            document.getElementById('loveText').style.opacity = textAlpha;
-        }, 50);
     </script>
 </body>
-<!-- <a href="work.html">click me</a> -->
-</html>
+</html> 

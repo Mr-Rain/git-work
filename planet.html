@@ -5,19 +5,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>太阳系九星连珠预览</title>
     <style>
-        body {
+        html, body {
             margin: 0;
             padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        body {
             background-color: #000;
+            background-image: url('https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2071&q=80');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
             color: #fff;
             font-family: Arial, sans-serif;
-            overflow: hidden;
             text-align: center;
+            position: relative;
         }
+        
         canvas {
             display: block;
-            margin: 0 auto;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
         }
+        
+        .title {
+            position: relative;
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 2;
+        }
+        
+        .subtitle {
+            position: relative;
+            margin-top: 5px;
+            font-size: 16px;
+            color: #aaa;
+            z-index: 2;
+        }
+        
         .controls {
             position: fixed;
             bottom: 20px;
@@ -25,9 +59,25 @@
             right: 0;
             display: flex;
             justify-content: center;
+            flex-wrap: wrap;
             gap: 10px;
             z-index: 10;
+            padding: 0 10px;
         }
+        
+        .info-panel {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            text-align: left;
+            max-width: 250px;
+            font-size: 14px;
+            z-index: 10;
+        }
+        
         button {
             background-color: rgba(255, 255, 255, 0.2);
             color: white;
@@ -40,16 +90,6 @@
         }
         button:hover {
             background-color: rgba(255, 255, 255, 0.3);
-        }
-        .info-panel {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            border-radius: 5px;
-            text-align: left;
-            max-width: 250px;
         }
         .legend {
             display: flex;
@@ -68,15 +108,49 @@
             border-radius: 50%;
             margin-right: 5px;
         }
-        .title {
-            margin-top: 20px;
-            font-size: 24px;
-            font-weight: bold;
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 20px;
+                margin-top: 10px;
+            }
+            .subtitle {
+                font-size: 14px;
+            }
+            button {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+            .info-panel {
+                max-width: 200px;
+                font-size: 12px;
+                top: 5px;
+                right: 5px;
+            }
+            .legend {
+                gap: 3px;
+            }
+            .legend-item {
+                margin-right: 5px;
+                font-size: 11px;
+            }
         }
-        .subtitle {
-            margin-top: 5px;
-            font-size: 16px;
-            color: #aaa;
+        
+        @media (max-width: 480px) {
+            .controls {
+                bottom: 10px;
+            }
+            .info-panel {
+                position: relative;
+                margin: 5px auto;
+                max-width: 90%;
+                top: auto;
+                right: auto;
+            }
+            .legend {
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -140,7 +214,7 @@
         const canvas = document.getElementById('solarSystem');
         const ctx = canvas.getContext('2d');
         
-        // 设置画布大小
+        // 设置画布大小为窗口大小
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         
@@ -148,6 +222,7 @@
         window.addEventListener('resize', () => {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+            updateScale();
         });
         
         // 太阳系配置
@@ -181,13 +256,13 @@
         
         // 绘制恒星
         function drawStars() {
-            const numStars = 500;
-            ctx.fillStyle = 'white';
+            const numStars = 80; // 减少星星数量
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'; // 降低星星亮度
             
             for (let i = 0; i < numStars; i++) {
                 const x = Math.random() * canvas.width;
                 const y = Math.random() * canvas.height;
-                const radius = Math.random() * 1.5;
+                const radius = Math.random() * 0.7; // 减小星星大小
                 
                 ctx.beginPath();
                 ctx.arc(x, y, radius, 0, Math.PI * 2);
@@ -342,23 +417,15 @@
         
         // 主绘制循环
         function draw() {
-            // 清空画布
-            ctx.fillStyle = '#000';
+            // 使用半透明黑色背景，让背景图更明显
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // 绘制背景星星
+            // 其他绘制函数保持不变
             drawStars();
-            
-            // 绘制轨道
             drawOrbits();
-            
-            // 如果处于连珠状态，绘制连接线
             drawAlignmentLine();
-            
-            // 绘制太阳
             drawSun();
-            
-            // 绘制行星
             drawPlanets();
             
             // 动画循环
@@ -465,8 +532,23 @@
         
         // 初始化信息
         document.getElementById('info').textContent = '九星连珠是太阳系九大行星近似排列成一条直线的罕见天文现象。';
+        
+        // 添加移动端设备检测和适配
+        function isMobileDevice() {
+            return (window.innerWidth <= 768);
+        }
+        
+        // 调整移动设备上的比例
+        function updateScale() {
+            if (isMobileDevice()) {
+                solarSystem.scale = Math.min(canvas.width, canvas.height) / 1200;
+            } else {
+                solarSystem.scale = Math.min(canvas.width, canvas.height) / 1000;
+            }
+        }
+        
+        // 初始化
+        updateScale();
     </script>
 </body>
 </html>
-
-//export https_proxy=http://127.0.0.1:33210 http_proxy=http://127.0.0.1:33210 all_proxy=socks5://127.0.0.1:33211

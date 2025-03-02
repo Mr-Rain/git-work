@@ -60,7 +60,7 @@
 </head>
 <body>
     <div class="background-effect"></div>
-    <div class="love-text" id="loveText">我永远爱你杨馨茜</div>
+    <div class="love-text" id="loveText">LOVEFOREVER</div>
     <canvas id="canvas"></canvas>
     <script>
         const canvas = document.getElementById('canvas');
@@ -81,7 +81,7 @@
         window.addEventListener('resize', resizeCanvas);
 
         // 显示参数
-        const chars = ["杨", "馨", "茜"];
+        const chars = ["💖", "星", "💕"];
         const points = [];
         const baseFontSize = 12;
         const rotationSpeed = 0.01;
@@ -220,17 +220,17 @@
             drawParticles();
 
             // 绘制跳动大爱心
-            const beat = Math.sin((Date.now() - startTime)/600) * 0.1 + 1;
-            ctx.save();
-            ctx.translate(canvas.width/2, canvas.height*0.8);
-            ctx.scale(beat, beat);
-            ctx.fillStyle = '#FF1493';
-            ctx.beginPath();
-            ctx.moveTo(0, -25);
-            ctx.bezierCurveTo(-50, -50, -60, 25, 0, 100);
-            ctx.bezierCurveTo(60, 25, 50, -50, 0, -25);
-            ctx.fill();
-            ctx.restore();
+            //const beat = Math.sin((Date.now() - startTime)/600) * 0.1 + 1;
+            // ctx.save();
+            //ctx.translate(canvas.width/2, canvas.height*0.8);
+            //ctx.scale(beat, beat);
+            //  ctx.fillStyle = '#FF1493';
+            // ctx.beginPath();
+            // ctx.moveTo(0, -25);
+            // ctx.bezierCurveTo(-50, -50, -60, 25, 0, 100);
+            // ctx.bezierCurveTo(60, 25, 50, -50, 0, -25);
+            // ctx.fill();
+            // ctx.restore();
 
             rotationX += rotationSpeed * 0.6;
             rotationY += rotationSpeed * 0.8;

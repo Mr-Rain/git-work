@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>九星连珠模拟器</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #000 0%, #001 100%);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        #canvasContainer {
+            flex: 1;
+            position: relative;
+        }
+
+        canvas {
+            cursor: grab;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            color: white;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            padding: 0;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            max-height: 48px;
+            z-index: 100;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            min-width: 160px;
+        }
+
+        .controls.expanded {
+            max-height: 400px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .toggle-controls {
+            width: 100%;
+            padding: 15px 30px;
+            background: rgba(33, 150, 243, 0.15);
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            min-width: 120px;
+            border-radius: 15px;
+        }
+
+        .toggle-controls:hover {
+            background: rgba(33, 150, 243, 0.25);
+        }
+
+        .toggle-controls i {
+            transition: transform 0.3s ease;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+
+        .expanded .toggle-controls i {
+            transform: rotate(180deg);
+        }
+
+        .control-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            padding: 0 10px;
+        }
+
+        .expanded .control-buttons {
+            opacity: 1;
+        }
+
+        button {
+            padding: 12px 15px;
+            background: rgba(33, 150, 243, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+
+        button:hover {
+            background: rgba(33, 150, 243, 0.3);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .speed-control {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        .speed-control input[type="range"] {
+            flex: 1;
+            height: 6px;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .speed-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #2196F3;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .speed-control input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                width: 90%;
+                bottom: 10px;
+            }
+            
+            .control-buttons {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+                padding: 0 8px;
+            }
+
+            .controls.expanded {
+                padding: 15px;
+            }
+        }
+
+        .planet-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            color: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            max-width: 1000px;
+            width: 95%;
+            backdrop-filter: blur(10px);
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 0 30px rgba(255,255,255,0.1);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        /* 自定义滚动条样式 */
+        .planet-modal::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .planet-modal::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+        }
+
+        .planet-modal::-webkit-scrollbar-thumb {
+            background: rgba(33, 150, 243, 0.5);
+            border-radius: 4px;
+        }
+
+        .planet-modal::-webkit-scrollbar-thumb:hover {
+            background: rgba(33, 150, 243, 0.7);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #444;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            font-size: 2rem;
+            margin: 0;
+            color: #2196F3;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: all 0.3s;
+            border-radius: 50%;
+        }
+
+        .modal-close:hover {
+            background: rgba(255,255,255,0.1);
+            transform: rotate(90deg);
+        }
+
+        .modal-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .planet-image-container {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            aspect-ratio: 1/1;
+            overflow: hidden;
+            border-radius: 15px;
+            margin-bottom: 1rem;
+            box-shadow: 0 0 20px rgba(33, 150, 243, 0.2);
+        }
+
+        .planet-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: transform 0.3s;
+            background: rgba(0,0,0,0.5);
+            padding: 1rem;
+        }
+
+        .planet-image:hover {
+            transform: scale(1.05);
+        }
+
+        .planet-info {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .planet-facts {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .fact-item {
+            background: rgba(33, 150, 243, 0.1);
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid rgba(33, 150, 243, 0.2);
+        }
+
+        .fact-item strong {
+            color: #2196F3;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .planet-description {
+            background: rgba(255,255,255,0.05);
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-top: 1rem;
+            line-height: 1.6;
+        }
+
+        .planet-gallery {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .gallery-image {
+            width: 100%;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+            border-radius: 10px;
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+
+        .gallery-image:hover {
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 768px) {
+            .modal-content {
+                grid-template-columns: 1fr;
+            }
+            .planet-facts {
+                grid-template-columns: 1fr;
+            }
+            .planet-gallery {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .modal-nav-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(33, 150, 243, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            width: 50px;
+            height: 100px;
+            cursor: pointer;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 0 20px rgba(33, 150, 243, 0.1);
+            z-index: 1001;
+        }
+
+        .modal-nav-button:hover {
+            background: rgba(33, 150, 243, 0.3);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-50%) scale(1.05);
+            box-shadow: 0 0 30px rgba(33, 150, 243, 0.2);
+        }
+
+        .modal-nav-button:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+
+        .modal-prev {
+            left: 20px;
+        }
+
+        .modal-next {
+            right: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .modal-nav-button {
+                width: 40px;
+                height: 80px;
+                font-size: 20px;
+            }
+            .modal-prev {
+                left: 10px;
+            }
+            .modal-next {
+                right: 10px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .modal-nav-button {
+                width: 36px;
+                height: 60px;
+                font-size: 18px;
+                border-radius: 18px;
+            }
+        }
+
+        .welcome-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .welcome-content {
+            background: rgba(33, 150, 243, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            color: white;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 30px rgba(33, 150, 243, 0.2);
+        }
+
+        .welcome-content h2 {
+            color: #2196F3;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .welcome-content p {
+            margin: 15px 0;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        .welcome-content button {
+            margin-top: 20px;
+            padding: 12px 30px;
+            font-size: 16px;
+            background: rgba(33, 150, 243, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .welcome-content button:hover {
+            background: rgba(33, 150, 243, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .feature-list {
+            text-align: left;
+            margin: 20px 0;
+            padding: 0 20px;
+        }
+
+        .feature-list li {
+            margin: 10px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .feature-list li:before {
+            content: "•";
+            color: #2196F3;
+            position: absolute;
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvasContainer">
+        <canvas id="solarSystem"></canvas>
+    </div>
+    
+    <div class="controls">
+        <button class="toggle-controls">
+            控制面板
+            <i>▲</i>
+        </button>
+        <div class="control-buttons">
+            <button onclick="toggleView('normal')">正常视角</button>
+            <button onclick="toggleView('top')">俯视图</button>
+            <button onclick="toggleView('side')">侧视图</button>
+            <button onclick="toggleLabels()">切换标签</button>
+            <button onclick="resetOrbits()">重置轨道</button>
+            <button onclick="toggleAlignment()">九星连珠</button>
+            <div class="speed-control">
+                <input type="range" id="speed" min="0.1" max="5" step="0.1" value="1" 
+                       oninput="updateSpeed(this.value)">
+                <label>时间流速</label>
+            </div>
+        </div>
+    </div>
+
+    <div id="planetModal" class="planet-modal">
+        <button class="modal-nav-button modal-prev" onclick="showPrevPlanet()">◀</button>
+        <button class="modal-nav-button modal-next" onclick="showNextPlanet()">▶</button>
+        <div class="modal-header">
+            <h2 id="modalTitle">行星信息</h2>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-content">
+            <div class="planet-image-container">
+                <img id="planetImage" class="planet-image" src="" alt="行星图片">
+            </div>
+            <div class="planet-info">
+                <div class="planet-facts">
+                    <div class="fact-item">
+                        <strong>公转周期</strong>
+                        <span id="orbitPeriod"></span>
+                    </div>
+                    <div class="fact-item">
+                        <strong>自转周期</strong>
+                        <span id="rotationPeriod"></span>
+                    </div>
+                    <div class="fact-item">
+                        <strong>卫星数量</strong>
+                        <span id="satellites"></span>
+                    </div>
+                    <div class="fact-item">
+                        <strong>赤道半径</strong>
+                        <span id="radius"></span>
+                    </div>
+                    <div class="fact-item">
+                        <strong>年龄</strong>
+                        <span id="age"></span>
+                    </div>
+                    <div class="fact-item">
+                        <strong>质量</strong>
+                        <span id="mass"></span>
+                    </div>
+                    <div class="fact-item">
+                        <strong>大气层</strong>
+                        <span id="atmosphere"></span>
+                    </div>
+                    <div class="fact-item">
+                        <strong>平均温度</strong>
+                        <span id="temperature"></span>
+                    </div>
+                </div>
+                <div class="planet-description">
+                    <h3>距离信息</h3>
+                    <p>距太阳距离：<span id="distance"></span></p>
+                    <p><span id="prevDistance"></span></p>
+                    <p><span id="nextDistance"></span></p>
+                    
+                    <h3>主要特征</h3>
+                    <p><span id="features"></span></p>
+                    
+                    <h3>重要发现</h3>
+                    <p><span id="discoveries"></span></p>
+                    
+                    <h3>详细介绍</h3>
+                    <p><span id="description"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="welcomeOverlay" class="welcome-overlay">
+        <div class="welcome-content">
+            <h2>欢迎来到九星连珠模拟器</h2>
+            <p>这是一个交互式的太阳系模拟器，让您可以探索和了解太阳系中的行星。</p>
+            
+            <div class="feature-list">
+                <h3>主要功能：</h3>
+                <ul>
+                    <li>点击任意行星查看详细信息</li>
+                    <li>使用鼠标滚轮缩放视图</li>
+                    <li>拖动画面调整视角</li>
+                    <li>切换不同视角（正常/俯视/侧视）</li>
+                    <li>调整时间流速</li>
+                    <li>体验九星连珠天文奇观</li>
+                </ul>
+            </div>
+            
+            <p>点击任意行星可以查看详细信息，使用左右箭头按钮可以浏览其他行星。</p>
+            <button onclick="closeWelcome()">开始探索</button>
+        </div>
+    </div>
+
+    <script>
+        // 将UI控制函数移动到类定义之前
+        let solarSystem; // 声明全局变量
+        let isDragging = false; // 添加拖动状态变量
+        let lastX = 0; // 添加最后的X坐标
+        let lastY = 0; // 添加最后的Y坐标
+
+        // 添加全局变量
+        let currentPlanetIndex = 0;
+
+        // 修改事件处理函数为全局函数
+        function toggleView(view) {
+            if(solarSystem) solarSystem.toggleView(view);
+        }
+
+        function toggleLabels() {
+            if(solarSystem) solarSystem.toggleLabels();
+        }
+
+        function resetOrbits() {
+            if(solarSystem) solarSystem.resetOrbits();
+        }
+
+        function toggleAlignment() {
+            if(solarSystem) {
+                if(!solarSystem.isAutoAlign) {
+                    solarSystem.alignPlanets();
+                } else {
+                    solarSystem.resetOrbits();
+                }
+            }
+        }
+
+        function updateSpeed(value) {
+            if(solarSystem) {
+                solarSystem.setTimeScale(value);
+                document.getElementById('speed').nextElementSibling.textContent = 
+                    `时间流速 (${value}x)`;
+            }
+        }
+
+        class SolarSystem {
+            constructor(canvas) {
+                // 首先初始化视图状态
+                this.viewStates = {
+                    normal: { scale: 1, zFactor: 0.2 },
+                    top: { scale: 0.6, zFactor: 0 },
+                    side: { scale: 0.6, zFactor: 0.1 }
+                };
+
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.currentView = 'normal';
+                this.showLabels = true;
+                this.timeScale = 1;
+                this.isAutoAlign = false;
+                this.alignProgress = 0;
+                this.targetAngles = [];
+                
+                // 初始化行星
+                this.planets = this.createPlanets();
+                
+                // 初始化画布
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+                
+                // 最后启动动画
+                this.animate();
+            }
+
+            createPlanets() {
+                return [
+                    {
+                        name: '水星',
+                        color: '#A0522D',
+                        orbitRadius: 60,
+                        radius: 4,
+                        angle: 0,
+                        speed: 4.1,
+                        data: {
+                            orbitPeriod: "88 地球日",
+                            rotationPeriod: "58.6 地球日",
+                            satellites: 0,
+                            radius: "2,440 km",
+                            distance: "57.9 百万公里",
+                            prevDistance: "与太阳最近",
+                            nextDistance: "与金星平均距离：5千万公里",
+                            temperature: "-180°C至 430°C",
+                            age: "约45.3亿年",
+                            mass: "地球质量的0.055倍",
+                            atmosphere: "几乎没有大气层",
+                            desc: "水星是太阳系最内侧也是最小的行星，表面布满陨石坑。由于距离太阳最近，其表面温度变化极大。尽管体积小，但密度很大，拥有相对较大的铁核。",
+                            features: "昼夜温差巨大，表面遍布撞击坑，拥有类似月球的地表特征",
+                            discoveries: "1974年水手10号首次近距离探测水星，发现其磁场和金属核心",
+                            image: "./星球/水星.webp"
+                        }
+                    },
+                    {
+                        name: '金星',
+                        color: '#DEB887',
+                        orbitRadius: 90,
+                        radius: 6,
+                        angle: 0,
+                        speed: 1.6,
+                        data: {
+                            orbitPeriod: "225 地球日",
+                            rotationPeriod: "243 地球日（逆向自转）",
+                            satellites: 0,
+                            radius: "6,052 km",
+                            distance: "108 百万公里",
+                            prevDistance: "与水星平均距离：5千万公里",
+                            nextDistance: "与地球平均距离：4千万公里",
+                            temperature: "462°C",
+                            age: "约45.3亿年",
+                            mass: "地球质量的0.815倍",
+                            atmosphere: "浓厚的二氧化碳大气层",
+                            desc: "金星是太阳系中最热的行星，表面温度高达462°C。它的大气压力是地球的90倍，主要由二氧化碳组成，形成了强大的温室效应。",
+                            features: "表面有大量火山和熔岩平原，几乎没有撞击坑，大气中含有浓密的硫酸云",
+                            discoveries: "1962年水手2号首次近距离探测金星，发现其极端的表面条件",
+                            image: "./星球/金星.webp"
+                        }
+                    },
+                    {
+                        name: '地球',
+                        color: '#4169E1',
+                        orbitRadius: 120,
+                        radius: 6.5,
+                        angle: 0,
+                        speed: 1,
+                        data: {
+                            orbitPeriod: "365.25 天",
+                            rotationPeriod: "23小时56分",
+                            satellites: 1,
+                            radius: "6,371 km",
+                            distance: "149.6 百万公里",
+                            prevDistance: "与金星平均距离：4千万公里",
+                            nextDistance: "与火星平均距离：7.8千万公里",
+                            temperature: "平均15°C",
+                            age: "约45.3亿年",
+                            mass: "5.97×10²⁴ kg",
+                            atmosphere: "氮气(78%)、氧气(21%)等",
+                            desc: "地球是目前已知唯一存在生命的行星。它有适宜的温度、充足的水资源和保护性的大气层，这些条件使地球上能够孕育和维持丰富的生命形式。",
+                            features: "71%的表面被水覆盖，是唯一已知有板块构造的行星，拥有强大的磁场",
+                            discoveries: "人类对地球的探索从远古时代就已开始，现代科技让我们更深入地了解了地球的构造和动力系统",
+                            image: "./星球/地球.webp"
+                        }
+                    },
+                    {
+                        name: '火星',
+                        color: '#CD5C5C',
+                        orbitRadius: 150,
+                        radius: 5,
+                        angle: 0,
+                        speed: 0.5,
+                        data: {
+                            orbitPeriod: "687 地球日",
+                            rotationPeriod: "24小时37分",
+                            satellites: 2,
+                            radius: "3,390 km",
+                            distance: "227.9 百万公里",
+                            prevDistance: "与地球平均距离：7.8千万公里",
+                            nextDistance: "与木星平均距离：5.5亿公里",
+                            temperature: "-63°C",
+                            age: "约45.3亿年",
+                            mass: "地球质量的0.107倍",
+                            atmosphere: "稀薄的二氧化碳大气",
+                            desc: "火星是人类最可能首先殖民的行星。它有薄薄的大气层，地表发现了液态水的证据，这些特征使它成为寻找地外生命的重要目标。",
+                            features: "表面有巨大的火山和峡谷，两极有冰盖，表面呈现红色",
+                            discoveries: "2021年毅力号探测器在火星表面着陆，开始寻找古代生命迹象",
+                            image: "./星球/火星.webp"
+                        }
+                    },
+                    {
+                        name: '木星',
+                        color: '#DAA520',
+                        orbitRadius: 200,
+                        radius: 12,
+                        angle: 0,
+                        speed: 0.08,
+                        data: {
+                            orbitPeriod: "11.9 地球年",
+                            rotationPeriod: "9小时56分",
+                            satellites: 95,
+                            radius: "69,911 km",
+                            distance: "778.5 百万公里",
+                            prevDistance: "与火星平均距离：5.5亿公里",
+                            nextDistance: "与土星平均距离：6.5亿公里",
+                            temperature: "-110°C",
+                            age: "约45.3亿年",
+                            mass: "地球质量的317.8倍",
+                            atmosphere: "主要由氢和氦组成",
+                            desc: "木星是太阳系最大的行星，它的质量是太阳系所有其他行星总和的2.5倍。它强大的引力影响着整个太阳系的运行。",
+                            features: "大红斑是一个持续了至少400年的巨大风暴，有完整的环系统和强大的磁场",
+                            discoveries: "朱诺号探测器于2016年到达木星轨道，发现了木星大气层的复杂结构",
+                            image: "./星球/木星.webp"
+                        }
+                    },
+                    {
+                        name: '土星',
+                        color: '#F4A460',
+                        orbitRadius: 250,
+                        radius: 10,
+                        angle: 0,
+                        speed: 0.03,
+                        data: {
+                            orbitPeriod: "29.5 地球年",
+                            rotationPeriod: "10小时34分",
+                            satellites: 146,
+                            radius: "58,232 km",
+                            distance: "1.434 十亿公里",
+                            prevDistance: "与木星平均距离：6.5亿公里",
+                            nextDistance: "与天王星平均距离：8.5亿公里",
+                            temperature: "-140°C",
+                            age: "约45.3亿年",
+                            mass: "地球质量的95.2倍",
+                            atmosphere: "主要由氢和氦组成",
+                            desc: "土星以其壮观的环系统闻名，这些环主要由冰颗粒和岩石碎片组成。它是太阳系中密度最小的行星，平均密度比水还小。",
+                            features: "拥有太阳系最显著的环系统，有超过60颗已知的卫星，大气层呈现出明显的带状结构",
+                            discoveries: "卡西尼号探测器在2004-2017年间对土星系统进行了详细研究",
+                            image: "./星球/土星.JPEG"
+                        }
+                    },
+                    {
+                        name: '天王星',
+                        color: '#87CEEB',
+                        orbitRadius: 300,
+                        radius: 8,
+                        angle: 0,
+                        speed: 0.01,
+                        data: {
+                            orbitPeriod: "84 地球年",
+                            rotationPeriod: "17小时14分",
+                            satellites: 27,
+                            radius: "25,362 km",
+                            distance: "2.871 十亿公里",
+                            prevDistance: "与土星平均距离：8.5亿公里",
+                            nextDistance: "与海王星平均距离：10.6亿公里",
+                            temperature: "-195°C",
+                            age: "约45.3亿年",
+                            mass: "地球质量的14.5倍",
+                            atmosphere: "氢、氦和甲烷",
+                            desc: "天王星是第一颗通过望远镜发现的行星。它的自转轴几乎平行于轨道平面，这种独特的倾斜可能是由于早期的巨大碰撞造成的。",
+                            features: "自转轴倾斜度接近98度，呈现出独特的'侧躺'姿态，大气呈现出淡蓝色",
+                            discoveries: "1986年旅行者2号是唯一一艘近距离探测过天王星的探测器",
+                            image: "./星球/天王星.webp"
+                        }
+                    },
+                    {
+                        name: '海王星',
+                        color: '#4682B4',
+                        orbitRadius: 350,
+                        radius: 7.5,
+                        angle: 0,
+                        speed: 0.006,
+                        data: {
+                            orbitPeriod: "165 地球年",
+                            rotationPeriod: "16小时",
+                            satellites: 14,
+                            radius: "24,622 km",
+                            distance: "4.495 十亿公里",
+                            prevDistance: "与天王星平均距离：10.6亿公里",
+                            nextDistance: "与冥王星平均距离：距离变化较大",
+                            temperature: "-200°C",
+                            age: "约45.3亿年",
+                            mass: "地球质量的17.1倍",
+                            atmosphere: "氢、氦和甲烷",
+                            desc: "海王星是通过数学计算而不是观测发现的第一颗行星。它的大气层中有强大的风暴系统，最著名的是'大暗斑'。",
+                            features: "有着太阳系最强的风，速度可达2,100km/h，表面呈现深蓝色",
+                            discoveries: "1989年旅行者2号是唯一一艘近距离探测过海王星的探测器",
+                            image: "./星球/海王星.webp"
+                        }
+                    },
+                    {
+                        name: '冥王星',
+                        color: '#778899',
+                        orbitRadius: 400,
+                        radius: 3,
+                        angle: 0,
+                        speed: 0.004,
+                        data: {
+                            orbitPeriod: "248 地球年",
+                            rotationPeriod: "6.4 地球日",
+                            satellites: 5,
+                            radius: "1,188 km",
+                            distance: "5.9 十亿公里（平均）",
+                            prevDistance: "与海王星距离变化较大",
+                            nextDistance: "太阳系已知最远矮行星",
+                            temperature: "-230°C",
+                            age: "约45.3亿年",
+                            mass: "地球质量的0.002倍",
+                            atmosphere: "极其稀薄的氮气大气层",
+                            desc: "冥王星在2006年被重新归类为矮行星。它的轨道与其他行星不同，倾斜度大且较为椭圆。新视野号探测器的访问揭示了它复杂的地表特征。",
+                            features: "表面有心形区域（汤博区），由冰冻的氮、甲烷和一氧化碳组成",
+                            discoveries: "2015年新视野号探测器首次近距离拍摄了冥王星",
+                            image: "./星球/冥王星.webp"
+                        }
+                    }
+                ];
+            }
+
+            resizeCanvas() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+                this.center = {
+                    x: this.canvas.width / 2,
+                    y: this.canvas.height / 2
+                };
+            }
+
+            draw() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // 绘制恒星背景
+                this.drawStars();
+                
+                // 绘制太阳
+                this.drawSun();
+                
+                // 绘制行星轨道和行星
+                this.planets.forEach(planet => {
+                    this.drawOrbit(planet);
+                    this.drawPlanet(planet);
+                });
+
+                if(this.checkAlignment()) {
+                    this.ctx.fillStyle = '#00ff00';
+                    this.ctx.font = '24px Arial';
+                    this.ctx.fillText('九星连珠达成！', 20, 40);
+                }
+            }
+
+            drawSun() {
+                const gradient = this.ctx.createRadialGradient(
+                    this.center.x, this.center.y, 0,
+                    this.center.x, this.center.y, 30
+                );
+                gradient.addColorStop(0, '#FFD700');
+                gradient.addColorStop(1, '#FF4500');
+                
+                this.ctx.beginPath();
+                this.ctx.arc(this.center.x, this.center.y, 30, 0, Math.PI * 2);
+                this.ctx.fillStyle = gradient;
+                this.ctx.shadowColor = 'rgba(255,215,0,0.5)';
+                this.ctx.shadowBlur = 20;
+                this.ctx.fill();
+            }
+
+            drawOrbit(planet) {
+                this.ctx.setLineDash([5, 3]);
+                this.ctx.beginPath();
+                
+                const viewState = this.viewStates[this.currentView];
+                
+                switch(this.currentView) {
+                    case 'top':
+                        this.drawTopViewOrbit(planet);
+                        break;
+                    case 'side':
+                        this.drawSideViewOrbit(planet);
+                        break;
+                    default:
+                        this.drawNormalViewOrbit(planet);
+                }
+                
+                this.ctx.strokeStyle = `hsla(${planet.angle * 180/Math.PI}, 70%, 50%, 0.3)`;
+                this.ctx.stroke();
+                this.ctx.setLineDash([]);
+            }
+
+            drawTopViewOrbit(planet) {
+                // 俯视图：完整圆形轨道
+                this.ctx.arc(
+                    this.center.x,
+                    this.center.y,
+                    planet.orbitRadius,
+                    0,
+                    Math.PI * 2
+                );
+            }
+
+            drawSideViewOrbit(planet) {
+                // 侧视图：椭圆轨道，考虑倾斜角度
+                const tilt = Math.PI * 0.12; // 调整倾斜角度
+                const scaleY = 0.2; // 调整扁平程度
+                
+                this.ctx.save();
+                this.ctx.translate(this.center.x, this.center.y);
+                this.ctx.rotate(tilt);
+                this.ctx.scale(1, scaleY);
+                this.ctx.beginPath();
+                this.ctx.arc(0, 0, planet.orbitRadius, 0, Math.PI * 2);
+                this.ctx.restore();
+            }
+
+            drawNormalViewOrbit(planet) {
+                // 正常视图：带透视效果的椭圆
+                this.ctx.ellipse(
+                    this.center.x,
+                    this.center.y,
+                    planet.orbitRadius,
+                    planet.orbitRadius * 0.5,
+                    0,
+                    0,
+                    Math.PI * 2
+                );
+            }
+
+            drawPlanet(planet) {
+                const pos = this.calculatePlanetPosition(planet);
+                if(!isFinite(pos.x) || !isFinite(pos.y)) return;
+
+                // 保存当前位置用于点击检测
+                planet.x = pos.x;
+                planet.y = pos.y;
+
+                // 根据视角调整行星大小
+                const scale = planet.currentScale || 1;
+                const currentRadius = planet.radius * scale;
+
+                // 绘制行星
+                const gradient = this.ctx.createRadialGradient(
+                    pos.x - currentRadius/2,
+                    pos.y - currentRadius/2,
+                    0,
+                    pos.x,
+                    pos.y,
+                    currentRadius
+                );
+                gradient.addColorStop(0, planet.color);
+                gradient.addColorStop(1, this.darkenColor(planet.color, 30));
+
+                this.ctx.beginPath();
+                this.ctx.arc(pos.x, pos.y, currentRadius, 0, Math.PI * 2);
+                this.ctx.fillStyle = gradient;
+                this.ctx.shadowColor = 'rgba(255,255,255,0.3)';
+                this.ctx.shadowBlur = 15;
+                this.ctx.fill();
+
+                // 特殊处理土星环
+                if(planet.name === '土星') {
+                    this.drawSaturnRings(pos, currentRadius, scale);
+                }
+
+                // 绘制标签
+                if(this.showLabels) {
+                    this.drawPlanetLabel(planet, pos);
+                }
+            }
+
+            calculatePlanetPosition(planet) {
+                let x, y, z;
+                const viewState = this.viewStates[this.currentView];
+
+                switch(this.currentView) {
+                    case 'top':
+                        x = this.center.x + planet.orbitRadius * Math.cos(planet.angle);
+                        y = this.center.y + planet.orbitRadius * Math.sin(planet.angle);
+                        planet.currentScale = 1;
+                        return { x, y };
+                        
+                    case 'side':
+                        // 侧视图：使用相同的参数确保行星在轨道上运动
+                        const tilt = Math.PI * 0.12; // 与轨道倾斜角度保持一致
+                        const scaleY = 0.2; // 与轨道扁平程度保持一致
+                        
+                        // 计算基础位置
+                        x = planet.orbitRadius * Math.cos(planet.angle);
+                        y = planet.orbitRadius * Math.sin(planet.angle);
+                        
+                        // 应用变换
+                        const rotatedX = x;
+                        const rotatedY = y * scaleY;
+                        const finalX = rotatedX * Math.cos(tilt) - rotatedY * Math.sin(tilt);
+                        const finalY = rotatedX * Math.sin(tilt) + rotatedY * Math.cos(tilt);
+                        
+                        // 计算深度效果
+                        z = y * Math.cos(tilt);
+                        const perspective = 1500;
+                        const scale = perspective / (perspective + z);
+                        planet.currentScale = scale * 0.8;
+                        
+                        return {
+                            x: this.center.x + finalX,
+                            y: this.center.y + finalY
+                        };
+                        
+                    default:
+                        // 正常视图：3D效果
+                        const zOffset = Math.cos(planet.angle) * viewState.zFactor;
+                        x = this.center.x + planet.orbitRadius * Math.cos(planet.angle);
+                        y = this.center.y + planet.orbitRadius * Math.sin(planet.angle) * 0.5;
+                        planet.currentScale = 1 - Math.abs(zOffset) * 0.3;
+                        return { x, y };
+                }
+            }
+
+            drawSaturnRings(pos, radius, scale) {
+                const ringScale = scale || 1;
+                this.ctx.beginPath();
+                
+                if(this.currentView === 'side') {
+                    // 侧视图：环的显示需要考虑视角
+                    const tilt = Math.PI * 0.1;
+                    this.ctx.save();
+                    this.ctx.translate(pos.x, pos.y);
+                    this.ctx.rotate(tilt);
+                    this.ctx.scale(1, 0.2);
+                    this.ctx.arc(0, 0, radius * 2 * ringScale, 0, Math.PI * 2);
+                    this.ctx.restore();
+                } else {
+                    // 其他视图保持原样
+                    this.ctx.ellipse(
+                        pos.x,
+                        pos.y,
+                        radius * 2 * ringScale,
+                        radius * 0.5 * ringScale,
+                        0,
+                        0,
+                        Math.PI * 2
+                    );
+                }
+                
+                this.ctx.strokeStyle = 'rgba(210,180,140,0.5)';
+                this.ctx.lineWidth = 2;
+                this.ctx.stroke();
+            }
+
+            drawPlanetLabel(planet, pos) {
+                this.ctx.fillStyle = 'white';
+                this.ctx.font = '12px Arial';
+                const offset = this.currentView === 'side' ? 15 : 10;
+                this.ctx.fillText(planet.name, pos.x + offset, pos.y + 5);
+            }
+
+            darkenColor(color, percent) {
+                const num = parseInt(color.replace("#",""), 16);
+                const amt = Math.round(2.55 * percent);
+                const R = (num >> 16) - amt;
+                const G = (num >> 8 & 0x00FF) - amt;
+                const B = (num & 0x0000FF) - amt;
+                return `#${(1 << 24 | (R<255?R<1?0:R:255) << 16 | (G<255?G<1?0:G:255) << 8 | (B<255?B<1?0:B:255)).toString(16).slice(1)}`;
+            }
+
+            drawStars() {
+                // 生成随机星空背景
+                if (!this.stars) {
+                    this.stars = Array.from({length: 200}, () => ({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        size: Math.random() * 2,
+                        alpha: Math.random()
+                    }));
+                }
+
+                this.stars.forEach(star => {
+                    this.ctx.beginPath();
+                    this.ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                    this.ctx.fillStyle = `rgba(255,255,255,${star.alpha})`;
+                    this.ctx.fill();
+                });
+            }
+
+            animate() {
+                this.updatePlanets();
+                this.draw();
+                this.animationFrameId = requestAnimationFrame(() => this.animate());
+            }
+
+            updatePlanets() {
+                const currentTime = performance.now();
+                
+                this.planets.forEach((planet, index) => {
+                    if(this.isAutoAlign) {
+                        const elapsed = (currentTime - planet.alignStartTime) / 1000;
+                        const duration = 2.0;
+                        
+                        if (elapsed < duration) {
+                            let diff = this.targetAngles[index] - planet.startAngle;
+                            while(diff > Math.PI) diff -= Math.PI * 2;
+                            while(diff < -Math.PI) diff += Math.PI * 2;
+                            
+                            const progress = this.easeInOutCubic(elapsed / duration);
+                            planet.angle = planet.startAngle + diff * progress;
+                        } else {
+                            planet.angle = this.targetAngles[index];
+                        }
+                    } else {
+                        // 正常运动时的速度调整
+                        let speedMultiplier;
+                        switch(this.currentView) {
+                            case 'top':
+                                speedMultiplier = 1;
+                                break;
+                            case 'side':
+                                speedMultiplier = 0.8; // 调整侧视图速度
+                                break;
+                            default:
+                                speedMultiplier = 0.8;
+                        }
+                        planet.angle += planet.speed * 0.01 * this.timeScale * speedMultiplier;
+                    }
+                    
+                    // 确保角度在 0-2π 范围内
+                    planet.angle = planet.angle % (Math.PI * 2);
+                    if(planet.angle < 0) planet.angle += Math.PI * 2;
+                });
+            }
+
+            // 添加缓动函数使运动更自然
+            easeInOutCubic(t) {
+                return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+            }
+
+            checkAlignment() {
+                if(!this.isAutoAlign) return false;
+                
+                const angles = this.planets.map(p => {
+                    let angle = p.angle % (Math.PI * 2);
+                    if(angle < 0) angle += Math.PI * 2;
+                    return angle;
+                });
+                
+                const targetAngle = Math.PI * 1.5;
+                const threshold = 0.1;
+                
+                const isAligned = angles.every(angle => Math.abs(angle - targetAngle) < threshold);
+                
+                if(isAligned) {
+                    // 绘制提示文本
+                    this.ctx.save();
+                    this.ctx.fillStyle = 'rgba(0, 255, 0, 0.8)';
+                    this.ctx.font = 'bold 24px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText('九星连珠达成！点击任意处继续', this.canvas.width / 2, 40);
+                    this.ctx.restore();
+                    
+                    // 添加点击事件监听，点击后重置
+                    if(!this.alignmentClickHandler) {
+                        this.alignmentClickHandler = () => {
+                            if(isAligned) {
+                                this.resetOrbits();
+                                this.canvas.removeEventListener('click', this.alignmentClickHandler);
+                                this.alignmentClickHandler = null;
+                            }
+                        };
+                        this.canvas.addEventListener('click', this.alignmentClickHandler);
+                    }
+                }
+                
+                return isAligned;
+            }
+
+            toggleView(viewType) {
+                if(this.currentView === viewType) return;
+                
+                const prevView = this.currentView;
+                this.currentView = viewType;
+
+                // 保存当前状态
+                this.planets.forEach(planet => {
+                    planet[`${prevView}Angle`] = planet.angle;
+                });
+
+                // 加载新视角状态
+                if(this.planets[0][`${viewType}Angle`] !== undefined) {
+                    this.planets.forEach(planet => {
+                        planet.angle = planet[`${viewType}Angle`];
+                    });
+                } else {
+                    // 如果是首次切换到该视角，初始化该视角的状态
+                    this.resetOrbits();
+                }
+
+                // 如果正在自动对齐，更新目标角度
+                if(this.isAutoAlign) {
+                    this.alignPlanets();
+                }
+
+                // 平滑过渡
+                this.ctx.globalAlpha = 0;
+                const fadeIn = () => {
+                    this.ctx.globalAlpha += 0.1;
+                    this.draw();
+                    if(this.ctx.globalAlpha < 1) {
+                        requestAnimationFrame(fadeIn);
+                    }
+                };
+                fadeIn();
+            }
+
+            toggleLabels() {
+                this.showLabels = !this.showLabels;
+            }
+
+            resetOrbits() {
+                // 根据不同视角设置不同的初始角度
+                switch(this.currentView) {
+                    case 'top':
+                        this.planets.forEach(planet => {
+                            planet.angle = 0;
+                            planet.topAngle = 0;
+                        });
+                        break;
+                    case 'side':
+                        this.planets.forEach((planet, index) => {
+                            // 侧视图初始化时错开位置
+                            planet.angle = (index * Math.PI * 2) / this.planets.length;
+                            planet.sideAngle = planet.angle;
+                        });
+                        break;
+                    default:
+                        this.planets.forEach((planet, index) => {
+                            // 正常视图初始化时稍微错开
+                            planet.angle = (index * Math.PI * 2) / (this.planets.length * 2);
+                            planet.normalAngle = planet.angle;
+                        });
+                }
+                this.isAutoAlign = false;
+            }
+
+            alignPlanets() {
+                // 如果已经在自动对齐状态，则返回
+                if(this.isAutoAlign) return;
+                
+                // 根据不同视角设置对齐逻辑
+                switch(this.currentView) {
+                    case 'top':
+                        this.targetAngles = this.planets.map(() => Math.PI * 1.5);
+                        break;
+                    case 'side':
+                        this.targetAngles = this.planets.map(() => Math.PI * 0.5);
+                        break;
+                    default:
+                        this.targetAngles = this.planets.map(() => Math.PI * 1.5);
+                }
+                
+                // 记录每个行星的初始角度，用于计算最短路径
+                this.planets.forEach((planet, index) => {
+                    planet.startAngle = planet.angle;
+                    planet.targetAngle = this.targetAngles[index];
+                    planet.alignStartTime = performance.now();
+                });
+                
+                this.isAutoAlign = true;
+                this.alignStartTime = performance.now();
+            }
+
+            setTimeScale(scale) {
+                this.timeScale = scale;
+            }
+
+            handleClick(x, y) {
+                const clickX = x - this.center.x;
+                const clickY = y - this.center.y;
+                
+                this.planets.forEach(planet => {
+                    const dx = clickX - (planet.x - this.center.x);
+                    const dy = clickY - (planet.y - this.center.y);
+                    if (Math.sqrt(dx*dx + dy*dy) < planet.radius + 5) {
+                        this.showPlanetInfo(planet);
+                        return;
+                    }
+                });
+            }
+
+            showPlanetInfo(planet) {
+                const modal = document.getElementById('planetModal');
+                const data = planet.data;
+                
+                // 更新当前行星索引
+                currentPlanetIndex = this.planets.findIndex(p => p.name === planet.name);
+                
+                modal.style.display = 'block';
+                
+                setTimeout(() => {
+                    if (document.getElementById('modalTitle')) {
+                        document.getElementById('modalTitle').textContent = planet.name;
+                    }
+                    
+                    const modalContent = document.querySelector('.modal-content');
+                    if (modalContent) {
+                        modalContent.innerHTML = `
+                            <div class="planet-image-container">
+                                <img id="planetImage" class="planet-image" src="${data.image}" alt="${planet.name}图片">
+                            </div>
+                            <div class="planet-info">
+                                <div class="planet-facts">
+                                    <div class="fact-item">
+                                        <strong>公转周期</strong>
+                                        ${data.orbitPeriod}
+                                    </div>
+                                    <div class="fact-item">
+                                        <strong>自转周期</strong>
+                                        ${data.rotationPeriod}
+                                    </div>
+                                    <div class="fact-item">
+                                        <strong>卫星数量</strong>
+                                        ${data.satellites}
+                                    </div>
+                                    <div class="fact-item">
+                                        <strong>赤道半径</strong>
+                                        ${data.radius}
+                                    </div>
+                                    <div class="fact-item">
+                                        <strong>年龄</strong>
+                                        ${data.age}
+                                    </div>
+                                    <div class="fact-item">
+                                        <strong>质量</strong>
+                                        ${data.mass}
+                                    </div>
+                                    <div class="fact-item">
+                                        <strong>大气层</strong>
+                                        ${data.atmosphere}
+                                    </div>
+                                    <div class="fact-item">
+                                        <strong>平均温度</strong>
+                                        ${data.temperature}
+                                    </div>
+                                </div>
+                                <div class="planet-description">
+                                    <h3>距离信息</h3>
+                                    <p>距太阳距离：${data.distance}</p>
+                                    <p>${data.prevDistance}</p>
+                                    <p>${data.nextDistance}</p>
+                                    
+                                    <h3>主要特征</h3>
+                                    <p>${data.features}</p>
+                                    
+                                    <h3>重要发现</h3>
+                                    <p>${data.discoveries}</p>
+                                    
+                                    <h3>详细介绍</h3>
+                                    <p>${data.desc}</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }, 100);
+            }
+
+            isWithinSolarSystem(x, y) {
+                const dx = x - this.center.x;
+                const dy = y - this.center.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                // 使用最外层行星轨道半径的1.2倍作为边界
+                const maxRadius = this.planets[this.planets.length - 1].orbitRadius * 1.2;
+                return distance <= maxRadius;
+            }
+        }
+
+        // 等待DOM加载完成后初始化
+        window.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('solarSystem');
+            solarSystem = new SolarSystem(canvas);
+
+            // 更新鼠标事件处理
+            canvas.addEventListener('mousedown', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                if (solarSystem.isWithinSolarSystem(x, y)) {
+                    isDragging = true;
+                    [lastX, lastY] = [e.clientX, e.clientY];
+                }
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                if (solarSystem.isWithinSolarSystem(x, y)) {
+                    const dx = e.clientX - lastX;
+                    const dy = e.clientY - lastY;
+                    solarSystem.center.x += dx;
+                    solarSystem.center.y += dy;
+                    [lastX, lastY] = [e.clientX, e.clientY];
+                } else {
+                    isDragging = false;
+                }
+            });
+
+            canvas.addEventListener('mouseup', () => isDragging = false);
+            canvas.addEventListener('mouseleave', () => isDragging = false);
+
+            // 添加触摸缩放功能
+            let scale = 1;
+            canvas.addEventListener('wheel', e => {
+                e.preventDefault();
+                const zoomFactor = e.deltaY * -0.01;
+                scale = Math.min(Math.max(0.8, scale + zoomFactor), 3);
+                
+                solarSystem.planets.forEach(p => {
+                    if(!p.originalOrbit) p.originalOrbit = p.orbitRadius;
+                    p.orbitRadius = p.originalOrbit * scale;
+                    if(p.orbitRadius < 30) p.orbitRadius = 30;
+                });
+            });
+
+            // 添加点击事件监听
+            canvas.addEventListener('click', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                solarSystem.handleClick(x, y);
+            });
+
+            // 添加控制面板展开/收起功能
+            const controls = document.querySelector('.controls');
+            const toggleButton = document.querySelector('.toggle-controls');
+            
+            toggleButton.addEventListener('click', () => {
+                controls.classList.toggle('expanded');
+            });
+            
+            // 点击其他地方收起控制面板
+            document.addEventListener('click', (e) => {
+                if (!controls.contains(e.target)) {
+                    controls.classList.remove('expanded');
+                }
+            });
+
+            // 显示欢迎界面
+            const welcomeOverlay = document.getElementById('welcomeOverlay');
+            setTimeout(() => {
+                welcomeOverlay.style.opacity = '1';
+            }, 500);
+        });
+
+        // 添加模态框关闭函数
+        function closeModal() {
+            document.getElementById('planetModal').style.display = 'none';
+        }
+
+        // 添加模态框背景点击关闭
+        document.addEventListener('click', (e) => {
+            const modal = document.getElementById('planetModal');
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        // 添加ESC键关闭
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        function closeWelcome() {
+            const welcomeOverlay = document.getElementById('welcomeOverlay');
+            welcomeOverlay.style.opacity = '0';
+            setTimeout(() => {
+                welcomeOverlay.style.display = 'none';
+            }, 500);
+        }
+
+        function showPrevPlanet() {
+            if (solarSystem) {
+                currentPlanetIndex = (currentPlanetIndex - 1 + solarSystem.planets.length) % solarSystem.planets.length;
+                solarSystem.showPlanetInfo(solarSystem.planets[currentPlanetIndex]);
+            }
+        }
+
+        function showNextPlanet() {
+            if (solarSystem) {
+                currentPlanetIndex = (currentPlanetIndex + 1) % solarSystem.planets.length;
+                solarSystem.showPlanetInfo(solarSystem.planets[currentPlanetIndex]);
+            }
+        }
+
+        // 添加键盘导航支持
+        document.addEventListener('keydown', (e) => {
+            const modal = document.getElementById('planetModal');
+            if (modal.style.display === 'block') {
+                if (e.key === 'ArrowLeft') {
+                    showPrevPlanet();
+                } else if (e.key === 'ArrowRight') {
+                    showNextPlanet();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

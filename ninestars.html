@@ -322,12 +322,38 @@
         @media (max-width: 768px) {
             .modal-content {
                 grid-template-columns: 1fr;
+                gap: 1rem;
             }
             .planet-facts {
                 grid-template-columns: 1fr;
+                gap: 0.8rem;
             }
             .planet-gallery {
                 grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .planet-image-container {
+                max-height: 160px;
+            }
+            
+            .planet-image {
+                max-height: 140px;
+            }
+            
+            .modal-header h2 {
+                font-size: 1.5rem;
+            }
+            
+            .planet-description {
+                font-size: 14px;
+                padding: 1rem;
+            }
+            
+            .modal-nav-button {
+                width: 28px;
+                height: 50px;
             }
         }
 
@@ -647,9 +673,18 @@
                 // 初始化行星
                 this.planets = this.createPlanets();
                 
-                // 初始化画布
+                // 添加移动设备检测
+                this.isMobile = window.innerWidth <= 768;
+                
+                // 初始化时调用一次重置大小
                 this.resizeCanvas();
-                window.addEventListener('resize', () => this.resizeCanvas());
+                
+                // 监听屏幕旋转
+                window.addEventListener('orientationchange', () => {
+                    setTimeout(() => {
+                        this.resizeCanvas();
+                    }, 100);
+                });
                 
                 // 最后启动动画
                 this.animate();
@@ -886,12 +921,53 @@
             }
 
             resizeCanvas() {
-                this.canvas.width = window.innerWidth;
-                this.canvas.height = window.innerHeight;
+                const devicePixelRatio = window.devicePixelRatio || 1;
+                const backingStoreRatio = this.ctx.webkitBackingStorePixelRatio ||
+                                         this.ctx.mozBackingStorePixelRatio ||
+                                         this.ctx.msBackingStorePixelRatio ||
+                                         this.ctx.oBackingStorePixelRatio ||
+                                         this.ctx.backingStorePixelRatio || 1;
+                const ratio = devicePixelRatio / backingStoreRatio;
+
+                this.canvas.width = window.innerWidth * ratio;
+                this.canvas.height = window.innerHeight * ratio;
+                this.canvas.style.width = window.innerWidth + 'px';
+                this.canvas.style.height = window.innerHeight + 'px';
+                this.ctx.scale(ratio, ratio);
+                
                 this.center = {
-                    x: this.canvas.width / 2,
-                    y: this.canvas.height / 2
+                    x: window.innerWidth / 2,
+                    y: window.innerHeight / 2
                 };
+                
+                // 根据屏幕大小自动调整太阳系比例
+                const minDimension = Math.min(window.innerWidth, window.innerHeight);
+                let baseScale;
+                
+                if (window.innerWidth <= 768) {
+                    // 移动端使用更小的比例
+                    baseScale = minDimension / 1200;
+                    // 额外缩小轨道间距
+                    this.planets.forEach(planet => {
+                        if (!planet.originalOrbit) {
+                            planet.originalOrbit = planet.orbitRadius;
+                            planet.originalRadius = planet.radius;
+                        }
+                        planet.orbitRadius = planet.originalOrbit * baseScale * 0.8;
+                        planet.radius = planet.originalRadius * baseScale * 1.2; // 行星稍微大一点以便点击
+                    });
+                } else {
+                    // 桌面端保持原有比例
+                    baseScale = minDimension / 1000;
+                    this.planets.forEach(planet => {
+                        if (!planet.originalOrbit) {
+                            planet.originalOrbit = planet.orbitRadius;
+                            planet.originalRadius = planet.radius;
+                        }
+                        planet.orbitRadius = planet.originalOrbit * baseScale;
+                        planet.radius = planet.originalRadius * baseScale;
+                    });
+                }
             }
 
             draw() {

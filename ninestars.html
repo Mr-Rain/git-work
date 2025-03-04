@@ -12,14 +12,23 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
+            width: 100vw;
         }
 
         #canvasContainer {
             flex: 1;
             position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
         }
 
         canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             cursor: grab;
         }
 
@@ -185,56 +194,6 @@
             overflow-y: auto;
         }
 
-        /* 自定义滚动条样式 */
-        .planet-modal::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .planet-modal::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.1);
-            border-radius: 4px;
-        }
-
-        .planet-modal::-webkit-scrollbar-thumb {
-            background: rgba(33, 150, 243, 0.5);
-            border-radius: 4px;
-        }
-
-        .planet-modal::-webkit-scrollbar-thumb:hover {
-            background: rgba(33, 150, 243, 0.7);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #444;
-            padding-bottom: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .modal-header h2 {
-            font-size: 2rem;
-            margin: 0;
-            color: #2196F3;
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            color: #fff;
-            font-size: 2rem;
-            cursor: pointer;
-            padding: 0.5rem;
-            transition: all 0.3s;
-            border-radius: 50%;
-        }
-
-        .modal-close:hover {
-            background: rgba(255,255,255,0.1);
-            transform: rotate(90deg);
-        }
-
         .modal-content {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -243,14 +202,14 @@
         }
 
         .planet-image-container {
-            position: sticky;
-            top: 0;
+            position: relative;
             width: 100%;
             aspect-ratio: 1/1;
             overflow: hidden;
             border-radius: 15px;
             margin-bottom: 1rem;
             box-shadow: 0 0 20px rgba(33, 150, 243, 0.2);
+            background: rgba(0,0,0,0.5);
         }
 
         .planet-image {
@@ -258,7 +217,6 @@
             height: 100%;
             object-fit: contain;
             transition: transform 0.3s;
-            background: rgba(0,0,0,0.5);
             padding: 1rem;
         }
 
@@ -320,40 +278,159 @@
         }
 
         @media (max-width: 768px) {
-            .modal-content {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-            .planet-facts {
-                grid-template-columns: 1fr;
-                gap: 0.8rem;
-            }
-            .planet-gallery {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .planet-image-container {
-                max-height: 160px;
+            .planet-modal {
+                padding: 1.5rem;
+                width: 92%;
+                max-height: 85vh;
+                margin: 0 auto;
+                border-radius: 15px;
+                left: 50%;
+                transform: translate(-50%, -50%);
             }
             
-            .planet-image {
-                max-height: 140px;
+            .modal-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                padding: 0.5rem;
+            }
+            
+            .planet-image-container {
+                aspect-ratio: 16/9;
+                max-height: 200px;
+                margin: 0 auto 1.5rem;
+                width: 90%;
+            }
+            
+            .planet-info {
+                gap: 1.5rem;
+                padding: 0 0.5rem;
+            }
+            
+            .planet-facts {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+            
+            .fact-item {
+                padding: 1rem;
+                font-size: 14px;
+                background: rgba(33, 150, 243, 0.15);
+                border: 1px solid rgba(33, 150, 243, 0.2);
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+            
+            .fact-item strong {
+                margin-bottom: 0.5rem;
+                font-size: 15px;
+                color: #2196F3;
+            }
+            
+            .planet-description {
+                padding: 1.2rem;
+                margin-top: 1rem;
+                background: rgba(255, 255, 255, 0.08);
+            }
+            
+            .planet-description h3 {
+                font-size: 16px;
+                margin: 1.2rem 0 0.8rem;
+                color: #2196F3;
+            }
+            
+            .planet-description p {
+                font-size: 14px;
+                line-height: 1.6;
+                margin: 0.8rem 0;
+                letter-spacing: 0.02em;
+            }
+            
+            .modal-header {
+                padding: 1rem 0.5rem 1rem;
+                margin-bottom: 1.5rem;
+                border-bottom: 2px solid rgba(33, 150, 243, 0.2);
             }
             
             .modal-header h2 {
                 font-size: 1.5rem;
             }
+        }
+
+        @media (max-width: 480px) {
+            .planet-modal {
+                width: 90%;
+                padding: 1.2rem;
+            }
+            
+            .planet-facts {
+                grid-template-columns: 1fr;
+                gap: 0.8rem;
+            }
+            
+            .fact-item {
+                padding: 0.8rem;
+                text-align: center;
+            }
+            
+            .planet-image-container {
+                max-height: 180px;
+                width: 95%;
+            }
             
             .planet-description {
-                font-size: 14px;
                 padding: 1rem;
             }
             
-            .modal-nav-button {
-                width: 28px;
-                height: 50px;
+            .planet-description h3 {
+                font-size: 15px;
+                margin: 1rem 0 0.6rem;
+            }
+            
+            .planet-description p {
+                font-size: 13px;
+                line-height: 1.5;
+                margin: 0.6rem 0;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .planet-modal {
+                width: 95%;
+                padding: 1rem;
+            }
+            
+            .modal-content {
+                gap: 1.2rem;
+            }
+            
+            .planet-image-container {
+                max-height: 160px;
+                margin-bottom: 1rem;
+            }
+            
+            .planet-facts {
+                gap: 0.6rem;
+            }
+            
+            .fact-item {
+                padding: 0.7rem;
+                font-size: 13px;
+            }
+            
+            .fact-item strong {
+                font-size: 14px;
+                margin-bottom: 0.3rem;
+            }
+            
+            .planet-description h3 {
+                font-size: 14px;
+                margin: 0.8rem 0 0.4rem;
+            }
+            
+            .planet-description p {
+                font-size: 12px;
+                line-height: 1.4;
             }
         }
 
@@ -448,6 +525,8 @@
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 0 30px rgba(33, 150, 243, 0.2);
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .welcome-content h2 {
@@ -496,6 +575,126 @@
             color: #2196F3;
             position: absolute;
             left: 0;
+        }
+
+        /* 自定义滚动条样式 */
+        .planet-modal::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .planet-modal::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 3px;
+        }
+
+        .planet-modal::-webkit-scrollbar-thumb {
+            background: rgba(33, 150, 243, 0.3);
+            border-radius: 3px;
+        }
+
+        .planet-modal::-webkit-scrollbar-thumb:hover {
+            background: rgba(33, 150, 243, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #444;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            font-size: 2rem;
+            margin: 0;
+            color: #2196F3;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: all 0.3s;
+            border-radius: 50%;
+        }
+
+        .modal-close:hover {
+            background: rgba(255,255,255,0.1);
+            transform: rotate(90deg);
+        }
+
+        @media (max-width: 768px) {
+            .welcome-content {
+                padding: 25px;
+                width: 85%;
+                margin: 20px;
+            }
+
+            .welcome-content h2 {
+                font-size: 22px;
+                margin-bottom: 15px;
+            }
+
+            .welcome-content p {
+                font-size: 14px;
+                margin: 12px 0;
+            }
+
+            .feature-list {
+                margin: 15px 0;
+                padding: 0 15px;
+            }
+
+            .feature-list h3 {
+                font-size: 16px;
+                margin: 10px 0;
+            }
+
+            .feature-list li {
+                margin: 8px 0;
+                font-size: 14px;
+                line-height: 1.4;
+            }
+
+            .welcome-content button {
+                padding: 10px 25px;
+                font-size: 15px;
+                margin-top: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .welcome-content {
+                padding: 20px;
+                width: 90%;
+                margin: 15px;
+            }
+
+            .welcome-content h2 {
+                font-size: 20px;
+            }
+
+            .welcome-content p {
+                font-size: 13px;
+                line-height: 1.5;
+            }
+
+            .feature-list {
+                padding: 0 10px;
+            }
+
+            .feature-list li {
+                font-size: 13px;
+            }
+
+            .welcome-content button {
+                padding: 8px 20px;
+                font-size: 14px;
+            }
         }
     </style>
 </head>
@@ -929,12 +1128,19 @@
                                          this.ctx.backingStorePixelRatio || 1;
                 const ratio = devicePixelRatio / backingStoreRatio;
 
+                // 设置实际的canvas尺寸
                 this.canvas.width = window.innerWidth * ratio;
                 this.canvas.height = window.innerHeight * ratio;
-                this.canvas.style.width = window.innerWidth + 'px';
-                this.canvas.style.height = window.innerHeight + 'px';
+                
+                // 设置显示尺寸
+                this.canvas.style.width = '100vw';
+                this.canvas.style.height = '100vh';
+                
+                // 重置上下文状态
+                this.ctx.setTransform(1, 0, 0, 1, 0, 0);
                 this.ctx.scale(ratio, ratio);
                 
+                // 计算中心点
                 this.center = {
                     x: window.innerWidth / 2,
                     y: window.innerHeight / 2
@@ -946,19 +1152,21 @@
                 
                 if (window.innerWidth <= 768) {
                     // 移动端使用更小的比例
-                    baseScale = minDimension / 1200;
-                    // 额外缩小轨道间距
+                    baseScale = minDimension / 1000;  // 修改基础比例
+                    // 调整移动端缩放比例
+                    const mobileScale = 0.6;  // 增加缩放比例
                     this.planets.forEach(planet => {
                         if (!planet.originalOrbit) {
                             planet.originalOrbit = planet.orbitRadius;
                             planet.originalRadius = planet.radius;
                         }
-                        planet.orbitRadius = planet.originalOrbit * baseScale * 0.8;
-                        planet.radius = planet.originalRadius * baseScale * 1.2; // 行星稍微大一点以便点击
+                        planet.orbitRadius = planet.originalOrbit * baseScale * mobileScale;
+                        // 稍微增加行星大小以提高可见性
+                        planet.radius = planet.originalRadius * baseScale * 1.2;
                     });
                 } else {
-                    // 桌面端保持原有比例
-                    baseScale = minDimension / 1000;
+                    // 桌面端使用更合适的比例
+                    baseScale = minDimension / 1100;
                     this.planets.forEach(planet => {
                         if (!planet.originalOrbit) {
                             planet.originalOrbit = planet.orbitRadius;
@@ -968,10 +1176,35 @@
                         planet.radius = planet.originalRadius * baseScale;
                     });
                 }
+                
+                // 重置缩放状态
+                this.currentScale = 1;
+                
+                // 重新生成星星
+                this.stars = null;
+                this.generateStars();
+            }
+
+            generateStars() {
+                const width = this.canvas.width;
+                const height = this.canvas.height;
+                const numStars = Math.floor((width * height) / 10000); // 根据屏幕大小调整星星数量
+                
+                this.stars = Array.from({length: numStars}, () => ({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    size: Math.random() * 2,
+                    alpha: Math.random() * 0.8 + 0.2 // 提高最小亮度
+                }));
             }
 
             draw() {
-                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                // 完全清除画布
+                this.ctx.save();
+                this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+                this.ctx.fillStyle = 'rgb(0, 0, 10)'; // 深蓝色背景
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.restore();
                 
                 // 绘制恒星背景
                 this.drawStars();
@@ -1205,22 +1438,18 @@
             }
 
             drawStars() {
-                // 生成随机星空背景
                 if (!this.stars) {
-                    this.stars = Array.from({length: 200}, () => ({
-                        x: Math.random() * this.canvas.width,
-                        y: Math.random() * this.canvas.height,
-                        size: Math.random() * 2,
-                        alpha: Math.random()
-                    }));
+                    this.generateStars();
                 }
 
+                this.ctx.save();
                 this.stars.forEach(star => {
                     this.ctx.beginPath();
                     this.ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-                    this.ctx.fillStyle = `rgba(255,255,255,${star.alpha})`;
+                    this.ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
                     this.ctx.fill();
                 });
+                this.ctx.restore();
             }
 
             animate() {
@@ -1413,22 +1642,32 @@
             }
 
             handleClick(x, y) {
-                const clickX = x - this.center.x;
-                const clickY = y - this.center.y;
+                // 将相对于中心的计算移到这里
+                const relativeX = x - this.center.x;
+                const relativeY = y - this.center.y;
                 
-                this.planets.forEach(planet => {
-                    const dx = clickX - (planet.x - this.center.x);
-                    const dy = clickY - (planet.y - this.center.y);
-                    if (Math.sqrt(dx*dx + dy*dy) < planet.radius + 5) {
+                for (let planet of this.planets) {
+                    const dx = planet.x - x;
+                    const dy = planet.y - y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    // 增加点击判定范围，使其更容易点中
+                    const clickRadius = planet.radius * 2;
+                    
+                    if (distance <= clickRadius) {
                         this.showPlanetInfo(planet);
                         return;
                     }
-                });
+                }
             }
 
             showPlanetInfo(planet) {
                 const modal = document.getElementById('planetModal');
+                const controls = document.querySelector('.controls');
                 const data = planet.data;
+                
+                // 隐藏控制面板
+                controls.style.display = 'none';
                 
                 // 更新当前行星索引
                 currentPlanetIndex = this.planets.findIndex(p => p.name === planet.name);
@@ -1443,61 +1682,61 @@
                     const modalContent = document.querySelector('.modal-content');
                     if (modalContent) {
                         modalContent.innerHTML = `
-                            <div class="planet-image-container">
-                                <img id="planetImage" class="planet-image" src="${data.image}" alt="${planet.name}图片">
-                            </div>
-                            <div class="planet-info">
-                                <div class="planet-facts">
-                                    <div class="fact-item">
-                                        <strong>公转周期</strong>
-                                        ${data.orbitPeriod}
-                                    </div>
-                                    <div class="fact-item">
-                                        <strong>自转周期</strong>
-                                        ${data.rotationPeriod}
-                                    </div>
-                                    <div class="fact-item">
-                                        <strong>卫星数量</strong>
-                                        ${data.satellites}
-                                    </div>
-                                    <div class="fact-item">
-                                        <strong>赤道半径</strong>
-                                        ${data.radius}
-                                    </div>
-                                    <div class="fact-item">
-                                        <strong>年龄</strong>
-                                        ${data.age}
-                                    </div>
-                                    <div class="fact-item">
-                                        <strong>质量</strong>
-                                        ${data.mass}
-                                    </div>
-                                    <div class="fact-item">
-                                        <strong>大气层</strong>
-                                        ${data.atmosphere}
-                                    </div>
-                                    <div class="fact-item">
-                                        <strong>平均温度</strong>
-                                        ${data.temperature}
-                                    </div>
+                        <div class="planet-image-container">
+                            <img id="planetImage" class="planet-image" src="${data.image}" alt="${planet.name}图片">
+                        </div>
+                        <div class="planet-info">
+                            <div class="planet-facts">
+                                <div class="fact-item">
+                                    <strong>公转周期</strong>
+                                    ${data.orbitPeriod}
                                 </div>
-                                <div class="planet-description">
-                                    <h3>距离信息</h3>
-                                    <p>距太阳距离：${data.distance}</p>
-                                    <p>${data.prevDistance}</p>
-                                    <p>${data.nextDistance}</p>
-                                    
-                                    <h3>主要特征</h3>
-                                    <p>${data.features}</p>
-                                    
-                                    <h3>重要发现</h3>
-                                    <p>${data.discoveries}</p>
-                                    
-                                    <h3>详细介绍</h3>
-                                    <p>${data.desc}</p>
+                                <div class="fact-item">
+                                    <strong>自转周期</strong>
+                                    ${data.rotationPeriod}
+                                </div>
+                                <div class="fact-item">
+                                    <strong>卫星数量</strong>
+                                    ${data.satellites}
+                                </div>
+                                <div class="fact-item">
+                                    <strong>赤道半径</strong>
+                                    ${data.radius}
+                                </div>
+                                <div class="fact-item">
+                                    <strong>年龄</strong>
+                                    ${data.age}
+                                </div>
+                                <div class="fact-item">
+                                    <strong>质量</strong>
+                                    ${data.mass}
+                                </div>
+                                <div class="fact-item">
+                                    <strong>大气层</strong>
+                                    ${data.atmosphere}
+                                </div>
+                                <div class="fact-item">
+                                    <strong>平均温度</strong>
+                                    ${data.temperature}
                                 </div>
                             </div>
-                        `;
+                            <div class="planet-description">
+                                <h3>距离信息</h3>
+                                <p>距太阳距离：${data.distance}</p>
+                                <p>${data.prevDistance}</p>
+                                <p>${data.nextDistance}</p>
+                                
+                                <h3>主要特征</h3>
+                                <p>${data.features}</p>
+                                
+                                <h3>重要发现</h3>
+                                <p>${data.discoveries}</p>
+                                
+                                <h3>详细介绍</h3>
+                                <p>${data.desc}</p>
+                            </div>
+                        </div>
+                    `;
                     }
                 }, 100);
             }
@@ -1509,6 +1748,33 @@
                 // 使用最外层行星轨道半径的1.2倍作为边界
                 const maxRadius = this.planets[this.planets.length - 1].orbitRadius * 1.2;
                 return distance <= maxRadius;
+            }
+
+            // 修改缩放处理函数
+            handleZoom(e) {
+                e.preventDefault();
+                const rect = this.canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                // 计算缩放因子
+                const zoomFactor = e.deltaY * -0.001;
+                const newScale = Math.min(Math.max(0.3, this.currentScale + zoomFactor), 2.5);
+                const scaleDiff = newScale / this.currentScale;
+                
+                // 更新中心点，使缩放以鼠标位置为中心
+                this.center.x = mouseX - (mouseX - this.center.x) * scaleDiff;
+                this.center.y = mouseY - (mouseY - this.center.y) * scaleDiff;
+                
+                // 更新当前缩放比例
+                this.currentScale = newScale;
+                
+                // 更新行星轨道和大小
+                this.planets.forEach(planet => {
+                    if (!planet.originalOrbit) return;
+                    planet.orbitRadius = planet.originalOrbit * this.currentScale;
+                    planet.radius = planet.originalRadius * this.currentScale;
+                });
             }
         }
 
@@ -1551,18 +1817,87 @@
             canvas.addEventListener('mouseleave', () => isDragging = false);
 
             // 添加触摸缩放功能
-            let scale = 1;
-            canvas.addEventListener('wheel', e => {
+            let touchStartX, touchStartY;
+            let lastTouchX, lastTouchY;
+            let isTouching = false;
+
+            canvas.addEventListener('touchstart', (e) => {
                 e.preventDefault();
-                const zoomFactor = e.deltaY * -0.01;
-                scale = Math.min(Math.max(0.8, scale + zoomFactor), 3);
+                const touch = e.touches[0];
+                touchStartX = touch.clientX;
+                touchStartY = touch.clientY;
+                lastTouchX = touchStartX;
+                lastTouchY = touchStartY;
+                isTouching = true;
+            }, { passive: false });
+
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (!isTouching) return;
                 
-                solarSystem.planets.forEach(p => {
-                    if(!p.originalOrbit) p.originalOrbit = p.orbitRadius;
-                    p.orbitRadius = p.originalOrbit * scale;
-                    if(p.orbitRadius < 30) p.orbitRadius = 30;
-                });
+                const touch = e.touches[0];
+                const currentX = touch.clientX;
+                const currentY = touch.clientY;
+                
+                const dx = currentX - lastTouchX;
+                const dy = currentY - lastTouchY;
+                
+                solarSystem.center.x += dx;
+                solarSystem.center.y += dy;
+                
+                lastTouchX = currentX;
+                lastTouchY = currentY;
+            }, { passive: false });
+
+            canvas.addEventListener('touchend', () => {
+                isTouching = false;
             });
+
+            canvas.addEventListener('touchcancel', () => {
+                isTouching = false;
+            });
+
+            // 添加多点触控缩放支持
+            let initialPinchDistance = null;
+            let initialScale = 1;
+
+            canvas.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    initialPinchDistance = getPinchDistance(e.touches);
+                    initialScale = solarSystem.currentScale;
+                }
+            });
+
+            canvas.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2 && initialPinchDistance !== null) {
+                    const currentDistance = getPinchDistance(e.touches);
+                    const scaleFactor = currentDistance / initialPinchDistance;
+                    const newScale = Math.min(Math.max(0.3, initialScale * scaleFactor), 2.5);
+                    
+                    // 计算缩放中心点
+                    const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                    const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                    
+                    // 更新缩放
+                    solarSystem.currentScale = newScale;
+                    solarSystem.planets.forEach(planet => {
+                        if (!planet.originalOrbit) return;
+                        planet.orbitRadius = planet.originalOrbit * newScale;
+                        planet.radius = planet.originalRadius * newScale;
+                    });
+                }
+            });
+
+            canvas.addEventListener('touchend', () => {
+                initialPinchDistance = null;
+            });
+
+            // 计算两个触摸点之间的距离
+            function getPinchDistance(touches) {
+                const dx = touches[0].clientX - touches[1].clientX;
+                const dy = touches[0].clientY - touches[1].clientY;
+                return Math.sqrt(dx * dx + dy * dy);
+            }
 
             // 添加点击事件监听
             canvas.addEventListener('click', (e) => {
@@ -1571,6 +1906,13 @@
                 const y = e.clientY - rect.top;
                 solarSystem.handleClick(x, y);
             });
+
+            // 添加滚轮缩放事件监听
+            canvas.addEventListener('wheel', (e) => {
+                if (solarSystem) {
+                    solarSystem.handleZoom(e);
+                }
+            }, { passive: false });
 
             // 添加控制面板展开/收起功能
             const controls = document.querySelector('.controls');
@@ -1592,24 +1934,40 @@
             setTimeout(() => {
                 welcomeOverlay.style.opacity = '1';
             }, 500);
+
+            // 添加窗口大小改变事件监听
+            window.addEventListener('resize', () => {
+                if (solarSystem) {
+                    solarSystem.resizeCanvas();
+                }
+            });
         });
 
-        // 添加模态框关闭函数
+        // 修改关闭模态框函数
         function closeModal() {
-            document.getElementById('planetModal').style.display = 'none';
+            const modal = document.getElementById('planetModal');
+            const controls = document.querySelector('.controls');
+            
+            modal.style.display = 'none';
+            
+            // 显示控制面板
+            controls.style.display = '';
         }
 
-        // 添加模态框背景点击关闭
-        document.addEventListener('click', (e) => {
-            const modal = document.getElementById('planetModal');
-            if (e.target === modal) {
-                closeModal();
+        // 修改ESC键关闭事件处理
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('planetModal');
+                if (modal.style.display === 'block') {
+                    closeModal();
+                }
             }
         });
 
-        // 添加ESC键关闭
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
+        // 修改模态框背景点击关闭事件
+        document.addEventListener('click', (e) => {
+            const modal = document.getElementById('planetModal');
+            if (e.target === modal) {
                 closeModal();
             }
         });
@@ -1622,6 +1980,7 @@
             }, 500);
         }
 
+        // 修改导航按钮事件处理
         function showPrevPlanet() {
             if (solarSystem) {
                 currentPlanetIndex = (currentPlanetIndex - 1 + solarSystem.planets.length) % solarSystem.planets.length;

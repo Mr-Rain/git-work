@@ -1642,17 +1642,15 @@
             }
 
             handleClick(x, y) {
-                // 将相对于中心的计算移到这里
-                const relativeX = x - this.center.x;
-                const relativeY = y - this.center.y;
-                
                 for (let planet of this.planets) {
+                    if (!planet.x || !planet.y) continue;
+                    
                     const dx = planet.x - x;
                     const dy = planet.y - y;
                     const distance = Math.sqrt(dx * dx + dy * dy);
                     
-                    // 增加点击判定范围，使其更容易点中
-                    const clickRadius = planet.radius * 2;
+                    // 增加点击判定范围
+                    const clickRadius = planet.radius * 3;
                     
                     if (distance <= clickRadius) {
                         this.showPlanetInfo(planet);
@@ -1817,44 +1815,101 @@
             canvas.addEventListener('mouseleave', () => isDragging = false);
 
             // 添加触摸缩放功能
-            let touchStartX, touchStartY;
-            let lastTouchX, lastTouchY;
-            let isTouching = false;
+            let touchStartX = null;
+            let touchStartY = null;
+            let lastTouchX = null;
+            let lastTouchY = null;
+            let touchStartTime = null;
+            let hasMoved = false;
 
-            canvas.addEventListener('touchstart', (e) => {
+            canvas.addEventListener('touchstart', function(e) {
                 e.preventDefault();
                 const touch = e.touches[0];
                 touchStartX = touch.clientX;
                 touchStartY = touch.clientY;
                 lastTouchX = touchStartX;
                 lastTouchY = touchStartY;
-                isTouching = true;
+                touchStartTime = Date.now();
+                hasMoved = false;
             }, { passive: false });
 
-            canvas.addEventListener('touchmove', (e) => {
+            canvas.addEventListener('touchmove', function(e) {
                 e.preventDefault();
-                if (!isTouching) return;
                 
-                const touch = e.touches[0];
-                const currentX = touch.clientX;
-                const currentY = touch.clientY;
+                // 处理双指缩放
+                if (e.touches.length === 2) {
+                    if (!initialPinchDistance) {
+                        initialPinchDistance = getPinchDistance(e.touches);
+                        initialScale = solarSystem.currentScale || 1;
+                    }
+                    
+                    const currentDistance = getPinchDistance(e.touches);
+                    const scaleFactor = currentDistance / initialPinchDistance;
+                    const newScale = Math.min(Math.max(0.3, initialScale * scaleFactor), 2.5);
+                    
+                    solarSystem.currentScale = newScale;
+                    solarSystem.planets.forEach(planet => {
+                        if (!planet.originalOrbit) return;
+                        planet.orbitRadius = planet.originalOrbit * newScale;
+                        planet.radius = planet.originalRadius * newScale;
+                    });
+                    return;
+                }
                 
-                const dx = currentX - lastTouchX;
-                const dy = currentY - lastTouchY;
-                
-                solarSystem.center.x += dx;
-                solarSystem.center.y += dy;
-                
-                lastTouchX = currentX;
-                lastTouchY = currentY;
+                // 处理单指拖动
+                if (e.touches.length === 1) {
+                    const touch = e.touches[0];
+                    const moveX = Math.abs(touch.clientX - touchStartX);
+                    const moveY = Math.abs(touch.clientY - touchStartY);
+                    
+                    if (moveX > 5 || moveY > 5) {
+                        hasMoved = true;
+                    }
+                    
+                    const dx = touch.clientX - lastTouchX;
+                    const dy = touch.clientY - lastTouchY;
+                    
+                    if (solarSystem) {
+                        solarSystem.center.x += dx;
+                        solarSystem.center.y += dy;
+                    }
+                    
+                    lastTouchX = touch.clientX;
+                    lastTouchY = touch.clientY;
+                }
             }, { passive: false });
 
-            canvas.addEventListener('touchend', () => {
-                isTouching = false;
-            });
+            canvas.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                
+                // 只处理单指触摸结束的情况
+                if (e.changedTouches.length === 1 && !hasMoved) {
+                    const touch = e.changedTouches[0];
+                    const touchEndTime = Date.now();
+                    const touchDuration = touchEndTime - touchStartTime;
+                    
+                    // 如果触摸时间小于300ms且没有明显移动，则视为点击
+                    if (touchDuration < 300) {
+                        const rect = canvas.getBoundingClientRect();
+                        const x = touch.clientX - rect.left;
+                        const y = touch.clientY - rect.top;
+                        
+                        if (solarSystem) {
+                            solarSystem.handleClick(x, y);
+                        }
+                    }
+                }
+                
+                // 重置状态
+                touchStartX = null;
+                touchStartY = null;
+                initialPinchDistance = null;
+            }, { passive: false });
 
-            canvas.addEventListener('touchcancel', () => {
-                isTouching = false;
+            canvas.addEventListener('touchcancel', function() {
+                touchStartX = null;
+                touchStartY = null;
+                initialPinchDistance = null;
             });
 
             // 添加多点触控缩放支持

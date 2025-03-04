@@ -1821,9 +1821,20 @@
             let lastTouchY = null;
             let touchStartTime = null;
             let hasMoved = false;
+            let isZooming = false;  // 添加缩放状态标记
 
             canvas.addEventListener('touchstart', function(e) {
                 e.preventDefault();
+                
+                // 检测是否是双指触摸
+                if (e.touches.length === 2) {
+                    isZooming = true;
+                    initialPinchDistance = getPinchDistance(e.touches);
+                    initialScale = solarSystem.currentScale || 1;
+                    return;
+                }
+                
+                // 单指触摸处理
                 const touch = e.touches[0];
                 touchStartX = touch.clientX;
                 touchStartY = touch.clientY;
@@ -1838,6 +1849,7 @@
                 
                 // 处理双指缩放
                 if (e.touches.length === 2) {
+                    isZooming = true;
                     if (!initialPinchDistance) {
                         initialPinchDistance = getPinchDistance(e.touches);
                         initialScale = solarSystem.currentScale || 1;
@@ -1855,6 +1867,9 @@
                     });
                     return;
                 }
+                
+                // 如果正在缩放，不处理拖动
+                if (isZooming) return;
                 
                 // 处理单指拖动
                 if (e.touches.length === 1) {
@@ -1882,6 +1897,16 @@
             canvas.addEventListener('touchend', function(e) {
                 e.preventDefault();
                 
+                // 如果结束时还有其他手指在触摸，不处理点击
+                if (e.touches.length > 0) return;
+                
+                // 重置缩放状态
+                if (isZooming) {
+                    isZooming = false;
+                    initialPinchDistance = null;
+                    return;
+                }
+                
                 // 只处理单指触摸结束的情况
                 if (e.changedTouches.length === 1 && !hasMoved) {
                     const touch = e.changedTouches[0];
@@ -1900,16 +1925,23 @@
                     }
                 }
                 
-                // 重置状态
+                // 重置所有状态
                 touchStartX = null;
                 touchStartY = null;
+                lastTouchX = null;
+                lastTouchY = null;
                 initialPinchDistance = null;
+                isZooming = false;
             }, { passive: false });
 
             canvas.addEventListener('touchcancel', function() {
+                // 重置所有状态
                 touchStartX = null;
                 touchStartY = null;
+                lastTouchX = null;
+                lastTouchY = null;
                 initialPinchDistance = null;
+                isZooming = false;
             });
 
             // 添加多点触控缩放支持

@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valorant CPU优化工具 - 提升游戏体验</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary: #FF4655;
+            --secondary: #0F1923;
+            --accent: #28344E;
+            --text: #ECE8E1;
+        }
+        
+        body {
+            background-color: var(--secondary);
+            color: var(--text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .hero {
+            background: linear-gradient(135deg, var(--accent), var(--secondary));
+            padding: 100px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('https://images.contentstack.io/v3/assets/bltb6530b271fddd0b1/blt9ef7b41910a14118/62cc7dcc6a8fb133b0ff7e55/Valorant_2022_E5A1_PlayVALORANT_ContentStackThumbnail_1200x625_MB01.png') center/cover;
+            opacity: 0.1;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .btn-valorant {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 4px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-valorant:hover {
+            background-color: #FF5E6C;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .feature-card {
+            background: var(--accent);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .code-preview {
+            background: #1E1E1E;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .modal-content {
+            background: var(--accent);
+            color: var(--text);
+        }
+        
+        .modal-header {
+            border-bottom: 1px solid rgba(236, 232, 225, 0.1);
+        }
+        
+        .modal-footer {
+            border-top: 1px solid rgba(236, 232, 225, 0.1);
+        }
+        
+        pre {
+            background: #1E1E1E;
+            color: #D4D4D4;
+            padding: 15px;
+            border-radius: 4px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .welcome-content {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .modal-content {
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn-valorant {
+            min-width: 140px;
+            padding: 12px 30px;
+        }
+        
+        .modal-header .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .welcome-content h6 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .welcome-content p {
+            line-height: 1.6;
+            color: rgba(236, 232, 225, 0.9);
+        }
+        
+        .alert-info {
+            padding: 1rem;
+        }
+        
+        /* 代码模态框样式 */
+        .modal-code {
+            max-width: 1000px;
+            width: 90vw;
+            margin: 1.75rem auto;
+        }
+        
+        .modal-code .modal-dialog {
+            position: relative;
+            transition: transform 0.3s ease-out;
+            will-change: transform;
+            margin: 1.75rem auto;
+        }
+        
+        .modal-code .modal-dialog.dragging {
+            transition: none !important;
+            cursor: move;
+        }
+        
+        .modal-code .modal-header {
+            padding: 1rem 1.5rem;
+            background: rgba(15, 25, 35, 0.3);
+            user-select: none;
+            cursor: move;
+        }
+        
+        .modal-code .modal-content {
+            min-height: 600px;
+            height: 80vh;
+            resize: both;
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .modal-code .modal-body {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            padding: 1.25rem;
+            overflow: hidden;
+        }
+        
+        .modal-code .toolbar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+            padding: 0;
+        }
+
+        .btn-tool {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            font-size: 0.875rem;
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-tool:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+        
+        .btn-tool i {
+            font-size: 1rem;
+        }
+        
+        .modal-code .code-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            margin: 0;
+            background: #1E1E1E;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-code pre {
+            flex: 1;
+            margin: 0;
+            padding: 1.25rem;
+            font-size: 14px;
+            line-height: 1.6;
+            overflow-y: auto;
+            background: transparent;
+            max-height: none;
+        }
+        
+        .modal-code pre code {
+            padding: 0;
+            background: transparent;
+            white-space: pre;
+            font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+        }
+        
+        /* 全屏模式样式 */
+        .modal-code .modal-dialog.modal-fullscreen {
+            width: 100vw;
+            max-width: 100vw;
+            height: 100vh;
+            margin: 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            transform: none !important;
+        }
+        
+        .modal-code .modal-dialog.modal-fullscreen .modal-content {
+            height: 100vh;
+            width: 100vw;
+            max-width: 100vw;
+            min-height: 100vh;
+            border-radius: 0;
+            resize: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        .modal-code .modal-dialog.modal-fullscreen .modal-body {
+            padding: 1.25rem;
+            height: calc(100vh - 60px);
+            overflow: hidden;
+        }
+        
+        .modal-code .modal-dialog.modal-fullscreen .code-container {
+            height: calc(100% - 50px);
+            margin: 0;
+        }
+        
+        /* 调整滚动条样式 */
+        .modal-code pre::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        .modal-code pre::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        
+        .modal-code pre::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+        
+        .modal-code pre::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* 代码高亮主题优化 */
+        .modal-code .language-powershell,
+        .modal-code .language-batch {
+            color: #d4d4d4;
+        }
+        
+        .modal-code .token.comment {
+            color: #6a9955;
+        }
+        
+        .modal-code .token.function {
+            color: #dcdcaa;
+        }
+        
+        .modal-code .token.string {
+            color: #ce9178;
+        }
+        
+        .modal-code .token.variable {
+            color: #9cdcfe;
+        }
+        
+        .resize-handle {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 24px;
+            height: 24px;
+            cursor: se-resize;
+            background: linear-gradient(135deg, transparent 50%, var(--primary) 50%);
+            border-radius: 0 0 8px 0;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+        
+        .resize-handle:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <!-- 英雄区域 -->
+    <div class="hero">
+        <div class="container hero-content text-center">
+            <h1 class="display-4 fw-bold mb-4">Valorant CPU优化工具</h1>
+            <p class="lead mb-4">专为瓦洛兰特玩家设计的性能优化工具，通过智能调节反作弊进程优先级，有效提升游戏体验</p>
+            <button class="btn btn-valorant btn-lg" data-bs-toggle="modal" data-bs-target="#downloadModal">
+                <i class="fas fa-download me-2"></i>立即下载
+            </button>
+        </div>
+    </div>
+
+    <!-- 主要内容 -->
+    <div class="container py-5">
+        <!-- 特性介绍 -->
+        <div class="row mb-5">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <h3><i class="fas fa-tachometer-alt text-primary mb-3"></i> 性能优化</h3>
+                    <p>智能调节Vanguard反作弊进程的CPU优先级，降低系统资源占用，提升游戏流畅度。</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <h3><i class="fas fa-shield-alt text-primary mb-3"></i> 安全可靠</h3>
+                    <p>仅调整进程优先级，不修改游戏文件，完全符合游戏规则，无封号风险。</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <h3><i class="fas fa-magic text-primary mb-3"></i> 一键操作</h3>
+                    <p>全自动运行，无需手动配置，启动即可优化，为您节省宝贵时间。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 使用说明 -->
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="text-center mb-4">使用说明</h2>
+                <div class="code-preview">
+                    <ol class="mb-0">
+                        <li>下载并解压缩文件</li>
+                        <li>以管理员身份运行 run_as_admin.bat</li>
+                        <li>脚本会自动检测CPU核心并进行优化</li>
+                        <li>等待优化完成即可开始游戏</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- 查看源码按钮 -->
+        <div class="text-center mb-5">
+            <button class="btn btn-outline-light me-3" data-bs-toggle="modal" data-bs-target="#scriptModal">
+                查看主脚本代码
+            </button>
+            <button class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#batchModal">
+                查看启动器代码
+            </button>
+        </div>
+    </div>
+
+    <!-- 下载确认模态框 -->
+    <div class="modal fade" id="downloadModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">下载确认</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>您即将下载 Valorant CPU优化工具 v1.0.2</p>
+                    <ul class="list-unstyled">
+                        <li>✓ 文件大小：12KB</li>
+                        <li>✓ 支持系统：Windows 10/11</li>
+                        <li>✓ 所需权限：管理员权限</li>
+                        <li>✓ SHA256: 3a2f...（文件校验码）</li>
+                    </ul>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> 下载后请解压到单独的文件夹，以管理员身份运行 run_as_admin.bat
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <a href="./资源/优化反作弊占用脚本/优化反作弊占用脚本.zip" class="btn btn-valorant" download>
+                        <i class="fas fa-download me-2"></i>确认下载
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 脚本代码模态框 -->
+    <div class="modal fade" id="scriptModal" tabindex="-1">
+        <div class="modal-dialog modal-code">
+            <div class="modal-content border-0">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">主程序代码 (set_process_priority.ps1)</h5>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn-tool" onclick="toggleFullscreen('scriptModal')" title="切换全屏">
+                            <i class="fas fa-expand"></i>
+                            <span>全屏</span>
+                        </button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="toolbar">
+                        <button class="btn btn-sm btn-outline-light" onclick="downloadCode('powershell')">
+                            <i class="fas fa-download me-1"></i>下载源码
+                        </button>
+                        <button class="btn-tool" onclick="adjustFontSize('scriptCode', 1)" title="放大字体">
+                            <i class="fas fa-search-plus"></i>
+                            <span>放大</span>
+                        </button>
+                        <button class="btn-tool" onclick="adjustFontSize('scriptCode', -1)" title="缩小字体">
+                            <i class="fas fa-search-minus"></i>
+                            <span>缩小</span>
+                        </button>
+                        <button class="btn-tool" onclick="copyToClipboard('scriptCode')" title="复制代码">
+                            <i class="fas fa-copy"></i>
+                            <span>复制</span>
+                        </button>
+                    </div>
+                    <div class="code-container">
+                        <pre><code id="scriptCode" class="language-powershell">加载中...</code></pre>
+                    </div>
+                </div>
+                <div class="resize-handle" title="拖动调整大小"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 批处理代码模态框 -->
+    <div class="modal fade" id="batchModal" tabindex="-1">
+        <div class="modal-dialog modal-code">
+            <div class="modal-content border-0">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">启动器代码 (run_as_admin.bat)</h5>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn-tool" onclick="toggleFullscreen('batchModal')" title="切换全屏">
+                            <i class="fas fa-expand"></i>
+                            <span>全屏</span>
+                        </button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="toolbar">
+                        <button class="btn btn-sm btn-outline-light" onclick="downloadCode('batch')">
+                            <i class="fas fa-download me-1"></i>下载源码
+                        </button>
+                        <button class="btn-tool" onclick="adjustFontSize('batchCode', 1)" title="放大字体">
+                            <i class="fas fa-search-plus"></i>
+                            <span>放大</span>
+                        </button>
+                        <button class="btn-tool" onclick="adjustFontSize('batchCode', -1)" title="缩小字体">
+                            <i class="fas fa-search-minus"></i>
+                            <span>缩小</span>
+                        </button>
+                        <button class="btn-tool" onclick="copyToClipboard('batchCode')" title="复制代码">
+                            <i class="fas fa-copy"></i>
+                            <span>复制</span>
+                        </button>
+                    </div>
+                    <div class="code-container">
+                        <pre><code id="batchCode" class="language-batch">加载中...</code></pre>
+                    </div>
+                </div>
+                <div class="resize-handle" title="拖动调整大小"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 欢迎提示模态框 -->
+    <div class="modal fade" id="welcomeModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0">
+                <div class="modal-header border-0 justify-content-center pb-1">
+                    <h5 class="modal-title text-center">
+                        <i class="fas fa-hand-sparkles me-2"></i>欢迎使用
+                    </h5>
+                </div>
+                <div class="modal-body px-4">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-tools text-primary" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <div class="welcome-content">
+                        <div class="text-center mb-4">
+                            <h6 class="fw-bold mb-3 d-inline-flex align-items-center">
+                                <i class="fas fa-info-circle text-primary me-2"></i>
+                                关于本工具
+                            </h6>
+                            <p class="mb-0 px-3">这是一个自动化工具，用来替代手动在任务管理器中调整反作弊进程的繁琐操作。每次重启游戏后运行一次即可，一键完成所有设置。</p>
+                        </div>
+                        
+                        <div class="text-center mb-4">
+                            <h6 class="fw-bold mb-3 d-inline-flex align-items-center">
+                                <i class="fas fa-shield-alt text-primary me-2"></i>
+                                安全说明
+                            </h6>
+                            <p class="mb-0 px-3">本工具仅包含批处理命令，您可以在下方查看完整源码。如果您愿意，也可以手动创建文件并复制命令内容，效果完全相同。</p>
+                        </div>
+
+                        <div class="alert alert-info border-0 text-center mx-3" 
+                             style="background-color: rgba(40, 52, 78, 0.5);">
+                            <i class="fas fa-question-circle text-primary me-2"></i>
+                            <span style="color: rgba(255, 255, 255, 0.85);">如有任何问题，欢迎通过 
+                                <a href="https://github.com/Mr-Huangxinghao" class="text-primary text-decoration-none fw-bold">GitHub</a> 
+                                与我联系</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 justify-content-center pt-2 pb-4">
+                    <button type="button" class="btn btn-valorant px-4" data-bs-dismiss="modal">
+                        <i class="fas fa-check me-2"></i>我知道了
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="py-4 text-center">
+        <p class="mb-0">Made with ❤️ by 不离不弃的夜雨 | <a href="https://github.com/Mr-Huangxinghao" class="text-light">GitHub</a></p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-powershell.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-batch.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css" rel="stylesheet">
+    
+    <script>
+        // 从文件加载代码
+        async function loadCodeFromFile(filePath, codeElementId) {
+            try {
+                const response = await fetch(filePath);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const code = await response.text();
+                const codeElement = document.getElementById(codeElementId);
+                codeElement.textContent = code;
+                Prism.highlightElement(codeElement);
+            } catch (error) {
+                console.error('Error loading code:', error);
+                const codeElement = document.getElementById(codeElementId);
+                codeElement.textContent = '加载代码时出错，请稍后重试...';
+            }
+        }
+
+        // 初始化模态框
+        function initModal(modalId, codePath, codeElementId) {
+            const modal = document.getElementById(modalId);
+            modal.addEventListener('show.bs.modal', function () {
+                loadCodeFromFile(codePath, codeElementId);
+            });
+        }
+
+        // 下载代码文件
+        function downloadCode(type) {
+            const filePath = type === 'powershell' ? 
+                './source/set_process_priority.ps1' : 
+                './source/run_as_admin.bat';
+            
+            const element = document.createElement('a');
+            element.href = filePath;
+            element.download = type === 'powershell' ? 'set_process_priority.ps1' : 'run_as_admin.bat';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+
+        // 模态框拖拽功能
+        function initDraggableModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const dialog = modal.querySelector('.modal-dialog');
+            const header = modal.querySelector('.modal-header');
+            
+            let isDragging = false;
+            let startX = 0;
+            let startY = 0;
+            let lastX = 0;
+            let lastY = 0;
+            
+            function getTransformValues() {
+                const transform = window.getComputedStyle(dialog).transform;
+                if (transform === 'none') return { x: 0, y: 0 };
+                const matrix = new DOMMatrix(transform);
+                return { x: matrix.m41, y: matrix.m42 };
+            }
+            
+            function setPosition(x, y) {
+                const rect = dialog.getBoundingClientRect();
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                
+                // 允许部分内容超出左侧边界，但保留至少20%的宽度在可视区域内
+                const minVisibleWidth = rect.width * 0.2;
+                const maxX = viewportWidth - minVisibleWidth;
+                const minX = minVisibleWidth - rect.width;
+                
+                // 同样允许部分内容超出顶部，但保留至少标题栏高度在可视区域内
+                const headerHeight = header.getBoundingClientRect().height;
+                const maxY = viewportHeight - headerHeight;
+                const minY = headerHeight - rect.height;
+                
+                x = Math.min(Math.max(minX, x), maxX);
+                y = Math.min(Math.max(minY, y), maxY);
+                
+                lastX = x;
+                lastY = y;
+                dialog.style.transform = `translate(${x}px, ${y}px)`;
+            }
+            
+            function dragStart(e) {
+                if (dialog.classList.contains('modal-fullscreen')) return;
+                if (!(e.target === header || header.contains(e.target))) return;
+                
+                e.preventDefault();
+                isDragging = true;
+                dialog.classList.add('dragging');
+                
+                const { x, y } = getTransformValues();
+                lastX = x;
+                lastY = y;
+                
+                if (e.type === 'touchstart') {
+                    startX = e.touches[0].clientX - x;
+                    startY = e.touches[0].clientY - y;
+                } else {
+                    startX = e.clientX - x;
+                    startY = e.clientY - y;
+                }
+                
+                // 添加临时事件监听器
+                if (e.type === 'touchstart') {
+                    document.addEventListener('touchmove', drag, { passive: false });
+                    document.addEventListener('touchend', dragEnd, { once: true });
+                } else {
+                    document.addEventListener('mousemove', drag);
+                    document.addEventListener('mouseup', dragEnd, { once: true });
+                }
+            }
+            
+            function drag(e) {
+                if (!isDragging) return;
+                e.preventDefault();
+                
+                let newX, newY;
+                if (e.type === 'touchmove') {
+                    newX = e.touches[0].clientX - startX;
+                    newY = e.touches[0].clientY - startY;
+                } else {
+                    newX = e.clientX - startX;
+                    newY = e.clientY - startY;
+                }
+                
+                requestAnimationFrame(() => setPosition(newX, newY));
+            }
+            
+            function dragEnd(e) {
+                if (!isDragging) return;
+                isDragging = false;
+                dialog.classList.remove('dragging');
+                
+                // 移除临时事件监听器
+                document.removeEventListener('mousemove', drag);
+                document.removeEventListener('touchmove', drag);
+            }
+            
+            // 只在标题栏添加事件监听器
+            header.addEventListener('mousedown', dragStart);
+            header.addEventListener('touchstart', dragStart, { passive: false });
+            
+            // 重置模态框位置
+            modal.addEventListener('hidden.bs.modal', () => {
+                dialog.style.transform = 'none';
+                lastX = 0;
+                lastY = 0;
+            });
+            
+            // 处理窗口大小变化
+            window.addEventListener('resize', () => {
+                if (!isDragging) {
+                    setPosition(lastX, lastY);
+                }
+            });
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('load', function() {
+            // 显示欢迎模态框
+            new bootstrap.Modal(document.getElementById('welcomeModal')).show();
+            
+            // 初始化代码模态框
+            initModal('scriptModal', './source/set_process_priority.ps1', 'scriptCode');
+            initModal('batchModal', './source/run_as_admin.bat', 'batchCode');
+            
+            // 初始化可拖拽模态框
+            initDraggableModal('scriptModal');
+            initDraggableModal('batchModal');
+            
+            // 监听窗口大小变化
+            window.addEventListener('resize', function() {
+                const fullscreenModals = document.querySelectorAll('.modal-dialog.modal-fullscreen');
+                fullscreenModals.forEach(modal => {
+                    const content = modal.querySelector('.modal-content');
+                    if (content) {
+                        content.style.height = window.innerHeight + 'px';
+                    }
+                });
+            });
+        });
+
+        // 调整字体大小
+        function adjustFontSize(elementId, delta) {
+            const element = document.getElementById(elementId);
+            const currentSize = parseFloat(window.getComputedStyle(element).fontSize);
+            element.style.fontSize = (currentSize + delta) + 'px';
+        }
+
+        // 切换全屏
+        function toggleFullscreen(modalId) {
+            const modal = document.getElementById(modalId);
+            const dialog = modal.querySelector('.modal-dialog');
+            const button = modal.querySelector('.fa-expand, .fa-compress').parentElement;
+            const content = modal.querySelector('.modal-content');
+            
+            dialog.classList.toggle('modal-fullscreen');
+            
+            if (dialog.classList.contains('modal-fullscreen')) {
+                button.innerHTML = '<i class="fas fa-compress"></i><span>退出全屏</span>';
+                content.style.resize = 'none';
+                document.body.style.overflow = 'hidden';
+                // 重置transform以确保正确的全屏定位
+                dialog.style.transform = 'none';
+            } else {
+                button.innerHTML = '<i class="fas fa-expand"></i><span>全屏</span>';
+                content.style.resize = 'both';
+                document.body.style.overflow = '';
+                // 恢复之前的位置
+                const { lastX, lastY } = dialog.dataset;
+                if (lastX && lastY) {
+                    dialog.style.transform = `translate(${lastX}px, ${lastY}px)`;
+                }
+            }
+            
+            // 保存当前位置信息
+            if (!dialog.classList.contains('modal-fullscreen')) {
+                const transform = window.getComputedStyle(dialog).transform;
+                if (transform !== 'none') {
+                    const matrix = new DOMMatrix(transform);
+                    dialog.dataset.lastX = matrix.m41;
+                    dialog.dataset.lastY = matrix.m42;
+                }
+            }
+            
+            // 触发 resize 事件以确保内容正确布局
+            window.dispatchEvent(new Event('resize'));
+        }
+
+        // 添加复制功能
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            const text = element.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const button = document.querySelector(`[onclick="copyToClipboard('${elementId}')"]`);
+                const originalHtml = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i><span>已复制</span>';
+                button.style.backgroundColor = 'var(--primary)';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalHtml;
+                    button.style.backgroundColor = '';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html> 

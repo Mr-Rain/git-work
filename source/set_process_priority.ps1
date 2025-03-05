@@ -1,8 +1,8 @@
 # 脚本名称: set_process_priority.ps1
 # 描述: 为无畏契约反作弊检测进程设置CPU优先级和亲和性
 # 作者: 不离不弃的夜雨
-# 版本: 1.0.2
-# 最后更新: 2024-03-05
+# 版本: 1.0.4
+# 最后更新: 2025-03-06
 # 
 # 使用方法:
 # 1. 使用 run_as_admin.bat 运行此脚本
@@ -71,57 +71,226 @@ $messages = @{
     ProcessNotFound = ConvertTo-Chinese "E69CAAE689BEE588B0E8BF9BE7A88B"          # 未找到进程
     Complete = ConvertTo-Chinese "E689A7E8A18CE5AE8CE68890"                        # 执行完成
     ScriptEnd = ConvertTo-Chinese "E7A88BE5BA8FE7BB93E69D9F"                      # 程序结束
+    LogHeader = ConvertTo-Chinese "E69C80E8BF91E58D81E6ACA1E6938DE4BD9CE8AEB0E5BD95"  # 最近十次操作记录
+}
+
+# Function to manage log rotation
+function Update-LogHistory {
+    param (
+        [string]$logFile,
+        [System.Collections.ArrayList]$newContent
+    )
+    
+    try {
+        # Prepare separators
+        $separator = "=" * 80
+
+        # Initialize arrays
+        $sections = [System.Collections.ArrayList]@()
+        $currentSection = [System.Collections.ArrayList]@()
+        
+        # Read existing logs if file exists
+        if (Test-Path $logFile) {
+            $existingLogs = Get-Content $logFile -Encoding UTF8 -ErrorAction Stop
+            $inSection = $false
+            
+            foreach ($line in $existingLogs) {
+                # Skip header
+                if ($line -eq $messages.LogHeader -or $line -match "^-+$") {
+                    continue
+                }
+
+                if ($line -eq $separator) {
+                    if ($currentSection.Count -gt 0) {
+                        $sections.Add($currentSection.Clone()) | Out-Null
+                        $currentSection = [System.Collections.ArrayList]@()
+                    }
+                    $inSection = $true
+                    continue
+                }
+
+                if ($inSection -and -not [string]::IsNullOrWhiteSpace($line)) {
+                    $currentSection.Add($line) | Out-Null
+                }
+            }
+
+            # Add the last section if it exists and not empty
+            if ($currentSection.Count -gt 0) {
+                $sections.Add($currentSection.Clone()) | Out-Null
+            }
+        }
+
+        # Add new content as a new section
+        $newSection = [System.Collections.ArrayList]@()
+        foreach ($line in $newContent) {
+            if (-not [string]::IsNullOrWhiteSpace($line)) {
+                $newSection.Add($line) | Out-Null
+            }
+        }
+        if ($newSection.Count -gt 0) {
+            $sections.Add($newSection) | Out-Null
+        }
+
+        # Keep only the last 10 sections
+        while ($sections.Count -gt 10) {
+            $sections.RemoveAt(0)
+        }
+
+        # Build final content
+        $finalContent = [System.Collections.ArrayList]@()
+        
+        # Add header
+        $finalContent.Add($messages.LogHeader) | Out-Null
+        $finalContent.Add("-" * 80) | Out-Null
+        $finalContent.Add("") | Out-Null
+
+        # Add sections with separators
+        for ($i = 0; $i -lt $sections.Count; $i++) {
+            $finalContent.Add($separator) | Out-Null
+            $finalContent.Add("") | Out-Null
+            foreach ($line in $sections[$i]) {
+                $finalContent.Add($line) | Out-Null
+            }
+            $finalContent.Add("") | Out-Null
+        }
+
+        # Write to file
+        $finalContent | Out-File -FilePath $logFile -Encoding UTF8 -Force
+        return $true
+    }
+    catch {
+        Write-Error "Failed to update log history: $($_.Exception.Message)"
+        return $false
+    }
 }
 
 # 设置日志文件路径
 $logFile = Join-Path $PSScriptRoot "log.txt"
 $date = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 
-# 获取CPU核心数
-try {
-    $processorCount = (Get-WmiObject -Class Win32_ComputerSystem).NumberOfLogicalProcessors
-    if ($null -eq $processorCount -or $processorCount -lt 2) {
-        throw "Invalid CPU core count or less than 2 cores available"
+# Function to detect CPU architecture and features
+function Get-ProcessorInfo {
+    try {
+        $processor = Get-WmiObject -Class Win32_Processor
+        $processorCount = (Get-WmiObject -Class Win32_ComputerSystem).NumberOfLogicalProcessors
+        
+        # Check if it's Intel or AMD
+        $isIntel = $processor.Manufacturer -like "*Intel*"
+        $isAMD = $processor.Manufacturer -like "*AMD*"
+        
+        # Check if it's a hybrid architecture (has E-cores)
+        # Known Intel processors with hybrid architecture
+        $hybridModels = @(
+            "12th Gen", "13th Gen", "14th Gen",  # Common names
+            "Core i*-12", "Core i*-13", "Core i*-14",  # Desktop naming
+            "Alder Lake", "Raptor Lake"  # Architecture names
+        )
+        $hasECores = $false
+        if ($isIntel) {
+            $hasECores = $hybridModels | Where-Object { $processor.Name -like "*$_*" }
+        }
+        
+        return @{
+            ProcessorCount = $processorCount
+            IsIntel = $isIntel
+            IsAMD = $isAMD
+            HasECores = [bool]$hasECores
+        }
+    }
+    catch {
+        Write-Error "Failed to get processor information: $($_.Exception.Message)"
+        return $null
     }
 }
-catch {
-    Write-Error "Failed to get CPU information: $($_.Exception.Message)"
-    exit 1
+
+# Function to calculate optimal affinity mask based on CPU architecture
+function Get-OptimalAffinityMask {
+    param (
+        [Parameter(Mandatory=$true)]
+        [hashtable]$cpuInfo,
+        [Parameter(Mandatory=$true)]
+        [int]$processIndex
+    )
+    
+    try {
+        if ($cpuInfo.HasECores) {
+            # For Intel with E-cores, use the last core (E-core) for both processes
+            $lastCore = $cpuInfo.ProcessorCount - 1
+            return [Math]::Pow(2, $lastCore)
+        } else {
+            # For AMD or Intel without E-cores, use the second to last core for both processes
+            # Avoid first and last core for better system responsiveness
+            $targetCore = $cpuInfo.ProcessorCount - 2
+            return [Math]::Pow(2, $targetCore)
+        }
+    }
+    catch {
+        Write-Error "Failed to calculate affinity mask: $($_.Exception.Message)"
+        return 0
+    }
 }
 
-# 计算最后两个核心编号（从0开始）
-$lastCore = $processorCount - 1
-$secondLastCore = $processorCount - 2
-
-# 计算CPU亲和性掩码
-try {
-    $lastCoreMask = [Math]::Pow(2, $lastCore)
-    $secondLastCoreMask = [Math]::Pow(2, $secondLastCore)
+# Function to get friendly architecture name
+function Get-FriendlyArchitectureName {
+    param (
+        [Parameter(Mandatory=$true)]
+        [int]$architectureCode
+    )
+    
+    switch ($architectureCode) {
+        0 { return "x86 (32-bit)" }
+        1 { return "MIPS" }
+        2 { return "Alpha" }
+        3 { return "PowerPC" }
+        5 { return "ARM" }
+        6 { return "ia64 (Itanium)" }
+        9 { return "x64 (64-bit)" }
+        12 { return "ARM64" }
+        default { return "Unknown ($architectureCode)" }
+    }
 }
-catch {
-    Write-Error "Failed to calculate CPU affinity masks: $($_.Exception.Message)"
+
+# Get CPU information
+$cpuInfo = Get-ProcessorInfo
+if ($null -eq $cpuInfo) {
+    Write-Error "Failed to get CPU information"
     exit 1
 }
 
 # 初始化日志内容数组
-$logContent = New-Object System.Collections.ArrayList
+$logContent = [System.Collections.ArrayList]@()
 
 # 记录脚本启动和配置信息
 $null = $logContent.Add("[$date] $($messages.ScriptStart)")
-$null = $logContent.Add("$($messages.DetectedCores): $processorCount")
-$null = $logContent.Add("$($messages.AssignCores) $secondLastCore $($messages.And) $lastCore")
+$null = $logContent.Add("")  # Add empty line for better readability
+$null = $logContent.Add("$($messages.DetectedCores): $($cpuInfo.ProcessorCount)")
+$null = $logContent.Add("Processor: $($processor.Name)")
+$null = $logContent.Add("Architecture: $friendlyArchitecture")
+
+# Add CPU architecture information to log
+$cpuType = if ($cpuInfo.IsIntel) { 
+    if ($cpuInfo.HasECores) { 
+        "Intel (Hybrid Architecture - P-cores & E-cores)" 
+    } else { 
+        "Intel (Traditional - Uniform cores)" 
+    }
+} elseif ($cpuInfo.IsAMD) { 
+    "AMD (Uniform cores)" 
+} else { 
+    "Unknown Architecture" 
+}
+$null = $logContent.Add("CPU Type: $cpuType")
+$null = $logContent.Add("")  # Add empty line for better readability
 
 # 定义进程配置
 $processConfigs = @(
     @{
         Name = "SGuard64.exe"
-        Mask = $lastCoreMask
-        Core = $lastCore
+        ProcessIndex = 0
     },
     @{
         Name = "SGuardSvc64.exe"
-        Mask = $secondLastCoreMask
-        Core = $secondLastCore
+        ProcessIndex = 1
     }
 )
 
@@ -152,8 +321,10 @@ foreach ($config in $processConfigs) {
         }
         
         try {
-            $process.ProcessorAffinity = [IntPtr]::new($config.Mask)
-            $null = $logContent.Add("  [$($messages.Success)] $($messages.SetAffinityCore) $($config.Core)")
+            $affinityMask = Get-OptimalAffinityMask -cpuInfo $cpuInfo -processIndex $config.ProcessIndex
+            $process.ProcessorAffinity = [IntPtr]::new($affinityMask)
+            $selectedCore = [Math]::Log($affinityMask, 2)
+            $null = $logContent.Add("  [$($messages.Success)] $($messages.SetAffinityCore) $selectedCore")
         }
         catch {
             $success = $false
@@ -172,12 +343,16 @@ $null = $logContent.Add("[$date] $($messages.ScriptEnd)")
 
 # 将日志内容写入文件
 try {
-    $logContent | Out-File -FilePath $logFile -Encoding UTF8 -ErrorAction Stop
+    $updateSuccess = Update-LogHistory -logFile $logFile -newContent $logContent
+    if (-not $updateSuccess) {
+        Write-Error "Failed to update log history"
+        exit 1
+    }
 }
 catch {
     Write-Error "Failed to write log file: $($_.Exception.Message)"
     exit 1
 }
 
-# 返回执行状态yes
-exit ([int](!$success)) 
+# 返回执行状态
+exit ([int](!$success))

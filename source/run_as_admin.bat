@@ -5,8 +5,8 @@ chcp 65001 > nul
 REM Name: run_as_admin.bat
 REM Description: Run PowerShell script with administrator privileges
 REM Author: Night Rain
-REM Version: 1.0.3
-REM Last Updated: 2024-03-05
+REM Version: 1.0.4
+REM Last Updated: 2025-03-05
 
 
 REM Ensure running in script directory
@@ -33,7 +33,7 @@ if %ERRORLEVEL% EQU 0 (
     echo [成功] 已检测到进程并完成进程优先级和CPU亲和性设置
 ) else (
     echo.
-    echo [警告] 部分设置可能未成功，详细信息请查看日志文件
+    echo [警告] 部分设置可能未成功，详细信息请查看日志文件(只保留最近十次信息)
 )
 
 echo.

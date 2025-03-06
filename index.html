@@ -108,6 +108,11 @@
             overflow: hidden;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
         
         .card:hover {
@@ -132,17 +137,11 @@
             transform: scale(1.05);
         }
         
-        .card-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-            height: 50%;
-        }
-        
         .card-content {
             padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
         
         .card-title {
@@ -155,6 +154,12 @@
             color: var(--text-secondary);
             margin-bottom: 20px;
             line-height: 1.5;
+            flex: 1;
+        }
+        
+        .card-link-wrapper {
+            text-align: center;
+            margin-top: auto;
         }
         
         .card-link {
@@ -162,15 +167,41 @@
             background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
             color: white;
             text-decoration: none;
-            padding: 10px 20px;
+            padding: 10px 30px;
             border-radius: 30px;
             font-weight: bold;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+            min-width: 140px;
         }
         
         .card-link:hover {
             transform: scale(1.05);
             box-shadow: 0 5px 15px rgba(110, 58, 217, 0.5);
+        }
+        
+        /* 卡片全局链接 */
+        .card-full-link {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1;
+        }
+        
+        /* 确保按钮在卡片上层 */
+        .card-link {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .card-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            height: 50%;
         }
         
         /* 底部样式 */
@@ -227,6 +258,7 @@
         <div class="cards">
             <!-- Valorant CPU优化工具卡片 -->
             <div class="card">
+                <a href="download.html" class="card-full-link"></a>
                 <div class="card-image">
                     <img src="./资源/优化反作弊占用脚本/优化图片.avif" alt="Valorant CPU优化">
                     <div class="card-overlay"></div>
@@ -234,12 +266,15 @@
                 <div class="card-content">
                     <h2 class="card-title">Valorant CPU优化工具</h2>
                     <p class="card-description">专为瓦洛兰特玩家设计的性能优化工具，通过智能调节反作弊进程优先级，有效提升游戏体验，让你的对战更加流畅。</p>
-                    <a href="download.html" class="card-link">立即优化</a>
+                    <div class="card-link-wrapper">
+                        <a href="download.html" class="card-link">立即优化</a>
+                    </div>
                 </div>
             </div>
             
             <!-- 心形动画卡片 -->
             <div class="card">
+                <a href="love.html" class="card-full-link"></a>
                 <div class="card-image">
                     <img src="./资源/星球/photo-1.avif" alt="爱心动画">
                     <div class="card-overlay"></div>
@@ -247,12 +282,15 @@
                 <div class="card-content">
                     <h2 class="card-title">心动时刻</h2>
                     <p class="card-description">唯美浪漫的3D心形动画，让爱意在空间中流转，营造温馨感人的氛围。</p>
-                    <a href="love.html" class="card-link">体验一下</a>
+                    <div class="card-link-wrapper">
+                        <a href="love.html" class="card-link">体验一下</a>
+                    </div>
                 </div>
             </div>
             
             <!-- 太阳系卡片 -->
             <div class="card">
+                <a href="ninestars.html" class="card-full-link"></a>
                 <div class="card-image">
                     <img src="./资源/星球/photo-2.avif" alt="太阳系九星连珠">
                     <div class="card-overlay"></div>
@@ -260,12 +298,15 @@
                 <div class="card-content">
                     <h2 class="card-title">太阳系九星连珠</h2>
                     <p class="card-description">探索宇宙奥秘，观赏罕见的九大行星排列奇观，感受浩瀚宇宙的神奇魅力。</p>
-                    <a href="ninestars.html" class="card-link">探索宇宙</a>
+                    <div class="card-link-wrapper">
+                        <a href="ninestars.html" class="card-link">探索宇宙</a>
+                    </div>
                 </div>
             </div>
             
             <!-- 补光灯自拍卡片 -->
             <div class="card">
+                <a href="photo.html" class="card-full-link"></a>
                 <div class="card-image">
                     <img src="./资源/星球/photo-3.avif" alt="星豪补光灯">
                     <div class="card-overlay"></div>
@@ -273,7 +314,9 @@
                 <div class="card-content">
                     <h2 class="card-title">美颜补光灯（bug太多已弃坑）</h2>
                     <p class="card-description">随时随地拍出完美自拍，专业补光效果让你在各种光线环境下都能光彩照人。</p>
-                    <a href="photo.html" class="card-link">开始自拍</a>
+                    <div class="card-link-wrapper">
+                        <a href="photo.html" class="card-link">开始自拍</a>
+                    </div>
                 </div>
             </div>
         </div>

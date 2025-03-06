@@ -1,8 +1,8 @@
 # 脚本名称: set_process_priority.ps1
 # 描述: 为无畏契约反作弊检测进程设置CPU优先级和亲和性
 # 作者: 不离不弃的夜雨
-# 版本: 1.0.4
-# 最后更新: 2025-03-06
+# 版本: 1.0.5
+# 最后更新: 2024-03-06
 # 
 # 使用方法:
 # 1. 使用 run_as_admin.bat 运行此脚本
@@ -256,6 +256,10 @@ if ($null -eq $cpuInfo) {
     Write-Error "Failed to get CPU information"
     exit 1
 }
+
+# Get processor details
+$processor = Get-WmiObject -Class Win32_Processor
+$friendlyArchitecture = Get-FriendlyArchitectureName -architectureCode $processor.Architecture
 
 # 初始化日志内容数组
 $logContent = [System.Collections.ArrayList]@()

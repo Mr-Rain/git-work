@@ -400,29 +400,95 @@
 
     <!-- 下载确认模态框 -->
     <div class="modal fade" id="downloadModal" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">下载确认</h5>
+                    <h5 class="modal-title">选择下载方式</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p>您即将下载 Valorant CPU优化工具 v1.0.2</p>
-                    <ul class="list-unstyled">
-                        <li>✓ 文件大小：12KB</li>
-                        <li>✓ 支持系统：Windows 10/11</li>
-                        <li>✓ 所需权限：管理员权限</li>
-                        <li>✓ SHA256: 3a2f...（文件校验码）</li>
-                    </ul>
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> 下载后请解压到单独的文件夹，以管理员身份运行 run_as_admin.bat
+                    <div class="row g-4">
+                        <!-- 压缩包选项 -->
+                        <div class="col-md-6">
+                            <div class="card h-100" style="background: var(--accent); border: 1px solid rgba(255,255,255,0.1);">
+                                <div class="card-body">
+                                    <h5 class="card-title mb-3" style="color: #ECE8E1;">
+                                        <i class="fas fa-file-archive text-primary me-2"></i>源码压缩包
+                                    </h5>
+                                    <h6 class="card-subtitle mb-3" style="color: #A7A5A1;">推荐安全性要求高的用户选择</h6>
+                                    <ul class="list-unstyled mb-3" style="color: #ECE8E1;">
+                                        <li><i class="fas fa-check text-success me-2"></i>完整源代码可见</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>可自行检查和修改</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>包含详细说明文档</li>
+                                        <li><i class="fas fa-info-circle text-primary me-2"></i>需要解压后运行</li>
+                                    </ul>
+                                    <div class="mt-3">
+                                        <small style="color: #A7A5A1;">
+                                            <i class="fas fa-file-alt me-1"></i>文件大小：12KB
+                                        </small><br>
+                                        <small style="color: #A7A5A1;">
+                                            <i class="fas fa-shield-alt me-1"></i>SHA256: 3a2f...
+                                        </small>
+                                    </div>
+                                    <div class="mt-3">
+                                        <a href="./资源/优化反作弊占用脚本/优化反作弊占用脚本.zip" class="btn btn-valorant w-100" download>
+                                            <i class="fas fa-download me-2"></i>下载压缩包
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- EXE选项 -->
+                        <div class="col-md-6">
+                            <div class="card h-100" style="background: var(--accent); border: 1px solid rgba(255,255,255,0.1);">
+                                <div class="card-body">
+                                    <h5 class="card-title mb-3" style="color: #ECE8E1;">
+                                        <i class="fas fa-file-code text-primary me-2"></i>独立执行文件
+                                    </h5>
+                                    <h6 class="card-subtitle mb-3" style="color: #A7A5A1;">推荐追求便捷的用户选择</h6>
+                                    <ul class="list-unstyled mb-3" style="color: #ECE8E1;">
+                                        <li><i class="fas fa-check text-success me-2"></i>单文件便捷运行</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>无需解压操作</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>自动化程度高</li>
+                                        <li><i class="fas fa-info-circle text-primary me-2"></i>源码已编译打包</li>
+                                    </ul>
+                                    <div class="mt-3">
+                                        <small style="color: #A7A5A1;">
+                                            <i class="fas fa-file-alt me-1"></i>文件大小：256KB
+                                        </small><br>
+                                        <small style="color: #A7A5A1;">
+                                            <i class="fas fa-shield-alt me-1"></i>SHA256: 7b4d...
+                                        </small>
+                                    </div>
+                                    <div class="mt-3 position-relative">
+                                        <span class="position-absolute top-0 start-0 translate-middle badge rounded-pill bg-success" style="font-size: 0.8rem; margin-left: 0.5rem; margin-top: -0.5rem; z-index: 1;">
+                                            推荐
+                                        </span>
+                                        <a href="./source/WFAntiCheatOptimizer.exe" class="btn btn-valorant w-100" download>
+                                            <i class="fas fa-download me-2"></i>下载执行文件
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 通用信息 -->
+                    <div class="mt-4">
+                        <div class="alert alert-info border-0" style="background: rgba(40, 52, 78, 0.5);">
+                            <h6 class="mb-2" style="color: #ECE8E1;"><i class="fas fa-info-circle me-2"></i>下载说明</h6>
+                            <ul class="mb-0 ps-3" style="color: #ECE8E1;">
+                                <li>两种下载方式功能完全相同，仅分发形式不同</li>
+                                <li>均需要管理员权限才能正常运行</li>
+                                <li>支持 Windows 10/11 系统</li>
+                                <li>如遇杀毒软件拦截，请添加信任或白名单</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                    <a href="./资源/优化反作弊占用脚本/优化反作弊占用脚本.zip" class="btn btn-valorant" download>
-                        <i class="fas fa-download me-2"></i>确认下载
-                    </a>
                 </div>
             </div>
         </div>
@@ -686,15 +752,6 @@
                 lastX = x;
                 lastY = y;
                 
-                if (e.type === 'touchstart') {
-                    startX = e.touches[0].clientX - x;
-                    startY = e.touches[0].clientY - y;
-                } else {
-                    startX = e.clientX - x;
-                    startY = e.clientY - y;
-                }
-                
-                // 添加临时事件监听器
                 if (e.type === 'touchstart') {
                     document.addEventListener('touchmove', drag, { passive: false });
                     document.addEventListener('touchend', dragEnd, { once: true });

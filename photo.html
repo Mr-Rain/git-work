@@ -38,6 +38,7 @@
             width: 100%;
             max-width: 500px;
             padding: 10px;
+            margin: 0 auto; /* 添加这一行使容器居中 */
         }
         
         h1 {
@@ -62,6 +63,12 @@
             border-radius: var(--border-radius);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             overflow: hidden;
+            /* 避免iOS Safari的奇怪行为 */
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            will-change: transform;
+            /* 确保视频容器正确定位 */
+            z-index: 0;
         }
         
         #video {
@@ -69,9 +76,12 @@
             height: 100%;
             object-fit: cover;
             transform: scaleX(-1);
+            /* 避免某些移动浏览器中的闪烁问题 */
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
         }
         
-        /* 新增：视频滤镜容器 */
+        /* 光效叠加层样式 */
         .video-filter {
             position: absolute;
             top: 0;
@@ -80,6 +90,16 @@
             height: 100%;
             pointer-events: none;
             z-index: 1;
+            mix-blend-mode: screen; /* 使用屏幕混合模式 */
+            background-color: rgba(255, 255, 255, 0.5); /* 默认白色 */
+            opacity: 0.7; /* 默认透明度 */
+            /* 提高渲染性能 */
+            will-change: opacity, filter, background-color;
+            /* 优化动画性能 */
+            transition: opacity 0.1s ease, filter 0.1s ease;
+            /* 避免iOS Safari的奇怪合成问题 */
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
         }
         
         .quick-actions {
@@ -299,30 +319,89 @@
         }
         
         .preset-scenes {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 15px;
         }
         
         .scene-option {
-            width: 70px;
+            background-color: #fff;
+            border-radius: 12px;
+            padding: 12px;
             text-align: center;
             cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .scene-option:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        }
+        
+        .scene-option.active {
+            border: 2px solid var(--primary-color);
         }
         
         .scene-preview {
-            width: 70px;
-            height: 70px;
-            border-radius: 10px;
-            margin-bottom: 5px;
-            background-size: cover;
-            background-position: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            width: 100%;
+            height: 80px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .scene-preview::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 50%);
+            border-radius: 8px;
         }
         
         .scene-name {
-            font-size: 12px;
+            font-weight: 500;
+            font-size: 14px;
+            color: #333;
+            margin-top: 5px;
+        }
+        
+        .scene-params {
+            display: none;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px;
+            font-size: 10px;
+            transition: all 0.3s;
+            opacity: 0;
+        }
+        
+        .scene-option:hover .scene-params {
+            display: block;
+            opacity: 1;
+        }
+        
+        .scenes-tip {
+            margin: 15px 0;
+            padding: 12px;
+            background-color: #E3F2FD;
+            border-radius: 10px;
+            font-size: 13px;
+            color: #0D47A1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         footer {
@@ -400,6 +479,8 @@
         
         /* 新增：我的照片样式 */
         .photos-grid {
+            position: relative;
+            min-height: 300px;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 12px;
@@ -458,124 +539,99 @@
             background: white;
         }
         
+        /* 进一步优化空照片提示样式 */
         .empty-photos {
             text-align: center;
-            padding: 40px 0;
+            padding: 40px 20px;
             color: var(--light-text);
-            background-color: rgba(255, 255, 255, 0.5);
-            border-radius: 12px;
-            margin: 20px 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 18px;
+            margin: 0;
+            max-width: 280px;
+            width: 90%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+            border: 1px dashed rgba(255, 105, 180, 0.3);
+            transition: all 0.3s ease;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+            animation: fadeIn 0.5s ease-out;
         }
         
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        
+        .empty-photos:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            border-color: rgba(255, 105, 180, 0.5);
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        
+        /* 优化空照片提示内文本样式 */
         .empty-photos p {
-            margin: 0;
-            font-size: 14px;
+            margin: 15px 0 0;
+            font-size: 16px;
+            line-height: 1.8;
+            width: 100%;
+            text-align: center;
+            color: #888;
+            transition: color 0.3s;
         }
         
-        .empty-photos::before {
-            content: '📷';
-            display: block;
-            font-size: 40px;
-            margin-bottom: 10px;
+        .empty-photos:hover p {
+            color: #666;
         }
         
-        /* 分页控制样式 */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-            gap: 8px;
-        }
-        
-        .page-btn {
-            background-color: #f5f5f5;
-            color: var(--text-color);
-            border: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 14px;
-            padding: 0;
-            transition: all 0.2s;
-        }
-        
-        .page-btn.active {
-            background-color: var(--primary-color);
-            color: white;
-            transform: scale(1.1);
-        }
-        
-        .page-btn:hover {
-            background-color: #e0e0e0;
-        }
-        
-        .page-nav {
-            background-color: #f5f5f5;
-            color: var(--text-color);
-            border: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 14px;
-            padding: 0;
-        }
-        
-        .page-nav:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .page-nav:not(:disabled):hover {
-            background-color: #e0e0e0;
-        }
-        
-        /* 照片板块样式优化 */
-        .photos-header {
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        
-        .photos-title {
-            font-size: 20px;
-            margin: 0;
+        .empty-photos p strong {
             color: var(--primary-color);
             font-weight: bold;
-        }
-        
-        /* 优化清空按钮样式 */
-        .clear-photos-btn {
-            position: absolute;
-            top: 50%;
-            right: 0;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            padding: 0;
-            cursor: pointer;
-            z-index: 5;
+            position: relative;
+            display: inline-block;
             transition: transform 0.3s;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
         
-        .clear-photos-btn:hover {
-            transform: translateY(-50%) scale(1.1);
+        .empty-photos p strong:hover {
+            transform: scale(1.05);
+        }
+        
+        /* 优化相机图标样式，确保完全居中 */
+        .empty-photos::before {
+            content: '';
+            /* 使用更可靠的方式确保圆形和图标居中 */
+            display: block;
+            width: 76px;
+            height: 76px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            box-shadow: 0 6px 16px rgba(255, 105, 180, 0.4);
+            margin-bottom: 18px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+        
+        /* 使用伪元素添加相机图标 */
+        .empty-photos::after {
+            content: '📷';
+            position: absolute;
+            top: 76px; /* 相机图标位置：圆形高度的一半 */
+            left: 50%;
+            transform: translate(-50%, -65%); /* 调整向上偏移量，从-130%改为-110%，使图标向下移动 */
+            font-size: 32px;
+            z-index: 6;
+        }
+        
+        /* 添加悬停效果 */
+        .empty-photos:hover::before {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(255, 105, 180, 0.5);
         }
         
         .cat-icon {
@@ -650,118 +706,6 @@
             border-radius: 50%;
             position: absolute;
             top: 20px;
-        }
-        
-        .clear-tooltip {
-            position: absolute;
-            bottom: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(255, 255, 255, 0.9);
-            color: var(--primary-color);
-            padding: 3px 8px;
-            border-radius: 10px;
-            font-size: 12px;
-            white-space: nowrap;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-        }
-        
-        .clear-photos-btn:hover .clear-tooltip {
-            opacity: 1;
-        }
-        
-        /* 照片预览模态框样式 */
-        .photo-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s, visibility 0.3s;
-        }
-        
-        .photo-modal.active {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        .modal-content {
-            position: relative;
-            max-width: 90%;
-            max-height: 80vh;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
-        }
-        
-        .modal-img {
-            display: block;
-            max-width: 100%;
-            max-height: 80vh;
-            object-fit: contain;
-        }
-        
-        .modal-close {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            width: 36px;
-            height: 36px;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            cursor: pointer;
-            z-index: 1001;
-            transition: background-color 0.2s;
-        }
-        
-        .modal-close:hover {
-            background-color: rgba(0, 0, 0, 0.7);
-        }
-        
-        .modal-actions {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 15px;
-        }
-        
-        .modal-action-btn {
-            background-color: rgba(255, 255, 255, 0.9);
-            color: var(--primary-color);
-            border: none;
-            border-radius: 20px;
-            padding: 8px 15px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        
-        .modal-action-btn:hover {
-            background-color: white;
-        }
-        
-        .modal-action-btn i {
-            font-size: 18px;
         }
         
         /* 美颜功能样式 */
@@ -887,6 +831,316 @@
         .beauty-reset:hover {
             background-color: var(--primary-dark);
         }
+        
+        /* 照片预览模态框样式 */
+        .photo-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        
+        .photo-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 80vh;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+        }
+        
+        .modal-img {
+            display: block;
+            max-width: 100%;
+            max-height: 80vh;
+        }
+        
+        /* 添加导航按钮样式 */
+        .modal-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+        
+        .modal-nav-btn:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .prev-btn {
+            left: 10px;
+        }
+        
+        .next-btn {
+            right: 10px;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 36px;
+            height: 36px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 1001;
+            transition: background-color 0.2s;
+        }
+        
+        .modal-close:hover {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        .modal-action-btn {
+            background-color: rgba(255, 255, 255, 0.9);
+            color: var(--primary-color);
+            border: none;
+            border-radius: 20px;
+            padding: 8px 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .modal-action-btn:hover {
+            background-color: white;
+        }
+        
+        .modal-action-btn i {
+            font-size: 18px;
+        }
+        
+        /* 分页控制样式 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            gap: 8px;
+        }
+        
+        #page-numbers {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .page-btn {
+            background-color: #f5f5f5;
+            color: var(--text-color);
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0;
+            transition: all 0.2s;
+            margin: 0 2px;
+        }
+        
+        .page-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .page-btn:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .page-nav {
+            background-color: #f5f5f5;
+            color: var(--text-color);
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0;
+        }
+        
+        .page-nav:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .page-nav:not(:disabled):hover {
+            background-color: #e0e0e0;
+        }
+        
+        /* 照片板块样式优化 - 再次调整 */
+        .photos-header {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 0 15px 10px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            width: 100%;
+        }
+        
+        .photos-title {
+            font-size: 20px;
+            margin: 0;
+            color: var(--primary-color);
+            font-weight: bold;
+            text-align: center;
+            flex: 1;
+            margin-right: -125px; /* 添加右边距，使标题视觉上居中 */
+        }
+        
+        /* 优化清空按钮样式 */
+        .clear-photos-btn {
+            background-color: #f8f8f8;
+            border: none;
+            border-radius: 15px;
+            padding: 6px 12px;
+            color: var(--primary-color);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-left: auto;
+        }
+        
+        .clear-photos-btn:hover {
+            background-color: #f0f0f0;
+            transform: scale(1.05);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+        }
+        
+        /* 添加新的CSS样式 */
+        .preset-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+            justify-content: center;
+        }
+        
+        .preset-btn {
+            background-color: #f5f5f5;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            padding: 8px 12px;
+            border-radius: 15px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .preset-btn:hover {
+            background-color: #fce4ec;
+        }
+        
+        .preset-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .param-info {
+            font-size: 12px;
+            color: #888;
+            font-weight: normal;
+            margin-left: 5px;
+        }
+        
+        .scene-tips {
+            margin: 15px 0;
+            padding: 12px;
+            background-color: #fff9c4;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: fadeIn 0.5s ease-out;
+            transition: background-color 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .tip-icon {
+            font-size: 20px;
+        }
+        
+        .tip-content {
+            flex: 1;
+        }
+        
+        .tip-title {
+            font-weight: bold;
+            margin-bottom: 3px;
+            color: var(--primary-dark);
+        }
+        
+        .tip-text {
+            font-size: 13px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -976,27 +1230,74 @@
             <div class="tab-content" id="adjust-tab">
                 <h2>精细调整</h2>
                 
+                <div class="preset-buttons">
+                    <button class="preset-btn" data-preset="natural">自然肤色</button>
+                    <button class="preset-btn" data-preset="cool">冷白肤质</button>
+                    <button class="preset-btn" data-preset="warm">暖色氛围</button>
+                    <button class="preset-btn" data-preset="creative">创意光效</button>
+                </div>
+                
                 <div class="slider-control">
-                    <label for="brightness">亮度</label>
+                    <label for="brightness">亮度 <span class="param-info">控制整体照明强度</span></label>
                     <div class="slider-container">
-                        <input type="range" id="brightness" min="50" max="200" value="100">
-                        <span class="value-display" id="brightness-value">100%</span>
+                        <input type="range" id="brightness" min="0" max="100" value="90">
+                        <span class="value-display" id="brightness-value">90%</span>
                     </div>
                 </div>
                 
                 <div class="slider-control">
-                    <label for="saturation">饱和度</label>
+                    <label for="opacity">透明度 <span class="param-info">调整光效强度</span></label>
                     <div class="slider-container">
-                        <input type="range" id="saturation" min="0" max="300" value="100">
-                        <span class="value-display" id="saturation-value">100%</span>
+                        <input type="range" id="opacity" min="0" max="20" value="15">
+                        <span class="value-display" id="opacity-value">15%</span>
                     </div>
                 </div>
                 
                 <div class="slider-control">
-                    <label for="hue">色相</label>
+                    <label for="color-temp">色温 <span class="param-info">调整冷暖色调</span></label>
+                    <div class="slider-container">
+                        <input type="range" id="color-temp" min="2600" max="10000" value="4400">
+                        <span class="value-display" id="color-temp-value">4400K</span>
+                    </div>
+                </div>
+                
+                <div class="slider-control">
+                    <label for="saturation">饱和度 <span class="param-info">控制颜色鲜艳度</span></label>
+                    <div class="slider-container">
+                        <input type="range" id="saturation" min="0" max="100" value="85">
+                        <span class="value-display" id="saturation-value">85%</span>
+                    </div>
+                </div>
+                
+                <div class="slider-control">
+                    <label for="hue">色相 <span class="param-info">调整基础色调</span></label>
                     <div class="slider-container">
                         <input type="range" id="hue" min="0" max="360" value="0">
                         <span class="value-display" id="hue-value">0°</span>
+                    </div>
+                </div>
+                
+                <div class="slider-control">
+                    <label for="blur">柔光度 <span class="param-info">调整光线柔和度</span></label>
+                    <div class="slider-container">
+                        <input type="range" id="blur" min="0" max="50" value="0">
+                        <span class="value-display" id="blur-value">0px</span>
+                    </div>
+                </div>
+                
+                <div class="slider-control">
+                    <label for="color-index">显色指数 <span class="param-info">影响颜色还原度</span></label>
+                    <div class="slider-container">
+                        <input type="range" id="color-index" min="80" max="100" value="97">
+                        <span class="value-display" id="color-index-value">97</span>
+                    </div>
+                </div>
+                
+                <div class="scene-tips" id="scene-tips">
+                    <div class="tip-icon">💡</div>
+                    <div class="tip-content">
+                        <div class="tip-title">场景提示</div>
+                        <div class="tip-text">选择预设或调整参数以获得最佳效果</div>
                     </div>
                 </div>
                 
@@ -1006,30 +1307,41 @@
             <div class="tab-content" id="scenes-tab">
                 <h2>美颜场景</h2>
                 
+                <div class="scenes-tip">
+                    <div class="tip-icon">💡</div>
+                    <div>点击选择预设场景，每个场景都经过专业调校，适合不同拍摄需求</div>
+                </div>
+                
                 <div class="preset-scenes">
-                    <div class="scene-option" data-color="#FFD1DC" data-brightness="110" data-saturation="120" data-hue="0">
-                        <div class="scene-preview" style="background-color: #FFD1DC;"></div>
-                        <div class="scene-name">日系少女</div>
+                    <div class="scene-option" data-color="#FFE4E1" data-brightness="90" data-saturation="85" data-hue="0" data-opacity="0" data-color-temp="4400">
+                        <div class="scene-preview" style="background-color: #FFE4E1;"></div>
+                        <div class="scene-name">自然肤色</div>
+                        <div class="scene-params">色温: 4400K | 透明度: 0%</div>
                     </div>
-                    <div class="scene-option" data-color="#FFF0F5" data-brightness="105" data-saturation="90" data-hue="340">
-                        <div class="scene-preview" style="background-color: #FFF0F5;"></div>
-                        <div class="scene-name">柔光美白</div>
+                    <div class="scene-option" data-color="#F8F6FF" data-brightness="95" data-saturation="75" data-hue="340" data-opacity="5" data-color-temp="5000">
+                        <div class="scene-preview" style="background-color: #F8F6FF;"></div>
+                        <div class="scene-name">清透美白</div>
+                        <div class="scene-params">色温: 5000K | 透明度: 5%</div>
                     </div>
-                    <div class="scene-option" data-color="#F0E6FF" data-brightness="100" data-saturation="110" data-hue="280">
-                        <div class="scene-preview" style="background-color: #F0E6FF;"></div>
+                    <div class="scene-option" data-color="#F5E6FF" data-brightness="85" data-saturation="90" data-hue="280" data-opacity="8" data-color-temp="4200">
+                        <div class="scene-preview" style="background-color: #F5E6FF;"></div>
                         <div class="scene-name">紫色梦境</div>
+                        <div class="scene-params">色温: 4200K | 透明度: 8%</div>
                     </div>
-                    <div class="scene-option" data-color="#E0F7FA" data-brightness="105" data-saturation="95" data-hue="180">
-                        <div class="scene-preview" style="background-color: #E0F7FA;"></div>
+                    <div class="scene-option" data-color="#E8F8FF" data-brightness="90" data-saturation="80" data-hue="195" data-opacity="3" data-color-temp="4800">
+                        <div class="scene-preview" style="background-color: #E8F8FF;"></div>
                         <div class="scene-name">清新自然</div>
+                        <div class="scene-params">色温: 4800K | 透明度: 3%</div>
                     </div>
-                    <div class="scene-option" data-color="#FFF9C4" data-brightness="115" data-saturation="105" data-hue="50">
-                        <div class="scene-preview" style="background-color: #FFF9C4;"></div>
+                    <div class="scene-option" data-color="#FFF8E1" data-brightness="88" data-saturation="90" data-hue="40" data-opacity="10" data-color-temp="3800">
+                        <div class="scene-preview" style="background-color: #FFF8E1;"></div>
                         <div class="scene-name">暖阳黄昏</div>
+                        <div class="scene-params">色温: 3800K | 透明度: 10%</div>
                     </div>
-                    <div class="scene-option" data-color="#FCE4EC" data-brightness="108" data-saturation="115" data-hue="10">
-                        <div class="scene-preview" style="background-color: #FCE4EC;"></div>
+                    <div class="scene-option" data-color="#FFECF1" data-brightness="92" data-saturation="95" data-hue="10" data-opacity="7" data-color-temp="4100">
+                        <div class="scene-preview" style="background-color: #FFECF1;"></div>
                         <div class="scene-name">蜜桃甜心</div>
+                        <div class="scene-params">色温: 4100K | 透明度: 7%</div>
                     </div>
                 </div>
             </div>
@@ -1039,26 +1351,14 @@
                 <div class="photos-header">
                     <h2 class="photos-title">我的照片</h2>
                     
-                    <!-- 添加清空按钮 -->
+                    <!-- 调整清空按钮样式和位置 -->
                     <button class="clear-photos-btn" id="clear-photos-btn">
-                        <div class="cat-icon">
-                            <div class="cat-head">
-                                <div class="cat-ear left"></div>
-                                <div class="cat-ear right"></div>
-                                <div class="cat-eye left"></div>
-                                <div class="cat-eye right"></div>
-                                <div class="cat-nose"></div>
-                                <div class="cat-mouth"></div>
-                            </div>
-                        </div>
-                        <span class="clear-tooltip">清空所有照片</span>
+                        <i>🗑️</i>清空所有照片
                     </button>
                 </div>
                 
                 <div id="photos-container" class="photos-grid">
-                    <div class="empty-photos" id="empty-photos">
-                        <p>还没有照片，点击拍照按钮开始拍摄吧！</p>
-                    </div>
+                    <!-- 空照片提示将在JavaScript中动态添加 -->
                 </div>
                 
                 <!-- 分页控制 -->
@@ -1074,7 +1374,9 @@
         <div class="photo-modal" id="photo-modal">
             <button class="modal-close" id="modal-close">×</button>
             <div class="modal-content">
+                <button class="modal-nav-btn prev-btn" id="modal-prev">❮</button>
                 <img src="" alt="照片预览" class="modal-img" id="modal-img">
+                <button class="modal-nav-btn next-btn" id="modal-next">❯</button>
             </div>
             <div class="modal-actions">
                 <button class="modal-action-btn" id="modal-download">
@@ -1104,6 +1406,66 @@
     </div>
     
     <script>
+        // 显示提示信息
+        let activeToast = null; // 跟踪当前活动的提示
+        
+        function showToast(message) {
+            // 如果已经有活动的提示，先移除它
+            if (activeToast) {
+                document.body.removeChild(activeToast);
+                activeToast = null;
+            }
+            
+            const toast = document.createElement('div');
+            toast.style.position = 'fixed';
+            toast.style.bottom = '20px';
+            toast.style.left = '50%';
+            toast.style.transform = 'translateX(-50%)';
+            toast.style.backgroundColor = 'rgba(0,0,0,0.8)';
+            toast.style.color = 'white';
+            toast.style.padding = '12px 24px';
+            toast.style.borderRadius = '24px';
+            toast.style.zIndex = '1000';
+            toast.style.fontSize = '14px';
+            toast.style.fontWeight = 'bold';
+            toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            // 保存当前活动的提示引用
+            activeToast = toast;
+            
+            // 设置自动消失
+            setTimeout(() => {
+                if (activeToast === toast) { // 确保这是当前活动的提示
+                    toast.style.opacity = '0';
+                    toast.style.transition = 'opacity 0.5s';
+                    setTimeout(() => {
+                        if (document.body.contains(toast)) {
+                            document.body.removeChild(toast);
+                            if (activeToast === toast) {
+                                activeToast = null;
+                            }
+                        }
+                    }, 500);
+                }
+            }, 2000);
+        }
+        
+        // 全局变量和设置
+        let video = document.getElementById('video');
+        let currentStream = null;
+        let facingMode = "user"; // 默认使用前置摄像头
+        
+        // 全局滤镜参数
+        let brightness = 90;
+        let opacity = 15;
+        let colorTemp = 4400;
+        let saturation = 85;
+        let hue = 0;
+        let blur = 0;
+        let colorIndex = 97;
+        
         // 页面加载完成后隐藏加载动画
         window.addEventListener('load', function() {
             setTimeout(function() {
@@ -1146,17 +1508,22 @@
             });
         });
         
-        // 获取摄像头访问权限
-        const video = document.getElementById('video');
-        let currentStream = null;
-        let facingMode = "user"; // 默认使用前置摄像头
+        // 获取摄像头访问权限 - 增强兼容性
+        video = document.getElementById('video');
+        currentStream = null;
+        facingMode = "user"; // 默认使用前置摄像头
+        let cameraAttempts = 0; // 跟踪摄像头尝试次数
         
         function startCamera() {
             if (currentStream) {
                 currentStream.getTracks().forEach(track => track.stop());
             }
             
-            const constraints = {
+            // 显示正在打开摄像头的提示
+            showToast('正在打开摄像头...');
+            
+            // 首先尝试使用理想分辨率
+            const idealConstraints = {
                 video: {
                     facingMode: facingMode,
                     width: { ideal: 1280 },
@@ -1164,22 +1531,172 @@
                 }
             };
             
-            navigator.mediaDevices.getUserMedia(constraints)
-                .then(function(stream) {
+            // 后备约束条件，更简单的设置
+            const fallbackConstraints = {
+                video: {
+                    facingMode: facingMode
+                }
+            };
+            
+            // 最简单的约束条件，仅请求视频
+            const basicConstraints = {
+                video: true
+            };
+            
+            // 尝试使用理想约束条件
+            tryGetUserMedia(idealConstraints)
+                .catch(error => {
+                    console.warn("无法使用理想约束条件，尝试使用回退选项", error);
+                    // 回退到更简单的约束条件
+                    return tryGetUserMedia(fallbackConstraints);
+                })
+                .catch(error => {
+                    console.warn("简单约束条件也失败，尝试最基本的约束", error);
+                    // 回退到最基本的约束条件
+                    return tryGetUserMedia(basicConstraints);
+                })
+                .catch(error => {
+                    handleCameraError(error);
+                });
+        }
+        
+        // 尝试使用指定的约束条件获取摄像头
+        function tryGetUserMedia(constraints) {
+            cameraAttempts++;
+            return navigator.mediaDevices.getUserMedia(constraints)
+                .then(stream => {
                     currentStream = stream;
                     video.srcObject = stream;
-                })
-                .catch(function(error) {
-                    console.error("无法访问摄像头: ", error);
-                    alert("无法访问摄像头，请确保您已授予摄像头访问权限。");
+                    console.log("成功使用约束条件获取摄像头:", constraints);
+                    cameraAttempts = 0; // 重置尝试次数
+                    
+                    // 确保视频自动播放 - 解决部分移动设备兼容性问题
+                    video.play().catch(err => {
+                        console.warn("视频自动播放失败，尝试使用用户交互触发播放", err);
+                        // 在某些浏览器中，需要用户交互才能播放视频
+                        createPlayButton();
+                    });
                 });
+        }
+        
+        // 创建播放按钮，用于用户交互触发视频播放
+        function createPlayButton() {
+            const videoContainer = document.querySelector('.video-container');
+            if (videoContainer) {
+                const playButton = document.createElement('button');
+                playButton.className = 'play-button';
+                playButton.innerHTML = '点击激活摄像头';
+                playButton.style.position = 'absolute';
+                playButton.style.top = '50%';
+                playButton.style.left = '50%';
+                playButton.style.transform = 'translate(-50%, -50%)';
+                playButton.style.zIndex = '10';
+                playButton.style.padding = '10px 20px';
+                playButton.style.backgroundColor = 'var(--primary-color)';
+                playButton.style.color = 'white';
+                playButton.style.border = 'none';
+                playButton.style.borderRadius = '20px';
+                playButton.style.cursor = 'pointer';
+                
+                playButton.addEventListener('click', function() {
+                    video.play();
+                    this.remove();
+                });
+                
+                videoContainer.appendChild(playButton);
+            }
+        }
+        
+        // 在视频加载失败时处理
+        video.addEventListener('error', function(e) {
+            console.error('视频加载错误:', e);
+            showCameraPlaceholder();
+        });
+        
+        // 处理摄像头错误
+        function handleCameraError(error) {
+            console.error("无法访问摄像头:", error);
+            
+            if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                alert("您已拒绝摄像头访问权限。请在浏览器设置中允许访问摄像头，然后刷新页面重试。");
+            } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+                alert("未检测到摄像头设备。请确保您的设备有摄像头且正常工作。");
+            } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+                alert("无法访问摄像头，可能被其他应用程序占用。请关闭可能使用摄像头的其他应用，然后刷新页面重试。");
+            } else if (error.name === 'OverconstrainedError' || error.name === 'ConstraintNotSatisfiedError') {
+                // 这种情况已经在尝试不同约束条件时处理了
+                alert("您的摄像头不支持请求的分辨率。请尝试使用不同设备或浏览器。");
+            } else {
+                alert(`无法访问摄像头：${error.message || error.name || '未知错误'}。请尝试重新加载页面或使用不同的浏览器。`);
+            }
+            
+            // 显示一个替代的背景，而不是黑屏
+            showCameraPlaceholder();
+        }
+        
+        // 显示摄像头不可用时的替代背景
+        function showCameraPlaceholder() {
+            const videoContainer = document.querySelector('.video-container');
+            if (videoContainer) {
+                // 隐藏视频元素
+                if (video) video.style.display = 'none';
+                
+                // 创建提示元素
+                const placeholder = document.createElement('div');
+                placeholder.className = 'camera-placeholder';
+                placeholder.style.width = '100%';
+                placeholder.style.height = '100%';
+                placeholder.style.display = 'flex';
+                placeholder.style.flexDirection = 'column';
+                placeholder.style.alignItems = 'center';
+                placeholder.style.justifyContent = 'center';
+                placeholder.style.backgroundColor = '#FFE4E1';
+                placeholder.style.color = '#FF69B4';
+                placeholder.style.padding = '20px';
+                placeholder.style.textAlign = 'center';
+                
+                placeholder.innerHTML = `
+                    <div style="font-size: 40px; margin-bottom: 10px;">📷</div>
+                    <div style="font-weight: bold; margin-bottom: 10px;">无法访问摄像头</div>
+                    <div style="font-size: 14px;">请确保您已授予摄像头权限，并且没有其他应用正在使用摄像头</div>
+                    <button id="retry-camera" style="margin-top: 15px; padding: 8px 15px; background-color: #FF69B4; color: white; border: none; border-radius: 20px; cursor: pointer;">重试</button>
+                `;
+                
+                videoContainer.appendChild(placeholder);
+                
+                // 添加重试按钮功能
+                document.getElementById('retry-camera').addEventListener('click', function() {
+                    placeholder.remove();
+                    if (video) video.style.display = '';
+                    startCamera();
+                });
+            }
+        }
+        
+        // iOS Safari兼容性处理
+        function iosSafariCameraFix() {
+            // 检测是否是iOS设备
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            if (isIOS) {
+                // iOS Safari要求视频元素有controls、autoplay和playsinline属性
+                video.setAttribute('playsinline', 'true');
+                // 有些旧版本还需要额外处理
+                video.setAttribute('controls', 'true');
+                setTimeout(() => {
+                    video.removeAttribute('controls');
+                }, 1000);
+            }
         }
         
         // 初始化摄像头
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            // 应用iOS兼容性修复
+            iosSafariCameraFix();
+            // 启动摄像头
             startCamera();
         } else {
             alert("您的浏览器不支持摄像头访问。请尝试使用Chrome、Firefox或Safari的最新版本。");
+            showCameraPlaceholder();
         }
         
         // 切换摄像头
@@ -1196,35 +1713,80 @@
             option.addEventListener('click', function() {
                 // 移除其他选项的active类
                 colorOptions.forEach(opt => opt.classList.remove('active'));
+                
                 // 为当前选项添加active类
                 this.classList.add('active');
+                
+                // 获取选中的颜色
+                const selectedColor = this.dataset.color;
+                
                 // 更改背景颜色
-                document.body.style.backgroundColor = this.dataset.color;
+                document.body.style.backgroundColor = selectedColor;
+                
                 // 更新当前颜色名称
                 currentColorName.textContent = '当前：' + this.dataset.name;
+                
+                // 应用所有滤镜效果，会自动应用选中的颜色
+                applyAllFilters();
             });
         });
         
         // 获取滤镜相关元素
         const brightnessSlider = document.getElementById('brightness');
         const brightnessValue = document.getElementById('brightness-value');
+        const opacitySlider = document.getElementById('opacity');
+        const opacityValue = document.getElementById('opacity-value');
+        const blurSlider = document.getElementById('blur');
+        const blurValue = document.getElementById('blur-value');
         const saturationSlider = document.getElementById('saturation');
         const saturationValue = document.getElementById('saturation-value');
         const hueSlider = document.getElementById('hue');
         const hueValue = document.getElementById('hue-value');
         const videoFilter = document.getElementById('video-filter');
         
+        // 新增参数元素
+        const colorTempSlider = document.getElementById('color-temp');
+        const colorTempValue = document.getElementById('color-temp-value');
+        const colorIndexSlider = document.getElementById('color-index');
+        const colorIndexValue = document.getElementById('color-index-value');
+        const sceneTips = document.getElementById('scene-tips');
+        
+        // 场景预设按钮
+        const presetButtons = document.querySelectorAll('.preset-btn');
+        
         // 更新滤镜函数 - 完全重写
-        function updateFilters(brightness, saturation, hue) {
+        function updateFilters(brightness, opacity, blur, saturation, hue, colorTemp, colorIndex) {
             // 更新滑块值
             brightnessSlider.value = brightness;
+            opacitySlider.value = opacity;
+            blurSlider.value = blur;
             saturationSlider.value = saturation;
             hueSlider.value = hue;
             
+            // 更新新增参数
+            if (colorTemp !== undefined && colorTempSlider) {
+                colorTempSlider.value = colorTemp;
+            }
+            
+            if (colorIndex !== undefined && colorIndexSlider) {
+                colorIndexSlider.value = colorIndex;
+            }
+            
             // 更新显示的数值
             brightnessValue.textContent = brightness + '%';
+            opacityValue.textContent = opacity + '%';
+            blurValue.textContent = blur + 'px';
             saturationValue.textContent = saturation + '%';
             hueValue.textContent = hue + '°';
+            
+            // 更新新增参数显示
+            if (colorTempValue) {
+                colorTempValue.textContent = colorTempSlider.value + 'K';
+            }
+            
+            if (colorIndexValue) {
+                colorIndexValue.textContent = colorIndexSlider.value;
+            }
             
             // 应用所有滤镜效果
             applyAllFilters();
@@ -1234,37 +1796,236 @@
         function applyAllFilters() {
             // 获取调整参数
             const brightness = parseInt(brightnessSlider.value);
+            const opacity = parseInt(opacitySlider.value);
+            const blur = parseInt(blurSlider.value);
             const saturation = parseInt(saturationSlider.value);
             const hue = parseInt(hueSlider.value);
             
-            // 获取美颜参数（如果存在）
-            let smoothing = 0;
-            if (typeof smoothingSlider !== 'undefined' && smoothingSlider) {
-                smoothing = parseInt(smoothingSlider.value || 0);
+            // 获取新增参数
+            const colorTemp = colorTempSlider ? parseInt(colorTempSlider.value) : 5600;
+            const colorIndex = colorIndexSlider ? parseInt(colorIndexSlider.value) : 95;
+            
+            // 获取当前选中的颜色
+            const activeColorOption = document.querySelector('.color-option.active');
+            let currentColor = '#FFFFFF'; // 默认白色
+            
+            if (activeColorOption) {
+                currentColor = activeColorOption.dataset.color;
             }
             
-            // 计算滤镜效果
-            const blurValue = smoothing * 0.05; // 0-5px的模糊
+            // 应用色温调整 - 将色温转换为RGB颜色
+            const tempAdjustedColor = applyColorTemperature(currentColor, colorTemp);
             
-            // 构建完整滤镜字符串
-            const adjustFilter = `brightness(${brightness}%) saturate(${saturation}%) hue-rotate(${hue}deg)`;
-            const beautyFilter = smoothing > 0 ? `blur(${blurValue}px)` : '';
-            const finalFilter = beautyFilter + ' ' + adjustFilter;
+            // 应用显色指数调整
+            const finalColor = applyColorIndex(tempAdjustedColor, colorIndex);
             
-            // 应用滤镜到视频层
-            const videoFilter = document.getElementById('video-filter');
-            if (videoFilter) {
-                videoFilter.style.filter = finalFilter;
-                console.log("应用完整滤镜:", finalFilter);
+            // 优化性能，使用requestAnimationFrame
+            requestAnimationFrame(() => {
+                // 应用光效滤镜到叠加层
+                const videoFilter = document.getElementById('video-filter');
+                if (videoFilter) {
+                    // 设置光效颜色
+                    videoFilter.style.backgroundColor = finalColor;
+                    
+                    // 设置光效透明度
+                    videoFilter.style.opacity = opacity / 100;
+                    
+                    // 设置光效亮度和模糊
+                    const filterValue = `brightness(${brightness/100}) blur(${blur * 0.1}px)`;
+                    videoFilter.style.filter = filterValue;
+                    
+                    // 设置视频的饱和度和色相
+                    const videoElement = document.getElementById('video');
+                    if (videoElement) {
+                        videoElement.style.filter = `saturate(${saturation}%) hue-rotate(${hue}deg)`;
+                    }
+                    
+                    console.log("应用光效:", {
+                        color: finalColor,
+                        opacity: opacity / 100,
+                        brightness: brightness / 100,
+                        blur: blur * 0.1,
+                        saturation: saturation,
+                        hue: hue,
+                        colorTemp: colorTemp,
+                        colorIndex: colorIndex
+                    });
+                } else {
+                    console.error("找不到视频滤镜层元素");
+                }
+            });
+        }
+        
+        // 色温转换函数 - 将色温值转换为RGB颜色
+        function applyColorTemperature(baseColor, temp) {
+            // 将基础颜色转换为RGB
+            const rgb = hexToRgb(baseColor);
+            if (!rgb) return baseColor;
+            
+            // 色温调整系数 (简化版)
+            let r = rgb.r, g = rgb.g, b = rgb.b;
+            
+            // 根据色温调整RGB值
+            if (temp <= 6600) {
+                // 暖色调 (偏黄/红)
+                const factor = Math.max(0, Math.min(1, (6600 - temp) / 4000));
+                r = Math.min(255, r + (255 - r) * factor * 0.5);
+                g = Math.min(255, g + (g * factor * 0.1));
+                b = Math.max(0, b - b * factor * 0.3);
             } else {
-                console.error("找不到视频滤镜层元素");
+                // 冷色调 (偏蓝)
+                const factor = Math.max(0, Math.min(1, (temp - 6600) / 3400));
+                r = Math.max(0, r - r * factor * 0.2);
+                g = Math.max(0, g - g * factor * 0.1);
+                b = Math.min(255, b + (255 - b) * factor * 0.4);
             }
+            
+            return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
+        }
+        
+        // 显色指数调整函数
+        function applyColorIndex(color, index) {
+            // 将颜色转换为RGB
+            const rgb = typeof color === 'string' ? hexToRgb(color) : color;
+            if (!rgb) return color;
+            
+            // 显色指数调整 (简化版)
+            // 显色指数越高，颜色越真实，饱和度适中
+            // 显色指数越低，颜色可能偏离真实，饱和度可能过高或过低
+            const factor = (index - 80) / 20; // 80-100 范围映射到 0-1
+            
+            // 调整RGB通道平衡
+            let r = rgb.r, g = rgb.g, b = rgb.b;
+            
+            // 计算平均值和标准差，用于调整颜色平衡
+            const avg = (r + g + b) / 3;
+            const rDiff = r - avg;
+            const gDiff = g - avg;
+            const bDiff = b - avg;
+            
+            // 根据显色指数调整颜色偏差
+            r = Math.max(0, Math.min(255, avg + rDiff * factor));
+            g = Math.max(0, Math.min(255, avg + gDiff * factor));
+            b = Math.max(0, Math.min(255, avg + bDiff * factor));
+            
+            return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
+        }
+        
+        // 辅助函数：将十六进制颜色转换为RGB对象
+        function hexToRgb(hex) {
+            // 检查是否是RGB格式
+            if (hex.startsWith('rgb')) {
+                const rgbMatch = hex.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+                if (rgbMatch) {
+                    return {
+                        r: parseInt(rgbMatch[1]),
+                        g: parseInt(rgbMatch[2]),
+                        b: parseInt(rgbMatch[3])
+                    };
+                }
+                return null;
+            }
+            
+            // 处理十六进制格式
+            const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+            hex = hex.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b);
+            
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+        
+        // 场景预设功能
+        presetButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // 移除其他按钮的active类
+                presetButtons.forEach(btn => btn.classList.remove('active'));
+                // 添加当前按钮的active类
+                this.classList.add('active');
+                
+                const preset = this.dataset.preset;
+                
+                // 根据预设应用不同的参数
+                switch(preset) {
+                    case 'natural': // 自然肤色优化
+                        updateFilters(90, 0, 5, 85, 0, 4400, 97);
+                        updateSceneTip('自然肤色优化', '适合人像/直播，提供通透自然的肤色效果');
+                        // 选择合适的基础颜色
+                        selectColorByName('柔和粉');
+                        break;
+                        
+                    case 'cool': // 冷白肤质
+                        updateFilters(95, 5, 3, 75, 0, 5000, 95);
+                        updateSceneTip('冷白肤质', '适合美妆/产品展示，突出细节和轮廓');
+                        // 选择合适的基础颜色
+                        selectColorByName('清新蓝');
+                        break;
+                        
+                    case 'warm': // 暖色氛围
+                        updateFilters(88, 10, 8, 90, 40, 3800, 93);
+                        updateSceneTip('暖色氛围', '适合美食/家居场景，营造温馨感');
+                        // 选择合适的基础颜色
+                        selectColorByName('香槟金');
+                        break;
+                        
+                    case 'creative': // 创意RGB光效
+                        updateFilters(85, 15, 10, 95, 280, 4200, 98);
+                        updateSceneTip('创意光效', '适合艺术/氛围拍摄，创造独特视觉效果');
+                        // 选择合适的基础颜色
+                        selectColorByName('梦幻紫');
+                        break;
+                }
+            });
+        });
+        
+        // 更新场景提示
+        function updateSceneTip(title, text) {
+            if (!sceneTips) return;
+            
+            const tipTitle = sceneTips.querySelector('.tip-title');
+            const tipText = sceneTips.querySelector('.tip-text');
+            
+            if (tipTitle) tipTitle.textContent = title;
+            if (tipText) tipText.textContent = text;
+            
+            // 显示提示并添加动画效果
+            sceneTips.style.animation = 'none';
+            sceneTips.offsetHeight; // 触发重绘
+            sceneTips.style.animation = 'fadeIn 0.5s ease-out';
+        }
+        
+        // 根据名称选择颜色
+        function selectColorByName(name) {
+            const colorOptions = document.querySelectorAll('.color-option');
+            colorOptions.forEach(option => {
+                if (option.dataset.name === name) {
+                    // 触发点击事件
+                    option.click();
+                }
+            });
         }
         
         // 监听亮度变化
         brightnessSlider.addEventListener('input', function() {
             const brightnessVal = parseInt(this.value);
             brightnessValue.textContent = brightnessVal + '%';
+            applyAllFilters();
+        });
+        
+        // 监听透明度变化
+        opacitySlider.addEventListener('input', function() {
+            const opacityVal = parseInt(this.value);
+            opacityValue.textContent = opacityVal + '%';
+            applyAllFilters();
+        });
+        
+        // 监听柔光度变化
+        blurSlider.addEventListener('input', function() {
+            const blurVal = parseInt(this.value);
+            blurValue.textContent = blurVal + 'px';
             applyAllFilters();
         });
         
@@ -1282,15 +2043,48 @@
             applyAllFilters();
         });
         
+        // 监听色温变化
+        if (colorTempSlider) {
+            colorTempSlider.addEventListener('input', function() {
+                const colorTempVal = parseInt(this.value);
+                colorTempValue.textContent = colorTempVal + 'K';
+                applyAllFilters();
+                
+                // 移除预设按钮的active类
+                presetButtons.forEach(btn => btn.classList.remove('active'));
+            });
+        }
+        
+        // 监听显色指数变化
+        if (colorIndexSlider) {
+            colorIndexSlider.addEventListener('input', function() {
+                const colorIndexVal = parseInt(this.value);
+                colorIndexValue.textContent = colorIndexVal;
+                applyAllFilters();
+                
+                // 移除预设按钮的active类
+                presetButtons.forEach(btn => btn.classList.remove('active'));
+            });
+        }
+        
         // 重置滤镜按钮
         document.getElementById('reset-filters').addEventListener('click', function() {
-            updateFilters(100, 100, 0);
+            // 重置为默认值，包括新增参数
+            updateFilters(90, 0, 5, 85, 0, 4400, 97);
+            
+            // 移除预设按钮的active类
+            presetButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // 更新场景提示
+            updateSceneTip('参数已重置', '选择预设或调整参数以获得最佳效果');
         });
         
         // 自定义颜色
         const customColorInput = document.getElementById('custom-color');
         document.getElementById('apply-custom').addEventListener('click', function() {
             const customColor = customColorInput.value;
+            
+            // 更新背景颜色
             document.body.style.backgroundColor = customColor;
             
             // 移除其他选项的active类
@@ -1298,21 +2092,53 @@
             
             // 更新当前颜色名称为自定义颜色
             currentColorName.textContent = '当前：自定义颜色';
+            
+            // 直接在光效层应用自定义颜色
+            const videoFilter = document.getElementById('video-filter');
+            if (videoFilter) {
+                videoFilter.style.backgroundColor = customColor;
+            }
+            
+            // 应用所有滤镜
+            applyAllFilters();
         });
         
         // 场景预设
         const sceneOptions = document.querySelectorAll('.scene-option');
         sceneOptions.forEach(scene => {
             scene.addEventListener('click', function() {
+                // 移除其他场景选项的active类
+                sceneOptions.forEach(opt => opt.classList.remove('active'));
+                // 添加当前场景选项的active类
+                this.classList.add('active');
+                
                 const color = this.dataset.color;
-                const brightness = this.dataset.brightness;
-                const saturation = this.dataset.saturation;
-                const hue = this.dataset.hue;
+                const brightness = parseInt(this.dataset.brightness);
+                const saturation = parseInt(this.dataset.saturation);
+                const hue = parseInt(this.dataset.hue);
                 
+                // 获取新增参数，如果不存在则使用默认值
+                const opacity = this.dataset.opacity ? parseInt(this.dataset.opacity) : 15;
+                const colorTemp = this.dataset.colorTemp ? parseInt(this.dataset.colorTemp) : 5600;
+                const colorIndex = 95; // 默认显色指数
+                
+                // 更改背景颜色
                 document.body.style.backgroundColor = color;
-                updateFilters(brightness, saturation, hue);
                 
-                // 移除颜色选项的active类
+                // 更新滤镜参数，包括新增的透明度和色温
+                updateFilters(brightness, opacity, 8, saturation, hue, colorTemp, colorIndex);
+                
+                // 移除预设按钮的active类
+                if (presetButtons) {
+                    presetButtons.forEach(btn => btn.classList.remove('active'));
+                }
+                
+                // 更新场景提示
+                if (sceneTips) {
+                    updateSceneTip(this.querySelector('.scene-name').textContent, '已应用场景预设，可进一步微调参数');
+                }
+                
+                // 移除颜色选项的active类并设置当前活动颜色
                 colorOptions.forEach(opt => {
                     if(opt.dataset.color === color) {
                         opt.classList.add('active');
@@ -1347,25 +2173,52 @@
         function loadPhotos() {
             const savedPhotos = localStorage.getItem('beautyLightPhotos');
             const savedOriginals = localStorage.getItem('beautyLightOriginalPhotos');
+            const savedOriginalCount = localStorage.getItem('beautyLightOriginalPhotosCount');
             
             if (savedPhotos) {
                 try {
                     myPhotos = JSON.parse(savedPhotos);
                     
-                    // 如果有原始照片数据，也加载它
-                    if (savedOriginals) {
+                    // 检查是否使用了分批存储方式
+                    if (savedOriginalCount) {
+                        // 使用分批存储方式
+                        const count = parseInt(savedOriginalCount);
+                        originalPhotos = [];
+                        
+                        // 从分批存储中加载每张原始照片
+                        for (let i = 0; i < count; i++) {
+                            const photo = localStorage.getItem(`beautyLightOriginalPhoto_${i}`);
+                            if (photo) {
+                                originalPhotos.push(photo);
+                            } else {
+                                // 如果某张照片丢失，使用压缩版
+                                if (i < myPhotos.length) {
+                                    originalPhotos.push(myPhotos[i]);
+                                }
+                            }
+                        }
+                        
+                        console.log(`从分批存储中加载了${originalPhotos.length}张原始照片`);
+                    } else if (savedOriginals) {
+                        // 使用整体存储方式
                         originalPhotos = JSON.parse(savedOriginals);
+                        console.log(`从整体存储中加载了${originalPhotos.length}张原始照片`);
                     } else {
                         // 兼容旧数据，如果没有原始照片，复制压缩照片
                         originalPhotos = [...myPhotos];
+                        console.log("没有找到原始照片，使用压缩照片作为替代");
                     }
                     
                     // 确保两个数组长度一致
                     if (originalPhotos.length !== myPhotos.length) {
+                        console.log(`照片数组长度不一致: 压缩照片=${myPhotos.length}, 原始照片=${originalPhotos.length}`);
                         // 如果不一致，以压缩照片为准
-                        originalPhotos = originalPhotos.slice(0, myPhotos.length);
-                        while (originalPhotos.length < myPhotos.length) {
-                            originalPhotos.push(myPhotos[originalPhotos.length]);
+                        if (originalPhotos.length > myPhotos.length) {
+                            originalPhotos = originalPhotos.slice(0, myPhotos.length);
+                        } else {
+                            while (originalPhotos.length < myPhotos.length) {
+                                originalPhotos.push(myPhotos[originalPhotos.length]);
+                            }
                         }
                     }
                     
@@ -1375,8 +2228,18 @@
                     console.error("加载照片失败:", e);
                     myPhotos = [];
                     originalPhotos = [];
+                    // 清除所有相关存储
                     localStorage.removeItem('beautyLightPhotos');
                     localStorage.removeItem('beautyLightOriginalPhotos');
+                    localStorage.removeItem('beautyLightOriginalPhotosCount');
+                    
+                    // 清除分批存储的照片
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && key.startsWith('beautyLightOriginalPhoto_')) {
+                            localStorage.removeItem(key);
+                        }
+                    }
                 }
             }
         }
@@ -1385,25 +2248,118 @@
         function savePhotosToStorage() {
             try {
                 // 限制存储的照片数量，防止超出配额
-                const maxPhotos = 20; // 最多保存20张照片
+                const maxPhotos = 10; // 减少最大照片数量，避免存储空间不足
                 if (myPhotos.length > maxPhotos) {
                     myPhotos = myPhotos.slice(0, maxPhotos);
                     originalPhotos = originalPhotos.slice(0, maxPhotos);
                     showToast(`已达到最大存储限制(${maxPhotos}张)，最早的照片已被删除`);
                 }
                 
-                // 保存压缩照片
-                localStorage.setItem('beautyLightPhotos', JSON.stringify(myPhotos));
-                
-                // 保存原始照片
+                // 尝试保存压缩照片前先检查大小
                 try {
-                    localStorage.setItem('beautyLightOriginalPhotos', JSON.stringify(originalPhotos));
+                    const compressedPhotosString = JSON.stringify(myPhotos);
+                    const compressedSize = new Blob([compressedPhotosString]).size / (1024 * 1024); // 大小(MB)
+                    
+                    if (compressedSize > 4) { // 如果压缩照片也超过4MB
+                        console.warn("压缩照片总大小超过4MB，将进一步压缩:", compressedSize.toFixed(2) + "MB");
+                        // 进一步压缩照片或减少照片数量
+                        if (myPhotos.length > 5) {
+                            myPhotos = myPhotos.slice(0, 5);
+                            originalPhotos = originalPhotos.slice(0, 5);
+                            showToast("存储空间不足，仅保留最新的5张照片");
+                        }
+                    }
+                    
+                    // 保存压缩照片
+                    localStorage.setItem('beautyLightPhotos', compressedPhotosString);
+                } catch (compressError) {
+                    console.error("保存压缩照片失败:", compressError);
+                    // 如果保存失败，尝试只保存最新的3张照片
+                    if (myPhotos.length > 3) {
+                        myPhotos = myPhotos.slice(0, 3);
+                        originalPhotos = originalPhotos.slice(0, 3);
+                        try {
+                            localStorage.setItem('beautyLightPhotos', JSON.stringify(myPhotos));
+                            showToast("存储空间有限，仅保留最新的3张照片");
+                        } catch (finalError) {
+                            console.error("保存压缩照片的所有尝试都失败:", finalError);
+                            showToast("存储空间不足，无法保存照片");
+                            return; // 如果连压缩照片都无法保存，直接返回
+                        }
+                    }
+                }
+                
+                // 保存原始照片 - 分批保存以避免存储限制
+                try {
+                    // 检查原始照片大小
+                    const originalPhotosString = JSON.stringify(originalPhotos);
+                    const originalPhotosSize = new Blob([originalPhotosString]).size / (1024 * 1024); // 大小(MB)
+                    
+                    if (originalPhotosSize > 4) { // 如果大于4MB
+                        console.warn("原始照片总大小超过4MB，将分批保存:", originalPhotosSize.toFixed(2) + "MB");
+                        
+                        // 清除之前的存储
+                        for (let i = 0; i < localStorage.length; i++) {
+                            const key = localStorage.key(i);
+                            if (key && key.startsWith('beautyLightOriginalPhoto_')) {
+                                localStorage.removeItem(key);
+                            }
+                        }
+                        
+                        // 分批保存每张原始照片
+                        let savedCount = 0;
+                        for (let index = 0; index < originalPhotos.length; index++) {
+                            try {
+                                localStorage.setItem(`beautyLightOriginalPhoto_${index}`, originalPhotos[index]);
+                                savedCount++;
+                            } catch (batchError) {
+                                console.warn(`无法保存第${index+1}张原始照片，可能太大:`, batchError);
+                                // 如果某张照片无法保存，使用压缩版替代
+                                try {
+                                    if (index < myPhotos.length) {
+                                        localStorage.setItem(`beautyLightOriginalPhoto_${index}`, myPhotos[index]);
+                                        savedCount++;
+                                    }
+                                } catch (e) {
+                                    console.error(`连压缩版的第${index+1}张照片也无法保存:`, e);
+                                }
+                            }
+                            
+                            // 如果连续保存失败，提前退出循环
+                            if (index > 0 && savedCount === 0) {
+                                console.error("连续保存失败，停止尝试");
+                                break;
+                            }
+                        }
+                        
+                        // 保存索引信息
+                        localStorage.setItem('beautyLightOriginalPhotosCount', savedCount.toString());
+                        
+                        if (savedCount < originalPhotos.length) {
+                            console.warn(`只能保存${savedCount}/${originalPhotos.length}张原始照片`);
+                        }
+                    } else {
+                        // 如果总大小可接受，直接保存整个数组
+                        try {
+                            localStorage.setItem('beautyLightOriginalPhotos', originalPhotosString);
+                            // 清除可能存在的分批存储
+                            localStorage.removeItem('beautyLightOriginalPhotosCount');
+                            for (let i = 0; i < localStorage.length; i++) {
+                                const key = localStorage.key(i);
+                                if (key && key.startsWith('beautyLightOriginalPhoto_')) {
+                                    localStorage.removeItem(key);
+                                }
+                            }
+                        } catch (e) {
+                            console.error("保存整个原始照片数组失败，尝试分批保存:", e);
+                            // 如果整体保存失败，尝试分批保存
+                            saveOriginalPhotosInBatches();
+                        }
+                    }
                 } catch (storageError) {
-                    // 如果原始照片太大导致存储失败，只保存压缩照片
-                    console.warn("原始照片太大，无法全部保存:", storageError);
-                    // 确保两个数组长度一致
-                    originalPhotos = [...myPhotos];
-                    localStorage.removeItem('beautyLightOriginalPhotos');
+                    // 如果原始照片太大导致存储失败，尝试分批保存
+                    console.warn("原始照片太大，无法一次性保存:", storageError);
+                    saveOriginalPhotosInBatches();
                 }
             } catch (e) {
                 console.error("保存照片失败:", e);
@@ -1411,14 +2367,66 @@
             }
         }
         
-        // 压缩图片函数 - 返回较低质量的图片
-        function compressImage(base64, quality = 0.3) {
+        // 辅助函数：分批保存原始照片
+        function saveOriginalPhotosInBatches() {
+            try {
+                // 清除之前的存储
+                localStorage.removeItem('beautyLightOriginalPhotos');
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('beautyLightOriginalPhoto_')) {
+                        localStorage.removeItem(key);
+                    }
+                }
+                
+                // 分批保存每张原始照片
+                let savedCount = 0;
+                for (let index = 0; index < originalPhotos.length; index++) {
+                    try {
+                        localStorage.setItem(`beautyLightOriginalPhoto_${index}`, originalPhotos[index]);
+                        savedCount++;
+                    } catch (batchError) {
+                        console.warn(`无法保存第${index+1}张原始照片:`, batchError);
+                        // 如果某张照片无法保存，尝试使用压缩版
+                        try {
+                            if (index < myPhotos.length) {
+                                localStorage.setItem(`beautyLightOriginalPhoto_${index}`, myPhotos[index]);
+                                savedCount++;
+                            }
+                        } catch (e) {
+                            console.error(`连压缩版的第${index+1}张照片也无法保存:`, e);
+                        }
+                    }
+                    
+                    // 如果连续保存失败，提前退出循环
+                    if (index > 0 && savedCount === 0) {
+                        console.error("连续保存失败，停止尝试");
+                        break;
+                    }
+                }
+                
+                // 保存索引信息
+                localStorage.setItem('beautyLightOriginalPhotosCount', savedCount.toString());
+                
+                if (savedCount < originalPhotos.length) {
+                    console.warn(`只能保存${savedCount}/${originalPhotos.length}张原始照片`);
+                }
+            } catch (finalError) {
+                console.error("所有保存原始照片的尝试都失败:", finalError);
+                // 确保两个数组长度一致，但使用压缩版作为备份
+                originalPhotos = [...myPhotos];
+            }
+        }
+        
+        // 压缩图像函数 - 用于显示，但保持较高质量
+        async function compressImage(base64, quality = 0.8) {
             return new Promise((resolve) => {
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    // 计算压缩后的尺寸，最大宽度300像素
-                    const maxWidth = 300;
+                    
+                    // 计算压缩后的尺寸，提高最大宽度到800像素，保留更多细节
+                    const maxWidth = 800;
                     let width = img.width;
                     let height = img.height;
                     
@@ -1431,9 +2439,12 @@
                     canvas.height = height;
                     
                     const ctx = canvas.getContext('2d');
+                    // 使用更好的渲染算法
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
                     ctx.drawImage(img, 0, 0, width, height);
                     
-                    // 使用较低质量的JPEG格式
+                    // 使用更高质量的JPEG格式
                     const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
                     resolve(compressedDataUrl);
                 };
@@ -1447,6 +2458,8 @@
         const modalClose = document.getElementById('modal-close');
         const modalDownload = document.getElementById('modal-download');
         const modalDelete = document.getElementById('modal-delete');
+        const modalPrev = document.getElementById('modal-prev');
+        const modalNext = document.getElementById('modal-next');
         let currentPhotoIndex = -1;
         
         // 打开照片预览模态框
@@ -1458,7 +2471,60 @@
             // 禁止背景滚动
             document.body.style.overflow = 'hidden';
             
+            // 更新导航按钮状态
+            updateNavButtons();
+            
             console.log("打开模态框，照片索引:", index);
+        }
+        
+        // 更新导航按钮状态
+        function updateNavButtons() {
+            // 检查是否有照片
+            if (myPhotos.length <= 1) {
+                modalPrev.style.display = 'none';
+                modalNext.style.display = 'none';
+                return;
+            }
+            
+            // 显示导航按钮
+            modalPrev.style.display = 'flex';
+            modalNext.style.display = 'flex';
+        }
+        
+        // 切换到上一张照片
+        function showPrevPhoto() {
+            if (myPhotos.length <= 1) return;
+            
+            // 计算上一张照片的索引，如果是第一张则循环到最后一张
+            let prevIndex = currentPhotoIndex - 1;
+            if (prevIndex < 0) {
+                prevIndex = myPhotos.length - 1;
+            }
+            
+            // 更新图片和索引
+            modalImg.src = myPhotos[prevIndex];
+            currentPhotoIndex = prevIndex;
+            
+            // 显示切换提示
+            showToast(`第 ${prevIndex + 1}/${myPhotos.length} 张照片`);
+        }
+        
+        // 切换到下一张照片
+        function showNextPhoto() {
+            if (myPhotos.length <= 1) return;
+            
+            // 计算下一张照片的索引，如果是最后一张则循环到第一张
+            let nextIndex = currentPhotoIndex + 1;
+            if (nextIndex >= myPhotos.length) {
+                nextIndex = 0;
+            }
+            
+            // 更新图片和索引
+            modalImg.src = myPhotos[nextIndex];
+            currentPhotoIndex = nextIndex;
+            
+            // 显示切换提示
+            showToast(`第 ${nextIndex + 1}/${myPhotos.length} 张照片`);
         }
         
         // 关闭照片预览模态框
@@ -1485,31 +2551,49 @@
             }
         });
         
+        // 上一张按钮事件
+        modalPrev.addEventListener('click', function(e) {
+            e.stopPropagation(); // 防止事件冒泡导致模态框关闭
+            showPrevPhoto();
+        });
+        
+        // 下一张按钮事件
+        modalNext.addEventListener('click', function(e) {
+            e.stopPropagation(); // 防止事件冒泡导致模态框关闭
+            showNextPhoto();
+        });
+        
+        // 添加键盘导航支持
+        document.addEventListener('keydown', function(e) {
+            if (!photoModal.classList.contains('active')) return;
+            
+            if (e.key === 'ArrowLeft') {
+                showPrevPhoto();
+            } else if (e.key === 'ArrowRight') {
+                showNextPhoto();
+            } else if (e.key === 'Escape') {
+                closePhotoModal();
+            }
+        });
+        
         // 模态框中的下载按钮
         modalDownload.addEventListener('click', function() {
-            console.log("点击了模态框下载按钮，当前索引:", currentPhotoIndex);
-            if (currentPhotoIndex >= 0 && currentPhotoIndex < originalPhotos.length) {
-                downloadPhoto(originalPhotos[currentPhotoIndex], currentPhotoIndex);
-            } else {
-                console.error("无效的照片索引:", currentPhotoIndex);
-                showToast("无法下载照片，请重试");
+            if (currentPhotoIndex >= 0 && currentPhotoIndex < myPhotos.length) {
+                // 使用原始高质量照片下载
+                downloadPhoto(originalPhotos[currentPhotoIndex] || myPhotos[currentPhotoIndex], currentPhotoIndex);
             }
         });
         
         // 模态框中的删除按钮
         modalDelete.addEventListener('click', function() {
-            console.log("点击了模态框删除按钮，当前索引:", currentPhotoIndex);
             if (currentPhotoIndex >= 0 && currentPhotoIndex < myPhotos.length) {
-                // 先关闭模态框
-                closePhotoModal();
-                
-                // 然后删除照片
-                setTimeout(() => {
+                if (confirm('确定要删除这张照片吗？')) {
+                    // 关闭模态框
+                    closePhotoModal();
+                    
+                    // 删除照片
                     deletePhoto(currentPhotoIndex);
-                }, 300);
-            } else {
-                console.error("无效的照片索引:", currentPhotoIndex);
-                showToast("无法删除照片，请重试");
+                }
             }
         });
         
@@ -1533,7 +2617,7 @@
                 emptyState.id = 'empty-photos';
                 
                 const emptyText = document.createElement('p');
-                emptyText.textContent = '还没有照片，点击拍照按钮开始拍摄吧！';
+                emptyText.innerHTML = '还没有照片<br>点击<strong>拍照按钮</strong>开始拍摄吧！';
                 
                 emptyState.appendChild(emptyText);
                 photosContainer.appendChild(emptyState);
@@ -1628,8 +2712,42 @@
             // 显示分页
             document.getElementById('photos-pagination').style.display = 'flex';
             
+            // 优化页码显示，仅显示当前页附近的几个页码
+            const maxVisiblePages = 5; // 最多显示5个页码
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+            
+            // 调整起始页，确保最后一页时也显示正确数量的页码
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            
+            // 如果总页数少于最大可见页码数，则显示全部
+            if (totalPages <= maxVisiblePages) {
+                startPage = 1;
+            }
+            
+            // 添加"首页"按钮（如果不在第一页附近）
+            if (startPage > 1) {
+                const firstBtn = document.createElement('button');
+                firstBtn.className = 'page-btn';
+                firstBtn.textContent = '1';
+                firstBtn.addEventListener('click', () => {
+                    currentPage = 1;
+                    renderPhotos();
+                    updatePagination();
+                });
+                pageNumbers.appendChild(firstBtn);
+                
+                // 添加省略号
+                if (startPage > 2) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.textContent = '...';
+                    ellipsis.style.margin = '0 5px';
+                    pageNumbers.appendChild(ellipsis);
+                }
+            }
+            
             // 创建页码按钮
-            for (let i = 1; i <= totalPages; i++) {
+            for (let i = startPage; i <= endPage; i++) {
                 const pageBtn = document.createElement('button');
                 pageBtn.className = 'page-btn' + (i === currentPage ? ' active' : '');
                 pageBtn.textContent = i;
@@ -1639,6 +2757,27 @@
                     updatePagination();
                 });
                 pageNumbers.appendChild(pageBtn);
+            }
+            
+            // 添加"末页"按钮（如果不在最后一页附近）
+            if (endPage < totalPages) {
+                // 添加省略号
+                if (endPage < totalPages - 1) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.textContent = '...';
+                    ellipsis.style.margin = '0 5px';
+                    pageNumbers.appendChild(ellipsis);
+                }
+                
+                const lastBtn = document.createElement('button');
+                lastBtn.className = 'page-btn';
+                lastBtn.textContent = totalPages;
+                lastBtn.addEventListener('click', () => {
+                    currentPage = totalPages;
+                    renderPhotos();
+                    updatePagination();
+                });
+                pageNumbers.appendChild(lastBtn);
             }
             
             // 更新上一页/下一页按钮状态
@@ -1668,13 +2807,38 @@
             // 使用原始高质量照片
             const highQualityPhoto = originalPhotos[index] || photoUrl;
             
-            const link = document.createElement('a');
-            link.download = '美颜照片_' + new Date().toISOString().slice(0, 19).replace(/:/g, '-') + '.png';
-            link.href = highQualityPhoto;
-            link.click();
+            // 创建一个新的图像对象，用于提高下载图像的质量
+            const img = new Image();
+            img.onload = function() {
+                // 创建一个更大尺寸的画布，以保持原始分辨率
+                const canvas = document.createElement('canvas');
+                // 保持原始尺寸，不进行任何缩小
+                canvas.width = img.width;
+                canvas.height = img.height;
+                
+                const ctx = canvas.getContext('2d');
+                // 使用最高质量的渲染设置
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                
+                // 绘制图像
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                
+                // 使用PNG格式和1.0质量（无损）
+                const maxQualityPhoto = canvas.toDataURL('image/png', 1.0);
+                
+                // 创建下载链接
+                const link = document.createElement('a');
+                link.download = '美颜照片_' + new Date().toISOString().slice(0, 19).replace(/:/g, '-') + '.png';
+                link.href = maxQualityPhoto;
+                link.click();
+                
+                // 显示下载成功提示
+                showToast('最高画质照片已保存到设备');
+            };
             
-            // 显示下载成功提示
-            showToast('高质量照片已保存到设备');
+            // 设置图像源
+            img.src = highQualityPhoto;
         }
         
         // 删除照片 - 同时删除压缩版和原始版
@@ -1692,54 +2856,149 @@
                 
                 renderPhotos();
                 updatePagination();
+                
+                // 如果模态框是打开的，更新导航按钮状态
+                if (photoModal.classList.contains('active')) {
+                    updateNavButtons();
+                }
+                
                 showToast('照片已删除');
             }
         }
         
-        // 显示提示信息
-        function showToast(message) {
-            const toast = document.createElement('div');
-            toast.style.position = 'fixed';
-            toast.style.bottom = '20px';
-            toast.style.left = '50%';
-            toast.style.transform = 'translateX(-50%)';
-            toast.style.backgroundColor = 'rgba(0,0,0,0.7)';
-            toast.style.color = 'white';
-            toast.style.padding = '10px 20px';
-            toast.style.borderRadius = '20px';
-            toast.style.zIndex = '1000';
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transition = 'opacity 0.5s';
-                setTimeout(() => {
-                    document.body.removeChild(toast);
-                }, 500);
-            }, 2000);
-        }
-        
-        // 修改截图功能，保存原始高质量照片和压缩照片
+        // 修改截图功能，保存更高质量的照片
         document.getElementById('screenshot').addEventListener('click', async function() {
             const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+            // 使用更高的分辨率获取屏幕截图
+            const scale = window.devicePixelRatio || 1;
             
-            const ctx = canvas.getContext('2d');
+            // 获取视频的实际分辨率
+            const videoWidth = video.videoWidth;
+            const videoHeight = video.videoHeight;
+            
+            // 使用视频的原始分辨率，并应用设备像素比例以获得更高清晰度
+            canvas.width = videoWidth * scale;
+            canvas.height = videoHeight * scale;
+            
+            const ctx = canvas.getContext('2d', { alpha: false, desynchronized: false });
+            // 启用高质量图像渲染
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            
+            // 应用设备像素比例
+            ctx.scale(scale, scale);
             
             // 绘制视频帧
             if (facingMode === "user") {
-                ctx.translate(canvas.width, 0);
+                ctx.translate(videoWidth, 0);
                 ctx.scale(-1, 1);
             }
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
             
-            // 获取原始高质量照片URL
-            const originalPhotoUrl = canvas.toDataURL('image/png'); // 使用PNG格式，最高质量
+            // 获取当前光效设置
+            const videoFilter = document.getElementById('video-filter');
+            if (videoFilter) {
+                // 保存当前上下文状态
+                ctx.save();
+                
+                // 如果是镜像模式，需要重置变换以便绘制光效
+                if (facingMode === "user") {
+                    ctx.setTransform(scale, 0, 0, scale, 0, 0); // 重置变换但保持缩放
+                }
+                
+                // 获取光效参数
+                const backgroundColor = videoFilter.style.backgroundColor;
+                const opacity = parseFloat(videoFilter.style.opacity);
+                
+                // 设置光效的混合模式（屏幕混合模式）
+                ctx.globalCompositeOperation = 'screen';
+                ctx.globalAlpha = opacity;
+                
+                // 绘制光效叠加层
+                ctx.fillStyle = backgroundColor;
+                ctx.fillRect(0, 0, videoWidth, videoHeight);
+                
+                // 恢复上下文状态
+                ctx.restore();
+            }
             
-            // 压缩照片用于显示
-            const compressedPhotoUrl = await compressImage(originalPhotoUrl);
+            // 应用视频滤镜效果（如饱和度和色相）
+            try {
+                const videoElement = document.getElementById('video');
+                if (videoElement && videoElement.style.filter) {
+                    // 保存当前上下文状态
+                    ctx.save();
+                    
+                    // 重置变换以便应用滤镜
+                    if (facingMode === "user") {
+                        ctx.setTransform(scale, 0, 0, scale, 0, 0);
+                    }
+                    
+                    // 获取当前的饱和度和色相值
+                    const saturation = parseInt(saturationSlider.value) / 100;
+                    const hue = parseInt(hueSlider.value);
+                    
+                    // 应用饱和度
+                    if (saturation !== 1) {
+                        const imageData = ctx.getImageData(0, 0, canvas.width / scale, canvas.height / scale);
+                        const data = imageData.data;
+                        
+                        for (let i = 0; i < data.length; i += 4) {
+                            // 转换为HSL
+                            const r = data[i] / 255;
+                            const g = data[i + 1] / 255;
+                            const b = data[i + 2] / 255;
+                            
+                            const max = Math.max(r, g, b);
+                            const min = Math.min(r, g, b);
+                            let h, s, l = (max + min) / 2;
+                            
+                            if (max === min) {
+                                h = s = 0; // 灰色
+                            } else {
+                                const d = max - min;
+                                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                                
+                                switch (max) {
+                                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                                    case g: h = (b - r) / d + 2; break;
+                                    case b: h = (r - g) / d + 4; break;
+                                }
+                                
+                                h /= 6;
+                            }
+                            
+                            // 调整饱和度
+                            s = Math.min(1, s * saturation);
+                            
+                            // 转回RGB
+                            if (s === 0) {
+                                data[i] = data[i + 1] = data[i + 2] = l * 255;
+                            } else {
+                                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                                const p = 2 * l - q;
+                                
+                                data[i] = hueToRgb(p, q, h + 1/3) * 255;
+                                data[i + 1] = hueToRgb(p, q, h) * 255;
+                                data[i + 2] = hueToRgb(p, q, h - 1/3) * 255;
+                            }
+                        }
+                        
+                        ctx.putImageData(imageData, 0, 0);
+                    }
+                    
+                    // 恢复上下文状态
+                    ctx.restore();
+                }
+            } catch (e) {
+                console.error("应用滤镜效果失败:", e);
+            }
+            
+            // 获取原始高质量照片URL，使用PNG格式，保持完全无损
+            const originalPhotoUrl = canvas.toDataURL('image/png', 1.0); 
+            
+            // 压缩照片用于显示，但使用更高的质量参数
+            const compressedPhotoUrl = await compressImage(originalPhotoUrl, 0.9);
             
             // 添加到照片数组
             myPhotos.unshift(compressedPhotoUrl); // 压缩版用于显示
@@ -1753,17 +3012,30 @@
             renderPhotos();
             updatePagination();
             
-            // 切换到我的照片标签
-            tabButtons.forEach(btn => {
-                if (btn.getAttribute('data-tab') === 'photos') {
-                    // 触发点击事件
-                    btn.click();
-                }
-            });
-            
-            // 显示拍照成功提示
-            showToast('照片已保存到"我的照片"');
+            // 切换到照片标签
+            const photoTabBtn = document.querySelector('.tab-btn[data-tab="photos"]');
+            if (photoTabBtn) {
+                photoTabBtn.click();
+                
+                // 延迟显示拍照成功提示，避免与其他提示重叠
+                setTimeout(() => {
+                    showToast('照片已保存，最高画质！');
+                }, 300);
+            } else {
+                console.error("找不到照片标签按钮");
+                showToast('照片已保存，最高画质！');
+            }
         });
+        
+        // 辅助函数：HSL转RGB
+        function hueToRgb(p, q, t) {
+            if (t < 0) t += 1;
+            if (t > 1) t -= 1;
+            if (t < 1/6) return p + (q - p) * 6 * t;
+            if (t < 1/2) return q;
+            if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+            return p;
+        }
         
         // 修改清空照片功能，同时清空两个数组
         document.getElementById('clear-photos-btn').addEventListener('click', function() {
@@ -1807,10 +3079,38 @@
                 }
             }
             
-            // 初始化滤镜
+            // 加载照片
+            loadPhotos();
+            
+            // 初始化滤镜和光效
             setTimeout(function() {
-                updateFilters(100, 100, 0);
+                // 初始化所有滑块，包括新增参数
+                updateFilters(90, 0, 5, 85, 0, 4400, 97);
+                
+                // 确保应用光效
+                applyAllFilters();
+                
+                // 初始化场景提示
+                if (sceneTips) {
+                    updateSceneTip('欢迎使用', '选择预设或调整参数以获得最佳效果');
+                }
+                
+                // 如果有美颜设置，加载它
+                if (typeof loadBeautySettings === 'function' && typeof smoothingSlider !== 'undefined' && smoothingSlider) {
+                    loadBeautySettings();
+                }
             }, 1000);
+            
+            // 为场景提示添加悬停效果
+            if (sceneTips) {
+                sceneTips.addEventListener('mouseenter', function() {
+                    this.style.backgroundColor = '#FFF5D6';
+                });
+                
+                sceneTips.addEventListener('mouseleave', function() {
+                    this.style.backgroundColor = '#fff9c4';
+                });
+            }
         });
         
         // 在视频加载后再次确保滤镜正确应用
@@ -1895,7 +3195,7 @@
             
             // 初始化滤镜
             setTimeout(function() {
-                updateFilters(100, 100, 0);
+                updateFilters(90, 0, 5, 85, 0, 4400, 97);
                 // 如果有美颜设置，加载它
                 if (smoothingSlider) {
                     loadBeautySettings();

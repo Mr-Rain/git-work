@@ -1175,9 +1175,7 @@
                 </div>
             </div>
             <div class="chat-messages">
-                <div class="message ai-message">
-                    你好！我是创意空间的AI助手，有什么我能帮到你的吗？可以询问我关于Valorant优化、创意项目或者其他任何问题。
-                </div>
+                <!-- <div class="message ai-message"></div> -->
             </div>
             <div class="typing-indicator" style="display: none;">
                 <div class="typing-dot"></div>
@@ -1239,6 +1237,23 @@
 
         // 文档加载完成后执行
         document.addEventListener('DOMContentLoaded', () => {
+            // 加载Marked.js
+            if (typeof marked === 'undefined') {
+                const markedScript = document.createElement('script');
+                markedScript.src = 'https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js';
+                markedScript.onload = function() {
+                    console.log('Marked.js已加载');
+                    // 配置Marked选项
+                    marked.setOptions({
+                        breaks: true,
+                        gfm: true,
+                        headerIds: false,
+                        mangle: false
+                    });
+                };
+                document.head.appendChild(markedScript);
+            }
+            
             const cards = document.querySelectorAll('.card');
             
             cards.forEach(card => {
@@ -1291,8 +1306,15 @@
             
             // 获取API域名的函数 - 运行时动态生成，增加安全性
             function getApiEndpoint() {
-                // 动态组合API域名，避免在源代码中直接暴露
-                return 'http://' + apiParts.join('');
+                // 尝试多种CORS代理方案
+                // 方案1: 使用CORS Anywhere
+                const corsProxy = 'https://cors-anywhere.herokuapp.com/';
+                // 方案2: 如果在本地开发环境，直接使用HTTP
+                if (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') {
+                    return 'http://' + apiParts.join('');
+                }
+                // 其他情况使用代理
+                return corsProxy + 'http://' + apiParts.join('');
             }
             
             // 创建AI思考过程元素 - 修复版
@@ -1493,24 +1515,53 @@
                     // 更新思考过程
                     setThinkContent(`正在分析问题: "${userMessage}"...`);
                     
-                    // 直接使用API域名，不添加任何额外的响应头
+                    // 获取API端点
                     const apiUrl = getApiEndpoint() + '/api/generate';
                     
                     // 使用fetch API调用Ollama API
                     const controller = new AbortController();
                     const timeoutId = setTimeout(() => controller.abort(), 30000); // 30秒超时
                     
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(requestData),
-                        signal: controller.signal
-                    }).catch(error => {
-                        setThinkContent(`请求失败: ${error.message}`);
-                        throw error;
-                    });
+                    // 添加重试逻辑
+                    let response = null;
+                    let retryCount = 0;
+                    const maxRetries = 2;
+                    
+                    while (retryCount <= maxRetries) {
+                        try {
+                            if (retryCount > 0) {
+                                setThinkContent(`重试请求 (${retryCount}/${maxRetries})...`);
+                                await sleep(1000); // 重试前等待1秒
+                            }
+                            
+                            response = await fetch(apiUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(requestData),
+                                signal: controller.signal
+                            });
+                            
+                            // 如果请求成功，跳出循环
+                            if (response.ok) break;
+                            
+                            // 如果是CORS错误，尝试使用不同的方法
+                            if (response.status === 0 || response.type === 'opaque') {
+                                throw new Error('CORS错误，尝试其他方法');
+                            }
+                            
+                            throw new Error(`API返回错误: ${response.status} ${response.statusText}`);
+                        } catch (error) {
+                            // 最后一次重试失败
+                            if (retryCount === maxRetries) {
+                                setThinkContent(`请求失败: ${error.message}`);
+                                throw error;
+                            }
+                            
+                            retryCount++;
+                        }
+                    }
                     
                     clearTimeout(timeoutId);
                     
@@ -1757,66 +1808,69 @@
                 } catch (error) {
                     console.error('获取AI回复出错:', error);
                     
-                    // 停止计时器
-                    stopTimer();
+                    // 隐藏思考元素
+                    if (thinkingElement) {
+                        thinkingElement.style.display = 'none';
+                    }
                     
                     // 隐藏输入指示器
                     typingIndicator.style.display = 'none';
                     
-                    // 如果是用户主动终止
-                    if (shouldStopGeneration) {
-                        // 添加AI回复
-                        messageElement.textContent = '生成已被用户终止。';
-                        chatMessages.appendChild(messageElement);
-                        messageElement.style.display = 'block';
-                    } else {
-                        // 如果API调用失败，使用本地备用回复
-                        const backupResponses = {
-                            '优化工具': '我们的Valorant CPU优化工具通过调整Vanguard反作弊系统的进程优先级，有效减少CPU占用，提升游戏体验。使用非常简单，只需下载后以管理员身份运行即可。需要注意的是，该工具不会修改任何游戏文件，完全符合游戏规则。',
-                            '心形': '心动时刻页面展示了一个浪漫的3D心形动画，非常适合在特殊场合与心爱的人分享。你可以点击页面上的心形，会有惊喜效果哦！',
-                            '太阳系': '太阳系九星连珠页面模拟了一个罕见的天文现象，你可以在页面上观察到所有行星排列在一条直线上的奇观。这个页面还支持交互操作，你可以旋转和缩放来观察不同角度。',
-                            '补光灯': '美颜补光灯是我们设计的一个网页应用，可以让你在自拍时获得专业的补光效果。只需打开页面，允许摄像头权限，就能立即体验专业级的自拍补光效果。',
-                            '你好': '你好！我是创意空间的AI助手，很高兴为你服务。我可以回答关于我们网站上各种创意项目的问题，包括Valorant优化工具、心形动画、太阳系模拟和补光灯应用。有什么我能帮到你的吗？',
-                            '帮助': '当然可以帮助你！你可以询问我关于：\n1. Valorant CPU优化工具的使用方法和原理\n2. 心形动画页面的特点和操作\n3. 太阳系九星连珠模拟的交互方式\n4. 补光灯应用的使用技巧\n或者其他任何与我们网站相关的问题。'
-                        };
-                        
-                        // 简单的关键词匹配
-                        let aiReply = '抱歉，我暂时无法连接到服务器。你可以询问关于Valorant优化工具、心形动画、太阳系模拟或补光灯应用的相关问题，我会尽力帮助你。';
-                        
-                        for (const [keyword, response] of Object.entries(backupResponses)) {
-                            if (userMessage.includes(keyword)) {
-                                aiReply = response;
-                                break;
-                            }
-                        }
-                        
-                        // 添加AI回复 - 使用Markdown解析
-                        if (typeof marked !== 'undefined') {
-                            messageElement.classList.add('markdown-body');
-                            messageElement.innerHTML = marked.parse(aiReply);
-                        } else {
-                            messageElement.textContent = aiReply;
-                        }
-                        
-                        chatMessages.appendChild(messageElement);
-                        messageElement.style.display = 'block';
-                    }
-                } finally {
                     // 恢复发送按钮
                     toggleSendStopButton(false);
                     
                     // 移除滚动事件监听
                     chatMessages.removeEventListener('scroll', scrollHandler);
                     
-                    // 滚动到底部
+                    // 本地回退方案 - 提供预设回复
+                    const fallbackResponse = getFallbackResponse(userMessage);
+                    
+                    // 显示回退回复
+                    const fallbackElement = document.createElement('div');
+                    fallbackElement.classList.add('message', 'ai-message', 'markdown-body');
+                    
+                    try {
+                        if (typeof marked !== 'undefined') {
+                            fallbackElement.innerHTML = marked.parse(fallbackResponse);
+                        } else {
+                            fallbackElement.textContent = fallbackResponse;
+                        }
+                    } catch (e) {
+                        fallbackElement.textContent = fallbackResponse;
+                    }
+                    
+                    chatMessages.appendChild(fallbackElement);
                     chatMessages.scrollTop = chatMessages.scrollHeight;
                     
-                    // 设置生成状态为false
-                    isGeneratingResponse = false;
+                    // 添加到对话历史
+                    conversationHistory.push({
+                        role: 'assistant',
+                        content: fallbackResponse
+                    });
                     
-                    // 确保终止标志被重置
-                    shouldStopGeneration = false;
+                    isGeneratingResponse = false;
                 }
+            }
+            
+            // 获取本地回退回复
+            function getFallbackResponse(userMessage) {
+                // 简单的关键词匹配
+                const message = userMessage.toLowerCase();
+                
+                if (message.includes('ollama') || message.includes('模型') || message.includes('部署')) {
+                    return "### Ollama本地部署指南\n\n很抱歉，我目前无法连接到服务器获取详细信息。以下是Ollama的基本部署步骤：\n\n1. 从[官方网站](https://ollama.ai)下载Ollama\n2. 安装并运行Ollama应用\n3. 使用命令行拉取模型：`ollama pull deepseek-coder`\n4. 启动API服务：`ollama serve`\n\n当连接恢复后，我可以提供更详细的指导。";
+                }
+                
+                if (message.includes('valorant') || message.includes('游戏') || message.includes('优化')) {
+                    return "### Valorant游戏优化建议\n\n很抱歉，我目前无法连接到服务器获取详细信息。以下是一些基本优化建议：\n\n1. 更新显卡驱动到最新版本\n2. 游戏设置中关闭垂直同步\n3. 降低特效和阴影设置\n4. 确保没有后台程序占用资源\n\n当连接恢复后，我可以根据您的具体配置提供更详细的建议。";
+                }
+                
+                if (message.includes('网页') || message.includes('设计') || message.includes('css')) {
+                    return "### 网页设计资源推荐\n\n很抱歉，我目前无法连接到服务器获取详细信息。以下是一些实用的网页设计资源：\n\n1. [Figma](https://figma.com) - 设计工具\n2. [Dribbble](https://dribbble.com) - 设计灵感\n3. [CSS-Tricks](https://css-tricks.com) - CSS技巧\n4. [MDN Web Docs](https://developer.mozilla.org) - Web开发文档\n\n当连接恢复后，我可以提供更多针对性的建议。";
+                }
+                
+                // 默认回复
+                return "很抱歉，我目前无法连接到服务器。请检查您的网络连接，或者稍后再试。\n\n如果问题持续存在，可能是以下原因：\n\n1. API服务器可能暂时不可用\n2. 您的网络连接存在问题\n3. 浏览器的安全设置阻止了连接\n\n您可以尝试刷新页面，或者查看我们的示例页面获取一些创意灵感。";
             }
             
             // 构建包含历史记录的提示
@@ -2042,7 +2096,7 @@
                     
                     // 防止事件冒泡
                     e.stopPropagation();
-                });
+                }, { passive: false }); // 明确指定非被动，因为我们需要调用stopPropagation
                 
                 document.addEventListener('touchmove', (e) => {
                     if (!isResizing) return;
@@ -2058,11 +2112,11 @@
                     if (newHeight >= 400) {
                         chatContainer.style.height = `${newHeight}px`;
                     }
-                });
+                }, { passive: true }); // 标记为被动式
                 
                 document.addEventListener('touchend', () => {
                     isResizing = false;
-                });
+                }, { passive: true }); // 标记为被动式
                 
                 // 窗口大小变化时调整最大尺寸
                 window.addEventListener('resize', () => {
@@ -2298,7 +2352,15 @@
             function simpleApiProtection() {
                 // 简单的混淆，不会干扰正常功能
                 const checkApiEndpoint = () => {
-                    return 'http://' + apiParts.join('');
+                    // 尝试多种CORS代理方案
+                    // 方案1: 使用CORS Anywhere
+                    const corsProxy = 'https://cors-anywhere.herokuapp.com/';
+                    // 方案2: 如果在本地开发环境，直接使用HTTP
+                    if (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') {
+                        return 'http://' + apiParts.join('');
+                    }
+                    // 其他情况使用代理
+                    return corsProxy + 'http://' + apiParts.join('');
                 };
                 
                 // 替换getApiEndpoint函数，确保始终返回正确的API地址
@@ -2322,22 +2384,26 @@
                 // 初始化对话历史
                 if (conversationHistory.length === 0) {
                     // 添加初始AI消息到历史记录
+                    const initialMessage = '你好！我是您的创意空间助手，可以为您提供以下服务：\n\n• 🎮 Valorant游戏优化指南与工具支持\n• 💻 本地AI模型部署（Ollama服务配置）\n• 🎨 创意项目构思与实现方案\n• 💕 个性化网页设计与交互效果\n• 🛠️ 技术问题排查与解决方案\n\n您可以直接告诉我您需要什么帮助，我会尽力为您提供专业支持！';
+                    
                     conversationHistory.push({
                         role: 'assistant',
-                        content: '你好！我是您的创意空间助手，可以为您提供以下服务：\n\n• 🎮 Valorant游戏优化指南与工具支持\n• 💻 本地AI模型部署（Ollama服务配置）\n• 🎨 创意项目构思与实现方案\n• 💕 个性化网页设计与交互效果\n• 🛠️ 技术问题排查与解决方案\n\n您可以直接告诉我您需要什么帮助，我会尽力为您提供专业支持！'
+                        content: initialMessage
                     });
                     
                     // 显示初始消息
-                    displayMessages();
+                    addMessage(initialMessage, 'ai');
                     
                     // 添加使用提示
                     setTimeout(() => {
-                        const tipMessage = {
+                        const tipMessage = '💡 **使用提示**：\n\n1. 您可以询问关于Ollama本地模型部署的详细步骤\n2. 需要Valorant游戏优化方案时，可以直接描述您的电脑配置\n3. 如果您想了解创意网页设计，可以参考我们的示例页面\n4. 对于技术问题，请尽量提供详细的错误信息和环境描述\n\n让我们开始吧！';
+                        
+                        conversationHistory.push({
                             role: 'assistant',
-                            content: '💡 **使用提示**：\n\n1. 您可以询问关于Ollama本地模型部署的详细步骤\n2. 需要Valorant游戏优化方案时，可以直接描述您的电脑配置\n3. 如果您想了解创意网页设计，可以参考我们的示例页面\n4. 对于技术问题，请尽量提供详细的错误信息和环境描述\n\n让我们开始吧！'
-                        };
-                        conversationHistory.push(tipMessage);
-                        displayMessages();
+                            content: tipMessage
+                        });
+                        
+                        addMessage(tipMessage, 'ai');
                     }, 1000);
                 }
             }
@@ -2530,6 +2596,25 @@
                 });
                 
                 return response;
+            }
+            
+            // 显示对话历史记录
+            function displayMessages() {
+                // 清空聊天消息区域
+                chatMessages.innerHTML = '';
+                
+                // 遍历对话历史记录
+                for (const message of conversationHistory) {
+                    // 根据角色添加消息
+                    if (message.role === 'user') {
+                        addMessage(message.content, 'user');
+                    } else if (message.role === 'assistant') {
+                        addMessage(message.content, 'ai');
+                    }
+                }
+                
+                // 滚动到底部
+                chatMessages.scrollTop = chatMessages.scrollHeight;
             }
         });
     </script>

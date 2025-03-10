@@ -1462,39 +1462,46 @@
             
             // 获取AI回复
             async function getAIResponse(userMessage) {
-                // 设置生成状态为true
-                isGeneratingResponse = true;
-                shouldStopGeneration = false;  // 确保每次开始新对话时重置终止标志
-                
-                // 显示AI正在输入
-                typingIndicator.style.display = 'flex';
-                
-                // 将发送按钮变为停止按钮
-                toggleSendStopButton(true);
-                
-                // 创建思考过程元素
-                const { thinkingElement, contentElement, setThinkContent, stopTimer, toggleExpanded } = createThinkingElement('正在分析您的问题...');
-                chatMessages.appendChild(thinkingElement);
-                
-                // 创建一个消息元素用于实时显示回复
-                const messageElement = document.createElement('div');
-                messageElement.classList.add('message', 'ai-message');
-                messageElement.style.display = 'none'; // 初始隐藏
-                
-                // 用户是否正在查看最新消息
-                let isUserAtBottom = true;
-                
-                // 监听滚动事件
-                const scrollHandler = () => {
-                    // 检查用户是否在底部
-                    const isAtBottom = chatMessages.scrollHeight - chatMessages.clientHeight <= chatMessages.scrollTop + 50;
-                    isUserAtBottom = isAtBottom;
-                };
-                
-                // 添加滚动事件监听
-                chatMessages.addEventListener('scroll', scrollHandler);
-                
                 try {
+                    // 设置生成响应状态
+                    isGeneratingResponse = true;
+                    
+                    // 显示暂停按钮
+                    const sendButton = document.querySelector('.send-button');
+                    sendButton.innerHTML = `
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="6" y="4" width="4" height="16" fill="white"/>
+                            <rect x="14" y="4" width="4" height="16" fill="white"/>
+                        </svg>
+                    `;
+                    sendButton.classList.add('stop-button');
+                    sendButton.classList.remove('send-button');
+                    
+                    // 显示AI正在输入
+                    typingIndicator.style.display = 'flex';
+                    
+                    // 创建思考过程元素
+                    const { thinkingElement, contentElement, setThinkContent, stopTimer, toggleExpanded } = createThinkingElement('正在分析您的问题...');
+                    chatMessages.appendChild(thinkingElement);
+                    
+                    // 创建一个消息元素用于实时显示回复
+                    const messageElement = document.createElement('div');
+                    messageElement.classList.add('message', 'ai-message');
+                    messageElement.style.display = 'none'; // 初始隐藏
+                    
+                    // 用户是否正在查看最新消息
+                    let isUserAtBottom = true;
+                    
+                    // 监听滚动事件
+                    const scrollHandler = () => {
+                        // 检查用户是否在底部
+                        const isAtBottom = chatMessages.scrollHeight - chatMessages.clientHeight <= chatMessages.scrollTop + 50;
+                        isUserAtBottom = isAtBottom;
+                    };
+                    
+                    // 添加滚动事件监听
+                    chatMessages.addEventListener('scroll', scrollHandler);
+                    
                     // 添加用户消息到历史记录
                     conversationHistory.push({ role: 'user', content: userMessage });
                     
@@ -1868,6 +1875,29 @@
                     });
                     
                     isGeneratingResponse = false;
+                } finally {
+                    // 重置所有状态
+                    isGeneratingResponse = false;
+                    shouldStopGeneration = false;
+                    
+                    // 恢复发送按钮
+                    const stopButton = document.querySelector('.stop-button');
+                    if (stopButton) {
+                        stopButton.innerHTML = `
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        `;
+                        stopButton.classList.remove('stop-button');
+                        stopButton.classList.add('send-button');
+                    }
+                    
+                    // 隐藏输入指示器
+                    const typingIndicator = document.querySelector('.typing-indicator');
+                    if (typingIndicator) {
+                        typingIndicator.style.display = 'none';
+                    }
                 }
             }
             
@@ -2150,6 +2180,9 @@
             function sendMessage() {
                 const message = chatInput.value.trim();
                 if (message === '' || isGeneratingResponse) return;
+                
+                // 重置暂停状态
+                shouldStopGeneration = false;
                 
                 // 添加用户消息
                 addMessage(message, 'user');
@@ -2632,6 +2665,20 @@
                 // 滚动到底部
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
+            
+            // 监听发送/暂停按钮点击
+            document.querySelector('.chat-input-container').addEventListener('click', (e) => {
+                const target = e.target.closest('.send-button, .stop-button');
+                if (!target) return;
+                
+                if (target.classList.contains('stop-button')) {
+                    // 点击暂停按钮
+                    shouldStopGeneration = true;
+                } else {
+                    // 点击发送按钮
+                    sendMessage();
+                }
+            });
         });
     </script>
 </body>

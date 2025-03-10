@@ -9,10 +9,25 @@ const OLLAMA_HOST = '36.133.18.27';
 const OLLAMA_PORT = '11434';
 const MODEL_NAME = 'deepseek-r1:70b';
 
+// 允许的域名列表
+const allowedOrigins = [
+    'https://hxh.paydn.cn',
+    'http://localhost:5000',
+    'http://127.0.0.1:5000',
+    'http://hxhwork.xyz'
+];
+
 // 处理请求的主函数
 module.exports = async (req, res) => {
-  // 设置CORS头，允许特定来源访问
-  res.setHeader('Access-Control-Allow-Origin', 'https://hxh.paydn.cn');
+  // 获取请求的Origin
+  const origin = req.headers.origin;
+  
+  // 如果请求的Origin在允许列表中，设置对应的CORS头
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  
+  // 设置其他CORS头
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   

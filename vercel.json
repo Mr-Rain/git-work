@@ -16,18 +16,19 @@
       "headers": [
         { "key": "Access-Control-Allow-Origin", "value": "https://hxh.paydn.cn" },
         { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type" },
+        { "key": "Access-Control-Max-Age", "value": "86400" }
       ]
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/ollama/(.*)",
-      "dest": "/api/ollama.js"
+      "source": "/api/ollama/(.*)",
+      "destination": "/api/ollama.js"
     },
     {
-      "src": "/api/ollama-stream/(.*)",
-      "dest": "/api/ollama-stream.js"
+      "source": "/api/ollama-stream/(.*)",
+      "destination": "/api/ollama-stream.js"
     }
   ]
 } 

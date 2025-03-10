@@ -312,8 +312,8 @@
         /* 调整聊天容器的resize行为 */
         .chat-container {
             position: relative;
-            width: 800px; /* 修改初始宽度为500px */
-            height: 800px; /* 修改初始高度为600px */
+            width: 60%; /* 修改初始宽度为500px */
+            height: 60%; /* 修改初始高度为600px */
             background: var(--chat-bg);
             border-radius: 16px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
@@ -1820,7 +1820,7 @@
                         conversationHistory.push({ role: 'assistant', content: aiReply });
                         
                         // 限制历史记录长度，防止过长
-                        if (conversationHistory.length > 20) {
+                        if (conversationHistory.length > 60) {
                             // 保留最近的对话，但确保成对删除（用户问题和AI回答）
                             conversationHistory = conversationHistory.slice(2);
                         }

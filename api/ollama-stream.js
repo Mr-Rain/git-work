@@ -14,7 +14,7 @@ const allowedOrigins = [
     'https://hxh.paydn.cn',
     'http://localhost:5000',
     'http://127.0.0.1:5000',
-    'http://hxhwork.xyz'
+    'https://hxhwork.xyz'
 ];
 
 // 处理请求的主函数

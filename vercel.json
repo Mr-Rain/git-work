@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "functions": {
+    "api/ollama.js": {
+      "memory": 1024,
+      "maxDuration": 60
+    },
+    "api/ollama-stream.js": {
+      "memory": 1024,
+      "maxDuration": 300
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/ollama/(.*)",
+      "dest": "/api/ollama.js"
+    },
+    {
+      "src": "/api/ollama-stream/(.*)",
+      "dest": "/api/ollama-stream.js"
+    }
+  ]
+} 

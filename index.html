@@ -1306,15 +1306,12 @@
             
             // 获取API域名的函数 - 运行时动态生成，增加安全性
             function getApiEndpoint() {
-                // 尝试多种CORS代理方案
-                // 方案1: 使用CORS Anywhere
-                const corsProxy = 'https://cors-anywhere.herokuapp.com/';
-                // 方案2: 如果在本地开发环境，直接使用HTTP
-                if (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') {
-                    return 'http://' + apiParts.join('');
-                }
-                // 其他情况使用代理
-                return corsProxy + 'http://' + apiParts.join('');
+                // 使用部署在Vercel上的代理API
+                // 注意：将下面的URL替换为您的Vercel应用URL
+                const vercelProxyUrl = 'https://hxh.paydn.cn';
+                
+                // 返回Vercel代理API的URL
+                return vercelProxyUrl;
             }
             
             // 创建AI思考过程元素 - 修复版
@@ -1515,10 +1512,16 @@
                     // 更新思考过程
                     setThinkContent(`正在分析问题: "${userMessage}"...`);
                     
-                    // 获取API端点
-                    const apiUrl = getApiEndpoint() + '/api/generate';
+                    // 获取API端点 - 使用Vercel代理
+                    let apiUrl = getApiEndpoint() + '/api/ollama/generate';
                     
-                    // 使用fetch API调用Ollama API
+                    // 根据请求类型选择不同的API端点
+                    if (requestData.stream === true) {
+                        // 如果需要流式响应，使用流式API端点
+                        apiUrl = getApiEndpoint() + '/api/ollama-stream/generate';
+                    }
+                    
+                    // 使用fetch API调用代理API
                     const controller = new AbortController();
                     const timeoutId = setTimeout(() => controller.abort(), 30000); // 30秒超时
                     
@@ -2352,15 +2355,12 @@
             function simpleApiProtection() {
                 // 简单的混淆，不会干扰正常功能
                 const checkApiEndpoint = () => {
-                    // 尝试多种CORS代理方案
-                    // 方案1: 使用CORS Anywhere
-                    const corsProxy = 'https://cors-anywhere.herokuapp.com/';
-                    // 方案2: 如果在本地开发环境，直接使用HTTP
-                    if (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') {
-                        return 'http://' + apiParts.join('');
-                    }
-                    // 其他情况使用代理
-                    return corsProxy + 'http://' + apiParts.join('');
+                    // 使用部署在Vercel上的代理API
+                    // 注意：将下面的URL替换为您的Vercel应用URL
+                    const vercelProxyUrl = 'https://git-work.vercel.app';
+                    
+                    // 返回Vercel代理API的URL
+                    return vercelProxyUrl;
                 };
                 
                 // 替换getApiEndpoint函数，确保始终返回正确的API地址

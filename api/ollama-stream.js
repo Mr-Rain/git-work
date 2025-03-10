@@ -11,15 +11,14 @@ const MODEL_NAME = 'deepseek-r1:70b';
 
 // 处理请求的主函数
 module.exports = async (req, res) => {
-  // 设置CORS头，明确指定允许的域名
+  // 设置CORS头，允许特定来源访问
   res.setHeader('Access-Control-Allow-Origin', 'https://hxh.paydn.cn');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   
-  // 处理预检请求 - 确保正确响应OPTIONS请求
+  // 处理预检请求
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return; // 确保在这里返回，不继续处理
+    return res.status(200).end();
   }
 
   // 只允许POST请求
@@ -71,6 +70,19 @@ module.exports = async (req, res) => {
 // 流式转发Ollama响应的函数
 async function streamResponseFromOllama(path, data, responseStream) {
   return new Promise((resolve, reject) => {
+    // 设置超时处理，确保不超过Vercel限制
+    const timeoutId = setTimeout(() => {
+      // 发送超时通知并结束处理
+      responseStream.write(`data: ${JSON.stringify({
+        done: true,
+        response: "响应时间过长，已断开连接。请尝试发送更简短的问题或联系管理员升级服务。",
+        model: data.model,
+        created_at: new Date().toISOString()
+      })}\n\n`);
+      
+      resolve(); // 结束Promise
+    }, 55000); // 设置为55秒，留出一些缓冲时间
+    
     // 准备请求选项
     const options = {
       hostname: OLLAMA_HOST,
@@ -92,12 +104,14 @@ async function streamResponseFromOllama(path, data, responseStream) {
       
       // 响应结束
       response.on('end', () => {
+        clearTimeout(timeoutId); // 清除超时
         resolve();
       });
     });
     
     // 处理请求错误
     request.on('error', (error) => {
+      clearTimeout(timeoutId); // 清除超时
       reject(error);
     });
     

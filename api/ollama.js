@@ -13,15 +13,14 @@ const MODEL_NAME = 'deepseek-r1:70b';
 
 // 处理请求的主函数
 module.exports = async (req, res) => {
-  // 设置CORS头，明确指定允许的域名
+  // 设置CORS头，允许特定来源访问
   res.setHeader('Access-Control-Allow-Origin', 'https://hxh.paydn.cn');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   
-  // 处理预检请求 - 确保正确响应OPTIONS请求
+  // 处理预检请求
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return; // 确保在这里返回，不继续处理
+    return res.status(200).end();
   }
 
   // 只允许POST请求

@@ -1055,6 +1055,72 @@
         .ai-thinking-content {
             margin-bottom: 20px;
         }
+        
+        /* 添加textarea相关样式 */
+        .chat-input {
+            flex: 1;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            outline: none;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        
+        .chat-input:focus {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(140, 82, 255, 0.3);
+        }
+        
+        .chat-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* 添加textarea特有样式 */
+        textarea.chat-input {
+            resize: none; /* 禁止用户手动调整大小 */
+            overflow-y: auto; /* 内容超出时显示滚动条 */
+            max-height: 150px; /* 最大高度 */
+            line-height: 1.4; /* 行高 */
+            font-family: inherit; /* 继承字体 */
+            min-height: 44px; /* 保持初始高度与之前的input一致 */
+        }
+
+        /* 添加textarea滚动条样式 */
+        textarea.chat-input::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        
+        textarea.chat-input::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            margin: 4px;
+        }
+        
+        textarea.chat-input::-webkit-scrollbar-thumb {
+            background: rgba(140, 82, 255, 0.4);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(140, 82, 255, 0.1);
+        }
+        
+        textarea.chat-input::-webkit-scrollbar-thumb:hover {
+            background: rgba(140, 82, 255, 0.7);
+        }
+        
+        textarea.chat-input::-webkit-scrollbar-corner {
+            background: transparent;
+        }
+        
+        /* 为Firefox添加滚动条样式 */
+        textarea.chat-input {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(140, 82, 255, 0.4) rgba(0, 0, 0, 0.05);
+        }
     </style>
 </head>
 <body>
@@ -1153,7 +1219,7 @@
                 <div class="header-left">
                     <button class="fullscreen-button" aria-label="全屏切换" title="全屏切换">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16v3a2 2 0 0 0 2 2h3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </button>
                 </div>
@@ -1183,7 +1249,7 @@
                 <div class="typing-dot"></div>
             </div>
             <div class="chat-input-container">
-                <input type="text" class="chat-input" placeholder="输入你的问题..." aria-label="聊天输入框">
+                <textarea class="chat-input" placeholder="输入你的问题..." aria-label="聊天输入框" rows="1"></textarea>
                 <button class="send-button">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -1457,6 +1523,9 @@
             // 全局变量，用于控制生成是否应该停止
             let shouldStopGeneration = false;
             
+            // 全局变量，存储当前的AbortController实例
+            let currentRequestController = null;
+            
             // 添加对话历史记录数组
             let conversationHistory = [];
             
@@ -1466,16 +1535,8 @@
                     // 设置生成响应状态
                     isGeneratingResponse = true;
                     
-                    // 显示暂停按钮
-                    const sendButton = document.querySelector('.send-button');
-                    sendButton.innerHTML = `
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="6" y="4" width="4" height="16" fill="white"/>
-                            <rect x="14" y="4" width="4" height="16" fill="white"/>
-                        </svg>
-                    `;
-                    sendButton.classList.add('stop-button');
-                    sendButton.classList.remove('send-button');
+                    // 切换为停止按钮
+                    toggleSendStopButton(true);
                     
                     // 显示AI正在输入
                     typingIndicator.style.display = 'flex';
@@ -1530,6 +1591,8 @@
                     
                     // 使用fetch API调用代理API
                     const controller = new AbortController();
+                    // 存储当前控制器到全局变量，以便stopGeneration可以访问
+                    currentRequestController = controller;
                     const timeoutId = setTimeout(() => controller.abort(), 60000); // 增加到60秒超时
                     
                     // 添加重试逻辑
@@ -1876,22 +1939,15 @@
                     
                     isGeneratingResponse = false;
                 } finally {
+                    // 清除控制器引用
+                    currentRequestController = null;
+                    
                     // 重置所有状态
                     isGeneratingResponse = false;
                     shouldStopGeneration = false;
                     
                     // 恢复发送按钮
-                    const stopButton = document.querySelector('.stop-button');
-                    if (stopButton) {
-                        stopButton.innerHTML = `
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        `;
-                        stopButton.classList.remove('stop-button');
-                        stopButton.classList.add('send-button');
-                    }
+                    toggleSendStopButton(false);
                     
                     // 隐藏输入指示器
                     const typingIndicator = document.querySelector('.typing-indicator');
@@ -2176,17 +2232,28 @@
                 });
             }
             
-            // 发送消息函数
+            // 发送消息函数 - 确保这个函数在全局范围内可访问
             function sendMessage() {
+                // 获取输入框的值
+                const chatInput = document.querySelector('.chat-input');
+                if (!chatInput) return;
+                
                 const message = chatInput.value.trim();
                 if (message === '' || isGeneratingResponse) return;
+                
+                // 清空输入框
+                chatInput.value = '';
+                
+                // 重置输入框高度（针对textarea）
+                if (chatInput.tagName.toLowerCase() === 'textarea') {
+                    chatInput.style.height = '44px'; // 重置为初始高度
+                }
                 
                 // 重置暂停状态
                 shouldStopGeneration = false;
                 
                 // 添加用户消息
                 addMessage(message, 'user');
-                chatInput.value = '';
                 
                 // 获取AI回复
                 getAIResponse(message);
@@ -2199,8 +2266,9 @@
                 messageElement.classList.add(sender === 'user' ? 'user-message' : 'ai-message');
                 
                 if (sender === 'user') {
-                    // 用户消息直接显示文本
-                    messageElement.textContent = text;
+                    // 用户消息处理换行符
+                    const formattedText = text.replace(/\n/g, '<br>');
+                    messageElement.innerHTML = formattedText;
                 } else {
                     // AI消息使用Markdown解析
                     messageElement.classList.add('markdown-body');
@@ -2302,46 +2370,48 @@
             
             // 切换发送/停止按钮
             function toggleSendStopButton(isGenerating) {
+                // 获取当前的按钮（可能是send-button或stop-button）
+                const button = document.querySelector('.send-button, .stop-button');
+                
+                if (!button) return; // 安全检查
+                
                 if (isGenerating) {
                     // 切换为停止按钮
-                    sendButton.classList.remove('send-button');
-                    sendButton.classList.add('stop-button');
-                    sendButton.innerHTML = `
+                    button.classList.remove('send-button');
+                    button.classList.add('stop-button');
+                    button.innerHTML = `
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <rect x="6" y="6" width="12" height="12" fill="white"/>
                         </svg>
                     `;
-                    sendButton.setAttribute('aria-label', '停止生成');
-                    
-                    // 移除之前的事件监听器
-                    sendButton.removeEventListener('click', sendMessage);
-                    
-                    // 添加停止生成的事件监听器
-                    sendButton.addEventListener('click', stopGeneration);
+                    button.setAttribute('aria-label', '停止生成');
+                    button.setAttribute('data-action', 'stop'); // 添加数据属性标记当前动作
                 } else {
                     // 恢复为发送按钮
-                    sendButton.classList.remove('stop-button');
-                    sendButton.classList.add('send-button');
-                    sendButton.innerHTML = `
+                    button.classList.remove('stop-button');
+                    button.classList.add('send-button');
+                    button.innerHTML = `
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     `;
-                    sendButton.setAttribute('aria-label', '发送消息');
-                    
-                    // 移除之前的事件监听器
-                    sendButton.removeEventListener('click', stopGeneration);
-                    
-                    // 添加发送消息的事件监听器
-                    sendButton.addEventListener('click', sendMessage);
+                    button.setAttribute('aria-label', '发送消息');
+                    button.setAttribute('data-action', 'send'); // 添加数据属性标记当前动作
                 }
             }
             
             // 停止生成函数
             function stopGeneration() {
+                // 设置停止标志
                 shouldStopGeneration = true;
                 console.log('用户请求停止生成');
+                
+                // 立即中止当前请求（如果存在）
+                if (currentRequestController) {
+                    currentRequestController.abort();
+                    currentRequestController = null;
+                }
             }
             
             // 初始化按钮状态 - 确保初始状态是发送按钮
@@ -2421,6 +2491,17 @@
             
             // 初始化聊天界面
             function initChat() {
+                // 初始化按钮状态 - 确保初始状态是发送按钮
+                const button = document.querySelector('.send-button, .stop-button');
+                if (button) {
+                    button.className = 'send-button';
+                    button.setAttribute('data-action', 'send'); // 添加数据属性标记当前动作
+                    console.log('初始化按钮状态成功');
+                }
+                
+                // 使用事件委托处理所有按钮点击
+                setupEventDelegation();
+                
                 // 添加清除对话按钮
                 addClearButton();
                 
@@ -2457,7 +2538,89 @@
                 }
             }
             
-            // 初始化聊天
+            // 设置事件委托 - 这是一个更可靠的事件绑定方式
+            function setupEventDelegation() {
+                // 为整个聊天容器添加事件监听
+                const chatContainer = document.querySelector('.chat-container');
+                if (!chatContainer) return;
+                
+                console.log('设置事件委托');
+                
+                // 添加点击事件委托
+                chatContainer.addEventListener('click', (e) => {
+                    // 找到最近的按钮元素
+                    const button = e.target.closest('.send-button, .stop-button');
+                    if (!button) return; // 如果点击的不是按钮，直接返回
+                    
+                    console.log('按钮被点击:', button.className);
+                    
+                    // 根据按钮类型执行对应操作
+                    if (button.classList.contains('send-button') || button.getAttribute('data-action') === 'send') {
+                        console.log('执行发送操作');
+                        sendMessage();
+                    } else if (button.classList.contains('stop-button') || button.getAttribute('data-action') === 'stop') {
+                        console.log('执行停止操作');
+                        stopGeneration();
+                    }
+                });
+                
+                // 将keypress改为keydown以更好地支持组合键检测
+                chatContainer.addEventListener('keydown', (e) => {
+                    // 如果不是输入框，返回
+                    if (!e.target.classList.contains('chat-input')) return;
+                    
+                    // 如果是回车键
+                    if (e.key === 'Enter') {
+                        // 如果同时按下了Shift键，插入换行符
+                        if (e.shiftKey) {
+                            console.log('Shift+Enter按下，插入换行');
+                            e.preventDefault(); // 阻止默认行为
+                            
+                            // 获取输入框元素和当前光标位置
+                            const input = e.target;
+                            const start = input.selectionStart;
+                            const end = input.selectionEnd;
+                            const value = input.value;
+                            
+                            // 在光标位置插入换行符
+                            const newValue = value.substring(0, start) + '\n' + value.substring(end);
+                            input.value = newValue;
+                            
+                            // 将光标位置设置到换行符后
+                            input.selectionStart = input.selectionEnd = start + 1;
+                            
+                            // 自动调整textarea的高度
+                            autoResizeTextarea(input);
+                        } else {
+                            // 如果只按下Enter键，执行发送
+                            console.log('Enter按下，执行发送');
+                            e.preventDefault(); // 阻止默认行为
+                            sendMessage();
+                        }
+                    }
+                });
+                
+                // 监听输入事件，自动调整高度
+                chatContainer.addEventListener('input', (e) => {
+                    if (e.target.classList.contains('chat-input') && e.target.tagName.toLowerCase() === 'textarea') {
+                        autoResizeTextarea(e.target);
+                    }
+                });
+                
+                console.log('事件委托设置完成');
+            }
+            
+            // 自动调整textarea高度的函数
+            function autoResizeTextarea(textarea) {
+                // 重置高度以获取正确的scrollHeight
+                textarea.style.height = 'auto';
+                
+                // 设置新高度
+                const newHeight = Math.min(textarea.scrollHeight, 150); // 最大高度150px
+                textarea.style.height = newHeight + 'px';
+            }
+            
+            // 直接调用初始化函数
             initChat();
             
             // 处理用户消息发送
@@ -2665,20 +2828,6 @@
                 // 滚动到底部
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
-            
-            // 监听发送/暂停按钮点击
-            document.querySelector('.chat-input-container').addEventListener('click', (e) => {
-                const target = e.target.closest('.send-button, .stop-button');
-                if (!target) return;
-                
-                if (target.classList.contains('stop-button')) {
-                    // 点击暂停按钮
-                    shouldStopGeneration = true;
-                } else {
-                    // 点击发送按钮
-                    sendMessage();
-                }
-            });
         });
     </script>
 </body>

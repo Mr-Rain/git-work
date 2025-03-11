@@ -12,8 +12,8 @@ const MODEL_NAME = 'deepseek-r1:70b';
 // 允许的域名列表
 const allowedOrigins = [
     'https://hxh.paydn.cn',
-    'http://localhost:5000',
-    'http://127.0.0.1:5000',
+    'http://localhost:5500',
+    'http://127.0.0.1:5500',
     'https://hxhwork.xyz'
 ];
 
@@ -90,7 +90,7 @@ async function streamResponseFromOllama(path, data, responseStream) {
       // 发送超时通知并结束处理
       responseStream.write(`data: ${JSON.stringify({
         done: true,
-        response: "响应时间过长，已断开连接。请尝试发送更简短的问题或联系管理员升级服务。",
+        response: "<br>响应时间过长，已断开连接。请尝试发送更简短的问题或联系管理员升级服务。",
         model: data.model,
         created_at: new Date().toISOString()
       })}\n\n`);

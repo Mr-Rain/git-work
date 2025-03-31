@@ -1331,6 +1331,43 @@
             opacity: 1;
             transform: translateY(0);
         }
+        
+        /* VPN提示样式 */
+        .vpn-notice {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: var(--space-lg);
+            padding: var(--space-sm) var(--space-md);
+            background: rgba(66, 133, 244, 0.08);
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(66, 133, 244, 0.2);
+            color: var(--text-secondary);
+            font-size: 14px;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .vpn-notice .vpn-icon {
+            margin-right: var(--space-sm);
+            color: var(--primary);
+            font-size: 18px;
+        }
+        
+        body.light-mode .vpn-notice {
+            background: rgba(66, 133, 244, 0.05);
+        }
+        
+        @media (max-width: 768px) {
+            .vpn-notice {
+                font-size: 12px;
+                padding: var(--space-xs) var(--space-sm);
+            }
+            
+            .vpn-notice .vpn-icon {
+                font-size: 16px;
+            }
+        }
     </style>
     <!-- 添加一个内联脚本来初始化主题，避免闪烁 -->
     <script>
@@ -1440,9 +1477,21 @@
                     <span class="material-icons">compare</span>产品对比
                 </div>
                 
+                <div class="sidebar-nav-item" data-category="email" style="--i:11;">
+                    <span class="material-icons">email</span>临时邮箱
+                </div>
+                
+                <div class="sidebar-nav-item" data-category="search" style="--i:12;">
+                    <span class="material-icons">search</span>搜索工具
+                </div>
+                
+                <div class="sidebar-nav-item" data-category="hosting" style="--i:13;">
+                    <span class="material-icons">cloud</span>建站托管
+                </div>
+                
                 <div class="sidebar-nav-divider"></div>
                 
-                <div class="sidebar-nav-item clear-filter" id="clearFilter" style="--i:11;">
+                <div class="sidebar-nav-item clear-filter" id="clearFilter" style="--i:14;">
                     <span class="material-icons">refresh</span>清除筛选
                 </div>
             </div>
@@ -1824,6 +1873,102 @@
                     </div>
                     <div class="site-description">免费PPT模板下载平台</div>
                 </div>
+                
+                <h2 class="category-title" data-category="email">临时邮箱</h2>
+                <div class="site-item" data-category="email">
+                    <div class="site-item-header">
+                        <div class="site-title">
+                            <a href="https://10minutemail.net/m/?lang=zh-cn" target="_blank">10MinuteMail</a>
+                        </div>
+                        <span class="site-badge badge-ok">✅可用</span>
+                    </div>
+                    <div class="site-description">十分钟临时邮箱，支持中文界面</div>
+                    <div class="click-indicator"></div>
+                </div>
+                <div class="site-item" data-category="email">
+                    <div class="site-item-header">
+                        <div class="site-title">
+                            <a href="http://bdfile.net/" target="_blank">BDFile临时邮</a>
+                        </div>
+                        <span class="site-badge badge-ok">✅可用</span>
+                    </div>
+                    <div class="site-description">匿名临时邮箱服务</div>
+                    <div class="click-indicator"></div>
+                </div>
+                <div class="site-item" data-category="email">
+                    <div class="site-item-header">
+                        <div class="site-title">
+                            <a href="https://www.linshiguge.com/" target="_blank">临时邮</a>
+                        </div>
+                        <span class="site-badge badge-ok">✅可用</span>
+                    </div>
+                    <div class="site-description">中文临时邮箱平台</div>
+                    <div class="click-indicator"></div>
+                </div>
+                <div class="site-item" data-category="email">
+                    <div class="site-item-header">
+                        <div class="site-title">
+                            <a href="https://www.crazymailing.com/zh" target="_blank">疯狂邮件</a>
+                        </div>
+                        <span class="site-badge badge-ok">✅可用</span>
+                    </div>
+                    <div class="site-description">多语言临时邮箱</div>
+                    <div class="click-indicator"></div>
+                </div>
+                <div class="site-item" data-category="email">
+                    <div class="site-item-header">
+                        <div class="site-title">
+                            <a href="https://www.guerrillamail.com/inbox" target="_blank">GuerrillaMail</a>
+                        </div>
+                        <span class="site-badge badge-ok">✅可用</span>
+                    </div>
+                    <div class="site-description">国际知名临时邮箱服务</div>
+                    <div class="click-indicator"></div>
+                </div>
+                <div class="site-item" data-category="email">
+                    <div class="site-item-header">
+                        <div class="site-title">
+                            <a href="http://24mail.chacuo.net/" target="_blank">24Mail</a>
+                        </div>
+                        <span class="site-badge badge-ok">✅可用</span>
+                    </div>
+                    <div class="site-description">中文界面24小时临时邮箱</div>
+                    <div class="click-indicator"></div>
+                </div>
+                <div class="site-item" data-category="email">
+                    <div class="site-item-header">
+                        <div class="site-title">
+                            <a href="https://tenminutesmail.net/zh" target="_blank">TenMinutesMail</a>
+                        </div>
+                        <span class="site-badge badge-ok">✅可用</span>
+                    </div>
+                    <div class="site-description">十分钟临时邮箱（中文版）</div>
+                    <div class="click-indicator"></div>
+                </div>
+                
+                <h2 class="category-title" data-category="search">搜索工具</h2>
+                <div class="site-item" data-category="search">
+                    <div class="site-item-header">
+                        <div class="site-title">
+                            <a href="https://search.chongbuluo.com/" target="_blank">虫部落快搜</a>
+                        </div>
+                        <span class="site-badge badge-ok">✅可用</span>
+                    </div>
+                    <div class="site-description">聚合搜索引擎（包含学术/图片/网盘等垂直搜索）</div>
+                    <div class="click-indicator"></div>
+                </div>
+                
+                <h2 class="category-title" data-category="hosting">建站托管</h2>
+                <div class="site-item" data-category="hosting">
+                    <div class="site-item-header">
+                        <div class="site-title">
+                            <a href="https://dash.infinityfree.com" target="_blank">InfinityFree</a>
+                        </div>
+                        <span class="site-badge badge-ok">✅可用</span>
+                    </div>
+                    <div class="site-description">免费网站托管服务（含MySQL数据库）</div>
+                    <div class="click-indicator"></div>
+                </div>
             </section>
 
             <div class="pagination" id="pagination">
@@ -1834,6 +1979,11 @@
                 <button id="nextPage" disabled>
                     下一页<span class="material-icons pagination-icon">chevron_right</span>
                 </button>
+            </div>
+            
+            <div class="vpn-notice">
+                <span class="material-icons vpn-icon">vpn_lock</span>
+                <p>请注意：本站部分网站资源可能需要网络代理才能访问</p>
             </div>
         </main>
     </div>

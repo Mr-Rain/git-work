@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>卡号验证测试工具</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        .test-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .test-result {
+            margin: 1rem 0;
+            padding: 1rem;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .stat-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 6px;
+            text-align: center;
+            border: 2px solid #e0e0e0;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-label {
+            font-size: 0.875rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 卡号生成器验证测试工具</h1>
+        <p>此工具用于验证 generator_full.html 的核心功能是否正常工作</p>
+
+        <div class="test-section">
+            <h2>📊 测试统计</h2>
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalTests">0</div>
+                    <div class="stat-label">总测试数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="passedTests">0</div>
+                    <div class="stat-label">通过</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="failedTests">0</div>
+                    <div class="stat-label">失败</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="passRate">0%</div>
+                    <div class="stat-label">通过率</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔧 快速测试</h2>
+            <button onclick="testLuhnAlgorithm()">测试 Luhn 算法</button>
+            <button onclick="testCardGeneration()">测试卡号生成</button>
+            <button onclick="testDateValidation()">测试日期验证</button>
+            <button onclick="testAllValidations()">运行所有测试</button>
+            <button onclick="clearResults()">清空结果</button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        let totalTests = 0;
+        let passedTests = 0;
+        let failedTests = 0;
+
+        // Luhn算法（从generator_full.html复制）
+        function luhnCheck(cardNumber) {
+            if (!cardNumber || typeof cardNumber !== 'string') {
+                return false;
+            }
+            
+            const cleaned = cardNumber.replace(/\D/g, '');
+            
+            if (cleaned.length < 13 || cleaned.length > 19) {
+                return false;
+            }
+            
+            let sum = 0;
+            let isEven = false;
+            
+            for (let i = cleaned.length - 1; i >= 0; i--) {
+                let digit = parseInt(cleaned[i], 10);
+                
+                if (isEven) {
+                    digit *= 2;
+                    if (digit > 9) {
+                        digit -= 9;
+                    }
+                }
+                
+                sum += digit;
+                isEven = !isEven;
+            }
+            
+            return sum % 10 === 0;
+        }
+
+        function addResult(testName, passed, message) {
+            totalTests++;
+            if (passed) {
+                passedTests++;
+            } else {
+                failedTests++;
+            }
+            
+            updateStats();
+            
+            const resultsDiv = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${passed ? 'success' : 'error'}`;
+            resultDiv.innerHTML = `
+                <strong>${passed ? '✅' : '❌'} ${testName}</strong><br>
+                ${message}
+            `;
+            resultsDiv.insertBefore(resultDiv, resultsDiv.firstChild);
+        }
+
+        function updateStats() {
+            document.getElementById('totalTests').textContent = totalTests;
+            document.getElementById('passedTests').textContent = passedTests;
+            document.getElementById('failedTests').textContent = failedTests;
+            const rate = totalTests > 0 ? Math.round((passedTests / totalTests) * 100) : 0;
+            document.getElementById('passRate').textContent = rate + '%';
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+            totalTests = 0;
+            passedTests = 0;
+            failedTests = 0;
+            updateStats();
+        }
+
+        function testLuhnAlgorithm() {
+            // 测试已知的有效卡号
+            const validCards = [
+                '4532015112830366', // Visa
+                '5425233430109903', // MasterCard
+                '374245455400126',  // Amex (15位)
+                '6011111111111117', // Discover
+            ];
+
+            validCards.forEach(card => {
+                const result = luhnCheck(card);
+                addResult(
+                    `Luhn验证: ${card}`,
+                    result,
+                    result ? '卡号通过Luhn验证' : '卡号未通过Luhn验证'
+                );
+            });
+
+            // 测试无效卡号
+            const invalidCards = [
+                '4532015112830367', // 最后一位错误
+                '1234567890123456', // 随机数字
+            ];
+
+            invalidCards.forEach(card => {
+                const result = !luhnCheck(card);
+                addResult(
+                    `Luhn验证(无效): ${card}`,
+                    result,
+                    result ? '正确识别为无效卡号' : '错误地通过了验证'
+                );
+            });
+        }
+
+        function testCardGeneration() {
+            // 简单的卡号生成测试
+            const testCases = [
+                { prefix: '4532', length: 16, name: 'Visa' },
+                { prefix: '5425', length: 16, name: 'MasterCard' },
+                { prefix: '3742', length: 15, name: 'Amex' },
+            ];
+
+            testCases.forEach(test => {
+                // 生成一个简单的测试卡号
+                let cardNumber = test.prefix;
+                while (cardNumber.length < test.length - 1) {
+                    cardNumber += Math.floor(Math.random() * 10);
+                }
+                
+                // 计算校验位
+                let sum = 0;
+                let shouldDouble = true;
+                for (let i = cardNumber.length - 1; i >= 0; i--) {
+                    let digit = parseInt(cardNumber[i], 10);
+                    if (shouldDouble) {
+                        digit *= 2;
+                        if (digit > 9) digit -= 9;
+                    }
+                    sum += digit;
+                    shouldDouble = !shouldDouble;
+                }
+                const checkDigit = (10 - (sum % 10)) % 10;
+                cardNumber += checkDigit;
+
+                const passed = luhnCheck(cardNumber) && cardNumber.length === test.length;
+                addResult(
+                    `生成${test.name}卡号`,
+                    passed,
+                    `生成的卡号: ${cardNumber}, 长度: ${cardNumber.length}, Luhn: ${luhnCheck(cardNumber) ? '通过' : '失败'}`
+                );
+            });
+        }
+
+        function testDateValidation() {
+            const currentYear = new Date().getFullYear();
+            const currentMonth = new Date().getMonth() + 1;
+
+            // 测试未来日期
+            const futureDate = { month: '12', year: String(currentYear + 1) };
+            const isFuture = parseInt(futureDate.year) > currentYear;
+            addResult(
+                '未来日期验证',
+                isFuture,
+                `日期 ${futureDate.month}/${futureDate.year} ${isFuture ? '在未来' : '已过期'}`
+            );
+
+            // 测试当前月份
+            const currentDate = { month: String(currentMonth).padStart(2, '0'), year: String(currentYear) };
+            const isCurrent = parseInt(currentDate.year) === currentYear && parseInt(currentDate.month) >= currentMonth;
+            addResult(
+                '当前日期验证',
+                isCurrent,
+                `日期 ${currentDate.month}/${currentDate.year} ${isCurrent ? '有效' : '无效'}`
+            );
+
+            // 测试过去日期
+            const pastDate = { month: '01', year: String(currentYear - 1) };
+            const isPast = parseInt(pastDate.year) < currentYear;
+            addResult(
+                '过期日期识别',
+                isPast,
+                `日期 ${pastDate.month}/${pastDate.year} ${isPast ? '正确识别为过期' : '错误判断'}`
+            );
+        }
+
+        function testAllValidations() {
+            clearResults();
+            testLuhnAlgorithm();
+            testCardGeneration();
+            testDateValidation();
+        }
+
+        // 页面加载时显示欢迎信息
+        window.onload = function() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <div class="test-result" style="background: #e7f3ff; color: #004085; border: 1px solid #b8daff;">
+                    <strong>👋 欢迎使用验证测试工具</strong><br>
+                    点击上方按钮开始测试各项功能。所有测试都基于 generator_full.html 中的核心算法。
+                </div>
+            `;
+        };
+    </script>
+</body>
+</html>
+

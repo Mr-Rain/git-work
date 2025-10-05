@@ -4,6 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>JSON 转换器：租户URL / 访问令牌 / Portal URL</title>
+  <!-- 添加favicon避免404错误 -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
   <style>
     /* ========== CSS 变量定义 ========== */
     :root {
@@ -786,20 +788,25 @@
       text-shadow: 0 0 8px rgba(34, 211, 238, 0.3);
     }
 
-    /* 表格容器优化 - 增强滚动和响应式支持 */
+    /* 表格容器优化 - 添加垂直滚动功能 */
     #tableWrap {
       overflow-x: auto; /* 水平滚动支持 */
-      overflow-y: auto; /* 垂直滚动支持 */
-      min-height: 400px; /* 调整最小高度，更灵活 */
-      max-height: 75vh; /* 最大高度限制 */
-      height: auto; /* 自适应高度 */
+      overflow-y: auto; /* 启用垂直滚动 */
+      height: 600px; /* 固定高度，桌面端 */
+      max-height: 65vh; /* 响应式最大高度 */
+      min-height: 400px; /* 最小高度保证 */
       border-radius: 12px; /* 保持圆角 */
       position: relative; /* 为滚动阴影做准备 */
       scroll-behavior: smooth; /* 平滑滚动 */
       -webkit-overflow-scrolling: touch; /* iOS滚动优化 */
+      padding: 0; /* 确保没有额外内边距 */
+      margin: 0; /* 确保没有额外外边距 */
+      /* 优化滚动性能 */
+      will-change: scroll-position;
+      contain: layout style paint;
     }
 
-    /* 表格水平滚动阴影提示 */
+    /* 表格滚动阴影提示 - 水平和垂直 */
     #tableWrap::before,
     #tableWrap::after {
       content: '';
@@ -812,6 +819,7 @@
       transition: opacity 0.3s ease;
     }
 
+    /* 水平滚动阴影 */
     #tableWrap::before {
       left: 0;
       background: linear-gradient(90deg, rgba(99, 102, 241, 0.15) 0%, transparent 100%);
@@ -824,12 +832,44 @@
       opacity: 0;
     }
 
+    /* 垂直滚动阴影 */
+    #tableWrap .scroll-shadow-top,
+    #tableWrap .scroll-shadow-bottom {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 15px;
+      pointer-events: none;
+      z-index: 6;
+      transition: opacity 0.3s ease;
+      opacity: 0;
+    }
+
+    #tableWrap .scroll-shadow-top {
+      top: 0;
+      background: linear-gradient(180deg, rgba(99, 102, 241, 0.12) 0%, transparent 100%);
+    }
+
+    #tableWrap .scroll-shadow-bottom {
+      bottom: 0;
+      background: linear-gradient(0deg, rgba(99, 102, 241, 0.12) 0%, transparent 100%);
+    }
+
     /* 当可以滚动时显示阴影 */
     #tableWrap.can-scroll-left::before {
       opacity: 1;
     }
 
     #tableWrap.can-scroll-right::after {
+      opacity: 1;
+    }
+
+    #tableWrap.can-scroll-up .scroll-shadow-top {
+      opacity: 1;
+    }
+
+    #tableWrap.can-scroll-down .scroll-shadow-bottom {
       opacity: 1;
     }
 
@@ -853,23 +893,38 @@
     #tableWrap .table {
       width: 100%;
       min-width: 800px; /* 确保最小宽度，支持水平滚动 */
+      margin: 0; /* 移除默认边距 */
+      border-collapse: separate;
+      border-spacing: 0;
+      position: relative; /* 确保正确定位 */
     }
 
-    /* 自定义滚动条样式 */
+    /* 表格视图和卡片视图的容器优化 */
+    #tableView, #cardView {
+      height: 100%; /* 填满父容器 */
+      overflow: visible; /* 让滚动由父容器处理 */
+    }
+
+    #tableView {
+      min-height: min-content; /* 确保表格内容能正常显示 */
+    }
+
+    /* 自定义滚动条样式 - 优化垂直和水平滚动 */
     #tableWrap::-webkit-scrollbar,
     .table td::-webkit-scrollbar,
     .cell-wrapper::-webkit-scrollbar,
     .cell-content::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
+      width: 8px; /* 垂直滚动条宽度 */
+      height: 8px; /* 水平滚动条高度 */
     }
 
     #tableWrap::-webkit-scrollbar-track,
     .table td::-webkit-scrollbar-track,
     .cell-wrapper::-webkit-scrollbar-track,
     .cell-content::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      margin: 2px;
     }
 
     #tableWrap::-webkit-scrollbar-thumb,
@@ -877,7 +932,8 @@
     .cell-wrapper::-webkit-scrollbar-thumb,
     .cell-content::-webkit-scrollbar-thumb {
       background: rgba(99, 102, 241, 0.6);
-      border-radius: 3px;
+      border-radius: 4px;
+      border: 1px solid rgba(99, 102, 241, 0.2);
     }
 
     #tableWrap::-webkit-scrollbar-thumb:hover,
@@ -885,6 +941,20 @@
     .cell-wrapper::-webkit-scrollbar-thumb:hover,
     .cell-content::-webkit-scrollbar-thumb:hover {
       background: rgba(99, 102, 241, 0.8);
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+
+    /* 滚动条交叉点样式 */
+    #tableWrap::-webkit-scrollbar-corner {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* 移动端滚动条优化 */
+    @media (max-width: 768px) {
+      #tableWrap::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
     }
 
     /* ========== 单元格复制按钮 ========== */
@@ -1030,8 +1100,10 @@
       }
 
       #tableWrap {
-        min-height: 500px;
-        max-height: 65vh;
+        height: 500px; /* 平板端固定高度 */
+        max-height: 60vh; /* 平板端最大高度 */
+        min-height: 350px; /* 平板端最小高度 */
+        overflow-y: auto; /* 启用垂直滚动 */
       }
 
       .controls {
@@ -1128,9 +1200,10 @@
 
       /* 移动端优化表格滚动 */
       #tableWrap {
-        min-height: 350px;
-        max-height: 60vh;
-        /* 增强滚动指示器 */
+        height: 450px; /* 移动端固定高度 */
+        max-height: 55vh; /* 移动端最大高度 */
+        min-height: 300px; /* 移动端最小高度 */
+        overflow-y: auto; /* 启用垂直滚动 */
         position: relative;
       }
 
@@ -1259,9 +1332,10 @@
 
       /* 小屏幕滚动优化 */
       #tableWrap {
-        min-height: 350px;
-        max-height: 50vh;
-        /* 增强触摸滚动 */
+        height: 400px; /* 小屏幕固定高度 */
+        max-height: 50vh; /* 小屏幕最大高度 */
+        min-height: 250px; /* 小屏幕最小高度 */
+        overflow-y: auto; /* 启用垂直滚动 */
         -webkit-overflow-scrolling: touch;
         scroll-behavior: smooth;
       }
@@ -1298,6 +1372,9 @@
         flex-direction: column;
         gap: 16px;
         padding: 16px;
+        height: 100%; /* 确保卡片视图填满容器 */
+        overflow-y: auto; /* 卡片视图也支持垂直滚动 */
+        box-sizing: border-box;
       }
 
       .table-card {
@@ -1515,35 +1592,83 @@
     }
 
     .mobile-only {
-      display: none;
+      display: none !important; /* 桌面端强制隐藏 */
     }
 
+    /* 移动端响应式显示 */
     @media (max-width: 768px) {
       .mobile-hidden {
-        display: none;
+        display: none !important;
       }
 
       .mobile-only {
-        display: block;
+        display: block !important; /* 移动端强制显示 */
+      }
+
+      /* 特殊处理：确保滚动提示在移动端可见 */
+      .table-scroll-hint.mobile-only {
+        display: block !important;
+        opacity: 1;
+        visibility: visible;
       }
     }
 
     /* 表格滚动增强 */
     .table-scroll-hint {
-      display: none;
+      display: none; /* 桌面端默认隐藏 */
       text-align: center;
-      padding: 8px;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      background: rgba(99, 102, 241, 0.05);
-      border-radius: 6px;
-      margin-bottom: 8px;
-      animation: pulse 2s infinite;
+      padding: 12px 16px;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.08));
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+      animation: scrollHintPulse 3s ease-in-out infinite;
     }
 
+    /* 滚动提示动画 */
+    @keyframes scrollHintPulse {
+      0%, 100% {
+        opacity: 0.8;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 1;
+        transform: scale(1.02);
+      }
+    }
+
+    /* 移动端显示滚动提示 */
     @media (max-width: 768px) {
-      .table-scroll-hint {
-        display: block;
+      .table-scroll-hint.mobile-only {
+        display: block !important; /* 强制显示，覆盖其他样式 */
+        margin: 8px 0 12px 0;
+        padding: 10px 12px;
+        font-size: 0.75rem;
+      }
+    }
+
+    /* 小屏幕进一步优化 */
+    @media (max-width: 480px) {
+      .table-scroll-hint.mobile-only {
+        padding: 8px 10px;
+        font-size: 0.7rem;
+        margin: 6px 0 10px 0;
+        border-radius: 6px;
+      }
+    }
+
+    /* 极小屏幕优化 */
+    @media (max-width: 360px) {
+      .table-scroll-hint.mobile-only {
+        padding: 6px 8px;
+        font-size: 0.65rem;
+        margin: 4px 0 8px 0;
+        letter-spacing: 0.3px;
       }
     }
 
@@ -1585,6 +1710,101 @@
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
     }
 
+    /* 复制格式选择组样式 */
+    .copy-format-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: nowrap;
+    }
+
+    /* 性能监控面板样式 */
+    .performance-monitor {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: rgba(10, 15, 28, 0.95);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      z-index: 9999;
+      backdrop-filter: blur(10px);
+      min-width: 200px;
+      display: none; /* 默认隐藏 */
+    }
+
+    .performance-monitor.show {
+      display: block;
+    }
+
+    .performance-monitor h4 {
+      margin: 0 0 8px 0;
+      color: var(--accent-primary);
+      font-size: 0.8rem;
+    }
+
+    .performance-monitor .metric {
+      display: flex;
+      justify-content: space-between;
+      margin: 4px 0;
+    }
+
+    .performance-monitor .metric-value {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .performance-monitor .toggle-btn {
+      position: absolute;
+      top: -30px;
+      right: 0;
+      background: rgba(99, 102, 241, 0.8);
+      border: none;
+      border-radius: 4px 4px 0 0;
+      color: white;
+      padding: 4px 8px;
+      font-size: 0.7rem;
+      cursor: pointer;
+    }
+
+    .copy-format-select {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      background: rgba(99, 102, 241, 0.05);
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all var(--transition-normal);
+      min-width: 100px;
+    }
+
+    .copy-format-select:hover {
+      border-color: rgba(99, 102, 241, 0.5);
+      background: rgba(99, 102, 241, 0.1);
+    }
+
+    .copy-format-select:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    }
+
+    @media (max-width: 768px) {
+      .copy-format-group {
+        flex-direction: column;
+        gap: 6px;
+        width: 100%;
+      }
+
+      .copy-format-select {
+        width: 100%;
+        font-size: 0.85rem;
+      }
+    }
+
     /* ========== 辅助类 ========== */
     .fade-in {
       animation: fadeInUp 0.6s ease-out;
@@ -1621,7 +1841,13 @@
             <input type="number" id="exportCount" class="export-count-input" placeholder="数量" min="1" disabled style="width: 80px; padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(99, 102, 241, 0.3); background: rgba(99, 102, 241, 0.05); color: var(--text-primary); font-size: 0.9rem;">
             <button id="downloadCount" class="btn" disabled>导出指定数量</button>
           </div>
-          <button id="copy" class="btn" disabled>复制到剪贴板</button>
+          <div class="copy-format-group">
+            <select id="copyFormat" class="copy-format-select">
+              <option value="json">JSON格式</option>
+              <option value="text">文本格式</option>
+            </select>
+            <button id="copy" class="btn" disabled>复制到剪贴板</button>
+          </div>
         </div>
         <div class="hint">支持多种输入格式：<br>① 任意结构的 JSON 文件 ② 纯文本文件（每行一条数据）③ 智能识别 URL、令牌等字段。</div>
         <div class="status" id="status">—</div>
@@ -1643,6 +1869,10 @@
           </div>
 
           <div class="pre" id="tableWrap" style="padding:0">
+            <!-- 垂直滚动阴影 -->
+            <div class="scroll-shadow-top"></div>
+            <div class="scroll-shadow-bottom"></div>
+
             <!-- 表格视图 -->
             <div id="tableView">
               <table class="table" id="table"></table>
@@ -1662,6 +1892,40 @@
     </div>
   </div>
 
+  <!-- 性能监控面板 -->
+  <div class="performance-monitor" id="performanceMonitor">
+    <button class="toggle-btn" onclick="togglePerformanceMonitor()">性能</button>
+    <h4>📊 页面性能监控</h4>
+    <div class="metric">
+      <span>DOM 节点数:</span>
+      <span class="metric-value" id="domNodes">-</span>
+    </div>
+    <div class="metric">
+      <span>事件监听器:</span>
+      <span class="metric-value" id="eventListeners">-</span>
+    </div>
+    <div class="metric">
+      <span>内存使用:</span>
+      <span class="metric-value" id="memoryUsage">-</span>
+    </div>
+    <div class="metric">
+      <span>渲染时间:</span>
+      <span class="metric-value" id="renderTime">-</span>
+    </div>
+    <div class="metric">
+      <span>滚动位置:</span>
+      <span class="metric-value" id="scrollPosition">-</span>
+    </div>
+    <div class="metric">
+      <span>滚动提示:</span>
+      <span class="metric-value" id="scrollHintStatus">-</span>
+    </div>
+    <div class="metric">
+      <span>扩展警告:</span>
+      <span class="metric-value" style="color: #10b981;">已过滤</span>
+    </div>
+  </div>
+
   <script>
     const fileInput = document.getElementById('file');
     const out = document.getElementById('out');
@@ -1671,12 +1935,39 @@
     const downloadCountBtn = document.getElementById('downloadCount');
     const exportCountInput = document.getElementById('exportCount');
     const copyBtn = document.getElementById('copy');
+    const copyFormatSelect = document.getElementById('copyFormat');
     const countEl = document.getElementById('count');
     const selectedCountEl = document.getElementById('selectedCount');
     const tableEl = document.getElementById('table');
 
     let transformed = [];
     let selectedRows = new Set(); // 存储选中的行索引
+
+    // 性能优化工具函数
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+
+    function throttle(func, limit) {
+      let inThrottle;
+      return function() {
+        const args = arguments;
+        const context = this;
+        if (!inThrottle) {
+          func.apply(context, args);
+          inThrottle = true;
+          setTimeout(() => inThrottle = false, limit);
+        }
+      }
+    }
 
     // 提前定义全局函数，确保HTML中的onclick能够访问
     window.copyCellValue = async function(value, button) {
@@ -2081,16 +2372,19 @@
       // 绘制卡片视图
       drawCardView(list);
 
-      // 表格重新渲染后，绑定事件监听器
-      setTimeout(() => {
+      // 使用requestAnimationFrame优化渲染性能
+      requestAnimationFrame(() => {
         bindCheckboxEvents();
         if (window.updateScrollShadows) {
           window.updateScrollShadows();
         }
+        if (window.updateScrollHint) {
+          window.updateScrollHint();
+        }
         // 确保选择状态正确显示
         updateSelectAllCheckbox();
         updateSelectionUI();
-      }, 50);
+      });
     }
 
     // 绘制卡片视图
@@ -2198,47 +2492,41 @@
       });
     }
 
-    // 绑定复选框事件监听器
+    // 优化的复选框事件绑定器
     function bindCheckboxEvents() {
       console.log('Binding checkbox events...');
 
       // 绑定全选复选框
       const selectAllCheckbox = document.querySelector('.select-all-checkbox');
-      if (selectAllCheckbox) {
-        // 移除旧的事件监听器
-        selectAllCheckbox.removeEventListener('change', handleSelectAll);
-        // 添加新的事件监听器
+      if (selectAllCheckbox && !selectAllCheckbox._eventBound) {
         selectAllCheckbox.addEventListener('change', handleSelectAll);
+        selectAllCheckbox._eventBound = true;
         console.log('Select all checkbox bound');
       }
 
       // 绑定所有行复选框
       const rowCheckboxes = document.querySelectorAll('.row-checkbox');
-      rowCheckboxes.forEach((checkbox, i) => {
+      rowCheckboxes.forEach((checkbox) => {
+        if (checkbox._eventBound) return; // 避免重复绑定
+
         const index = parseInt(checkbox.getAttribute('data-index'));
-        // 移除旧的事件监听器
-        checkbox.removeEventListener('change', checkbox._handleRowSelection);
-        // 创建新的事件处理函数
-        checkbox._handleRowSelection = function(event) {
+        checkbox.addEventListener('change', function(event) {
           handleRowSelection(index, this);
-        };
-        // 添加新的事件监听器
-        checkbox.addEventListener('change', checkbox._handleRowSelection);
+        });
+        checkbox._eventBound = true;
         console.log(`Row checkbox ${index} bound`);
       });
 
       // 绑定所有卡片复选框
       const cardCheckboxes = document.querySelectorAll('.table-card-checkbox');
-      cardCheckboxes.forEach((checkbox, i) => {
+      cardCheckboxes.forEach((checkbox) => {
+        if (checkbox._eventBound) return; // 避免重复绑定
+
         const index = parseInt(checkbox.getAttribute('data-index'));
-        // 移除旧的事件监听器
-        checkbox.removeEventListener('change', checkbox._handleCardSelection);
-        // 创建新的事件处理函数
-        checkbox._handleCardSelection = function(event) {
+        checkbox.addEventListener('change', function(event) {
           handleRowSelection(index, this);
-        };
-        // 添加新的事件监听器
-        checkbox.addEventListener('change', checkbox._handleCardSelection);
+        });
+        checkbox._eventBound = true;
         console.log(`Card checkbox ${index} bound`);
       });
     }
@@ -2306,6 +2594,28 @@
     function escapeHtml(s){return String(s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));}
     function escapeAttr(s){return String(s).replace(/["'>]/g, m=>({"\"":"&quot;","'":"&#39;",">":"&gt;"}[m]));}
 
+    // 格式化数据为不同格式
+    function formatDataForCopy(data, format) {
+      if (format === 'json') {
+        return JSON.stringify(data, null, 2);
+      } else if (format === 'text') {
+        return data.map(item => {
+          const parts = [];
+          if (item.租户URL) {
+            parts.push(`租户URL:\n${item.租户URL}`);
+          }
+          if (item.访问令牌) {
+            parts.push(`访问令牌:\n${item.访问令牌}`);
+          }
+          if (item['Portal URL']) {
+            parts.push(`Portal URL:\n${item['Portal URL']}`);
+          }
+          return parts.join('\n\n');
+        }).join('\n\n---\n\n');
+      }
+      return JSON.stringify(data, null, 2);
+    }
+
     // 导出功能
     function downloadData(data, filename) {
       if (!data.length) return;
@@ -2355,9 +2665,22 @@
 
     copyBtn.addEventListener('click', async () => {
       if (!transformed.length) return;
+
+      // 获取选中的数据
+      const dataToCopy = selectedRows.size > 0
+        ? Array.from(selectedRows).map(index => transformed[index])
+        : transformed;
+
+      // 获取选择的格式
+      const format = copyFormatSelect.value;
+
       try {
-        await navigator.clipboard.writeText(JSON.stringify(transformed, null, 2));
-        setStatus('已复制到剪贴板');
+        const formattedData = formatDataForCopy(dataToCopy, format);
+        await navigator.clipboard.writeText(formattedData);
+
+        const count = dataToCopy.length;
+        const formatName = format === 'json' ? 'JSON' : '文本';
+        setStatus(`已复制 ${count} 条数据到剪贴板 (${formatName}格式)`);
       } catch {
         setStatus('复制失败：浏览器限制或权限问题', true);
       }
@@ -2406,31 +2729,52 @@
 
       function updateScrollShadows() {
         if (!tableWrap) return;
-        const { scrollLeft, scrollWidth, clientWidth } = tableWrap;
-        
-        // 判断是否可以向左滚动
-        if (scrollLeft > 0) {
+        const {
+          scrollLeft, scrollWidth, clientWidth,
+          scrollTop, scrollHeight, clientHeight
+        } = tableWrap;
+
+        // 判断是否可以向左滚动（水平）
+        if (scrollLeft > 5) {
           tableWrap.classList.add('can-scroll-left');
         } else {
           tableWrap.classList.remove('can-scroll-left');
         }
-        
-        // 判断是否可以向右滚动
-        if (scrollLeft < scrollWidth - clientWidth - 1) {
+
+        // 判断是否可以向右滚动（水平）
+        if (scrollLeft < scrollWidth - clientWidth - 5) {
           tableWrap.classList.add('can-scroll-right');
         } else {
           tableWrap.classList.remove('can-scroll-right');
         }
+
+        // 判断是否可以向上滚动（垂直）
+        if (scrollTop > 5) {
+          tableWrap.classList.add('can-scroll-up');
+        } else {
+          tableWrap.classList.remove('can-scroll-up');
+        }
+
+        // 判断是否可以向下滚动（垂直）
+        if (scrollTop < scrollHeight - clientHeight - 5) {
+          tableWrap.classList.add('can-scroll-down');
+        } else {
+          tableWrap.classList.remove('can-scroll-down');
+        }
       }
 
-      // 监听滚动事件
-      tableWrap.addEventListener('scroll', updateScrollShadows);
-      
-      // 窗口大小改变时重新计算
-      window.addEventListener('resize', updateScrollShadows);
-      
-      // 初始化
-      setTimeout(updateScrollShadows, 100);
+      // 使用防抖优化滚动性能
+      const debouncedUpdateScrollShadows = debounce(updateScrollShadows, 16); // 约60fps
+      const debouncedResizeHandler = debounce(updateScrollShadows, 100);
+
+      // 监听滚动事件（使用防抖和passive选项）
+      tableWrap.addEventListener('scroll', debouncedUpdateScrollShadows, { passive: true });
+
+      // 窗口大小改变时重新计算（使用防抖）
+      window.addEventListener('resize', debouncedResizeHandler, { passive: true });
+
+      // 初始化（使用requestAnimationFrame）
+      requestAnimationFrame(updateScrollShadows);
       
       // 将函数暴露到全局作用域，供其他函数调用
       window.updateScrollShadows = updateScrollShadows;
@@ -2501,52 +2845,221 @@
       return { switchView, checkScreenSize };
     }
 
-    // 增强的滚动阴影功能
-    function enhancedScrollShadows() {
-      const tableWrap = document.getElementById('tableWrap');
-      if (!tableWrap) return;
+    // 删除重复的滚动阴影函数，已在setupScrollShadows中实现
 
-      function updateScrollShadows() {
-        if (!tableWrap) return;
-        const { scrollLeft, scrollWidth, clientWidth } = tableWrap;
+    // 全局错误处理和控制台优化
+    window.addEventListener('error', (event) => {
+      // 忽略浏览器扩展相关的错误
+      if (event.filename && (
+        event.filename.includes('extension://') ||
+        event.filename.includes('chrome-extension://') ||
+        event.filename.includes('moz-extension://')
+      )) {
+        event.preventDefault();
+        return false;
+      }
+      console.warn('页面错误:', event.error);
+    });
 
-        // 判断是否可以向左滚动
-        if (scrollLeft > 5) {
-          tableWrap.classList.add('can-scroll-left');
-        } else {
-          tableWrap.classList.remove('can-scroll-left');
+    window.addEventListener('unhandledrejection', (event) => {
+      // 忽略扩展相关的Promise rejection
+      if (event.reason && typeof event.reason === 'object' &&
+          (event.reason.message?.includes('Extension context') ||
+           event.reason.message?.includes('Receiving end does not exist'))) {
+        event.preventDefault();
+        return false;
+      }
+      console.warn('未处理的Promise rejection:', event.reason);
+    });
+
+    // 控制台过滤器 - 减少扩展相关的噪音
+    (function setupConsoleFilter() {
+      // 保存原始的console方法
+      const originalWarn = console.warn;
+      const originalError = console.error;
+      const originalLog = console.log;
+
+      // 扩展相关的警告关键词
+      const extensionWarningKeywords = [
+        'content_script.js',
+        'Added non-passive event listener',
+        'Violation',
+        'extension://',
+        'chrome-extension://',
+        'moz-extension://'
+      ];
+
+      // 检查是否为扩展相关的消息
+      function isExtensionRelated(message) {
+        if (typeof message !== 'string') return false;
+        return extensionWarningKeywords.some(keyword =>
+          message.includes(keyword)
+        );
+      }
+
+      // 重写console.warn
+      console.warn = function(...args) {
+        const message = args.join(' ');
+        if (!isExtensionRelated(message)) {
+          originalWarn.apply(console, args);
         }
+      };
 
-        // 判断是否可以向右滚动
-        if (scrollLeft < scrollWidth - clientWidth - 5) {
-          tableWrap.classList.add('can-scroll-right');
+      // 重写console.error
+      console.error = function(...args) {
+        const message = args.join(' ');
+        if (!isExtensionRelated(message)) {
+          originalError.apply(console, args);
+        }
+      };
+
+      // 添加一个开发者友好的提示
+      console.log('%c🔧 Augment HTML 页面已加载',
+        'color: #6366f1; font-weight: bold; font-size: 14px;');
+      console.log('%c📝 扩展相关的控制台警告已被过滤，不影响页面性能',
+        'color: #10b981; font-size: 12px;');
+      console.log('%c💡 点击右上角"性能"按钮查看页面性能监控',
+        'color: #f59e0b; font-size: 12px;');
+      console.log('%c🔄 使用 window.restoreConsole() 可恢复完整控制台输出',
+        'color: #8b5cf6; font-size: 11px;');
+
+      // 提供恢复原始console的方法（用于调试）
+      window.restoreConsole = function() {
+        console.warn = originalWarn;
+        console.error = originalError;
+        console.log = originalLog;
+        console.log('控制台过滤器已禁用');
+      };
+    })();
+
+    // 滚动提示智能显示功能
+    function setupScrollHint() {
+      const scrollHint = document.querySelector('.table-scroll-hint');
+      const tableWrap = document.getElementById('tableWrap');
+
+      if (!scrollHint || !tableWrap) return;
+
+      function updateScrollHint() {
+        // 检查是否在移动端
+        const isMobile = window.innerWidth <= 768;
+
+        if (isMobile) {
+          // 检查表格是否可以水平滚动
+          const canScrollHorizontally = tableWrap.scrollWidth > tableWrap.clientWidth;
+
+          if (canScrollHorizontally) {
+            scrollHint.style.display = 'block';
+            scrollHint.style.opacity = '1';
+            scrollHint.style.visibility = 'visible';
+          } else {
+            scrollHint.style.display = 'none';
+          }
         } else {
-          tableWrap.classList.remove('can-scroll-right');
+          // 桌面端隐藏
+          scrollHint.style.display = 'none';
         }
       }
 
-      // 监听滚动事件
-      tableWrap.addEventListener('scroll', updateScrollShadows);
+      // 初始检查
+      setTimeout(updateScrollHint, 100);
 
-      // 窗口大小改变时重新计算
-      window.addEventListener('resize', () => {
-        setTimeout(updateScrollShadows, 100);
-      });
+      // 窗口大小改变时重新检查
+      window.addEventListener('resize', debounce(updateScrollHint, 200));
 
-      // 初始化
-      setTimeout(updateScrollShadows, 100);
+      // 数据更新时重新检查
+      window.updateScrollHint = updateScrollHint;
+    }
 
-      // 将函数暴露到全局作用域
-      window.updateScrollShadows = updateScrollShadows;
+    // 性能监控功能
+    function setupPerformanceMonitor() {
+      let isVisible = false;
 
-      return updateScrollShadows;
+      window.togglePerformanceMonitor = function() {
+        const monitor = document.getElementById('performanceMonitor');
+        isVisible = !isVisible;
+        monitor.classList.toggle('show', isVisible);
+
+        if (isVisible) {
+          updatePerformanceMetrics();
+          // 每5秒更新一次性能数据
+          window.performanceInterval = setInterval(updatePerformanceMetrics, 5000);
+        } else {
+          clearInterval(window.performanceInterval);
+        }
+      };
+
+      function updatePerformanceMetrics() {
+        // DOM 节点数
+        const domNodes = document.querySelectorAll('*').length;
+        document.getElementById('domNodes').textContent = domNodes.toLocaleString();
+
+        // 事件监听器数量（估算）
+        const eventListeners = document.querySelectorAll('[onclick], input, button, a').length;
+        document.getElementById('eventListeners').textContent = eventListeners;
+
+        // 内存使用（如果可用）
+        if (window.performance && window.performance.memory) {
+          const memory = (window.performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(1);
+          document.getElementById('memoryUsage').textContent = memory + ' MB';
+        } else {
+          document.getElementById('memoryUsage').textContent = '不可用';
+        }
+
+        // 渲染时间
+        if (window.performance && window.performance.timing) {
+          const renderTime = window.performance.timing.loadEventEnd - window.performance.timing.navigationStart;
+          document.getElementById('renderTime').textContent = renderTime + ' ms';
+        } else {
+          document.getElementById('renderTime').textContent = '不可用';
+        }
+
+        // 滚动位置
+        const tableWrap = document.getElementById('tableWrap');
+        if (tableWrap) {
+          const scrollX = Math.round(tableWrap.scrollLeft);
+          const scrollY = Math.round(tableWrap.scrollTop);
+          document.getElementById('scrollPosition').textContent = `X:${scrollX} Y:${scrollY}`;
+        } else {
+          document.getElementById('scrollPosition').textContent = '不可用';
+        }
+
+        // 滚动提示状态
+        const scrollHint = document.querySelector('.table-scroll-hint');
+        if (scrollHint) {
+          const isVisible = window.getComputedStyle(scrollHint).display !== 'none';
+          const isMobile = window.innerWidth <= 768;
+          const canScroll = tableWrap ? tableWrap.scrollWidth > tableWrap.clientWidth : false;
+
+          let status = '';
+          if (isMobile) {
+            status = canScroll ? (isVisible ? '显示' : '隐藏') : '无需显示';
+          } else {
+            status = '桌面端隐藏';
+          }
+          document.getElementById('scrollHintStatus').textContent = status;
+        } else {
+          document.getElementById('scrollHintStatus').textContent = '元素不存在';
+        }
+      }
     }
 
     // 页面加载完成后初始化所有功能
     document.addEventListener('DOMContentLoaded', () => {
-      setupScrollShadows();
-      setupViewToggle();
-      enhancedScrollShadows();
+      try {
+        setupScrollShadows();
+        setupViewToggle();
+        setupPerformanceMonitor();
+        setupScrollHint();
+
+        // 添加性能监控
+        if (window.performance && window.performance.mark) {
+          window.performance.mark('page-interactive');
+        }
+
+        console.log('页面初始化完成');
+      } catch (error) {
+        console.error('页面初始化失败:', error);
+      }
     });
   </script>
 </body>

@@ -1,0 +1,2553 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JSON 转换器：租户URL / 访问令牌 / Portal URL</title>
+  <style>
+    /* ========== CSS 变量定义 ========== */
+    :root {
+      /* 主色调 */
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #0f172a;
+      --bg-tertiary: #1a1f35;
+
+      /* 面板和卡片 */
+      --panel-bg: rgba(26, 31, 53, 0.6);
+      --panel-border: rgba(99, 102, 241, 0.15);
+      --panel-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+
+      /* 文字颜色 */
+      --text-primary: #f1f5f9;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+
+      /* 强调色 - 渐变紫蓝色系 */
+      --accent-primary: #6366f1;
+      --accent-secondary: #8b5cf6;
+      --accent-tertiary: #06b6d4;
+      --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%);
+
+      /* 成功/错误色 */
+      --success: #10b981;
+      --error: #ef4444;
+      --warning: #f59e0b;
+
+      /* 边框和分割线 */
+      --border-subtle: rgba(148, 163, 184, 0.1);
+      --border-normal: rgba(148, 163, 184, 0.2);
+      --border-strong: rgba(148, 163, 184, 0.3);
+
+      /* 毛玻璃效果 */
+      --glass-bg: rgba(26, 31, 53, 0.4);
+      --glass-border: rgba(255, 255, 255, 0.1);
+
+      /* 动画时长 */
+      --transition-fast: 0.15s;
+      --transition-normal: 0.3s;
+      --transition-slow: 0.5s;
+    }
+
+    /* ========== 全局样式 ========== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background: radial-gradient(ellipse at top, #1a1f35 0%, #0a0e1a 50%, #050810 100%);
+      background-attachment: fixed;
+      color: var(--text-primary);
+      line-height: 1.6;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* 背景装饰 */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 30% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 80%, rgba(139, 92, 246, 0.06) 0%, transparent 50%);
+      animation: backgroundShift 20s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes backgroundShift {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      50% { transform: translate(-5%, -5%) rotate(5deg); }
+    }
+
+    /* ========== 容器布局 ========== */
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 60px 30px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ========== 头部样式 ========== */
+    header {
+      margin-bottom: 40px;
+      text-align: center;
+      animation: fadeInDown 0.6s ease-out;
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin: 0 0 16px;
+      letter-spacing: -0.5px;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+      display: inline-block;
+    }
+
+    h1::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 4px;
+      background: var(--accent-gradient);
+      border-radius: 2px;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+    }
+
+    p.sub {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 1.05rem;
+      line-height: 1.8;
+      max-width: 720px;
+      margin: 0 auto;
+      font-weight: 400;
+    }
+
+    p.sub b {
+      color: var(--text-primary);
+      font-weight: 700;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ========== 主面板样式 ========== */
+    .panel {
+      background: var(--panel-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--panel-border);
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: var(--panel-shadow),
+                  0 0 0 1px rgba(99, 102, 241, 0.05) inset;
+      animation: fadeInUp 0.6s ease-out 0.2s both;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(99, 102, 241, 0.3) 50%,
+        transparent 100%);
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ========== 控制区域 ========== */
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      margin-bottom: 32px;
+      padding: 24px;
+      background: rgba(99, 102, 241, 0.03);
+      border-radius: 16px;
+      border: 1px solid rgba(99, 102, 241, 0.1);
+    }
+
+    .row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    /* ========== 文件上传区域 ========== */
+    .file {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 16px 32px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(139, 92, 246, 0.05));
+      backdrop-filter: blur(10px);
+      border: 2px dashed rgba(99, 102, 241, 0.3);
+      cursor: pointer;
+      transition: all var(--transition-normal) cubic-bezier(0.4, 0, 0.2, 1);
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      min-width: 280px;
+    }
+
+    .file:hover {
+      border-color: var(--accent-primary);
+      border-style: solid;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.12));
+      color: var(--text-primary);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 28px rgba(99, 102, 241, 0.25);
+    }
+
+    .file:active {
+      transform: translateY(-1px);
+    }
+
+    .file::before {
+      content: '📁';
+      font-size: 1.4rem;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    }
+
+    input[type=file] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    /* ========== 按钮样式 ========== */
+    .btn {
+      padding: 14px 32px;
+      border-radius: 12px;
+      border: 1px solid var(--border-normal);
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all var(--transition-normal) cubic-bezier(0.4, 0, 0.2, 1);
+      font-weight: 600;
+      font-size: 0.95rem;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      position: relative;
+      overflow: hidden;
+      min-width: 140px;
+      letter-spacing: 0.3px;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    .btn:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+
+    .btn:hover {
+      border-color: var(--accent-primary);
+      background: rgba(99, 102, 241, 0.12);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.25);
+    }
+
+    .btn:active {
+      transform: translateY(-1px);
+    }
+
+    .btn[disabled] {
+      opacity: 0.35;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn[disabled]:hover {
+      border-color: var(--border-normal);
+      background: var(--glass-bg);
+    }
+
+    /* 强调按钮 */
+    .accent {
+      background: var(--accent-gradient);
+      border: none;
+      color: white;
+      font-weight: 700;
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .accent:hover {
+      box-shadow: 0 12px 32px rgba(99, 102, 241, 0.45);
+      transform: translateY(-4px);
+      filter: brightness(1.1);
+    }
+
+    .accent[disabled] {
+      background: var(--glass-bg);
+      color: var(--text-muted);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      text-shadow: none;
+    }
+
+    /* ========== 导出数量输入框 ========== */
+    .export-count-input {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      background: rgba(99, 102, 241, 0.05);
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all var(--transition-normal);
+      width: 80px;
+      text-align: center;
+    }
+
+    .export-count-input:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      background: rgba(99, 102, 241, 0.1);
+      box-shadow: 0 0 8px rgba(99, 102, 241, 0.3);
+    }
+
+    .export-count-input:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .export-count-input::placeholder {
+      color: var(--text-muted);
+      opacity: 0.7;
+    }
+
+    /* ========== 提示和状态 ========== */
+    .hint {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.7;
+      padding: 14px 18px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(139, 92, 246, 0.06));
+      border-left: 4px solid var(--accent-primary);
+      border-radius: 10px;
+      margin-top: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .status {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      margin-top: 14px;
+      padding: 12px 18px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(99, 102, 241, 0.1);
+      transition: all var(--transition-normal);
+      font-weight: 500;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    /* ========== 标签和徽章 ========== */
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+    }
+
+    .kbd {
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Droid Sans Mono', 'Source Code Pro', monospace;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      color: #a5b4fc;
+      font-size: 0.85rem;
+      font-weight: 500;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    /* ========== 网格布局 - 上下排版 ========== */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 28px;
+      margin-top: 28px;
+      align-items: start;
+    }
+
+    .grid > div {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      background: rgba(99, 102, 241, 0.02);
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid rgba(99, 102, 241, 0.08);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .grid > div > .pre {
+      flex: 1;
+      min-height: 600px;
+      max-height: 75vh;
+    }
+
+    /* ========== 代码块和预览 ========== */
+    .pre {
+      background: linear-gradient(135deg, rgba(10, 15, 28, 0.9), rgba(15, 20, 35, 0.9));
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      padding: 24px;
+      border-radius: 12px;
+      overflow: auto;
+      max-height: 60vh;
+      white-space: pre;
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Droid Sans Mono', 'Source Code Pro', monospace;
+      font-size: 0.9rem;
+      line-height: 1.7;
+      color: #e0e7ff;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) inset, 0 2px 8px rgba(0, 0, 0, 0.15);
+      position: relative;
+    }
+
+    .pre::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    .pre::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 5px;
+      margin: 4px;
+    }
+
+    .pre::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.4), rgba(139, 92, 246, 0.4));
+      border-radius: 5px;
+      transition: all var(--transition-normal);
+      border: 2px solid rgba(0, 0, 0, 0.2);
+    }
+
+    .pre::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.6), rgba(139, 92, 246, 0.6));
+      box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+    }
+
+    /* 小标题 */
+    h3 {
+      margin: 0 0 18px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+      text-transform: uppercase;
+      font-size: 0.9rem;
+    }
+
+    h3::before {
+      content: '';
+      width: 5px;
+      height: 20px;
+      background: var(--accent-gradient);
+      border-radius: 3px;
+      box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+    }
+
+    /* 确保长文本正确换行 */
+    .cell-content a,
+    .cell-content code,
+    .cell-content {
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      hyphens: auto;
+      max-width: 100%;
+      display: block;
+    }
+
+    /* 优化单元格内容显示 */
+    .table td {
+      max-width: 0;
+      overflow: visible;
+    }
+
+    /* ========== 表格样式 ========== */
+    .table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 0.9rem;
+      table-layout: auto; /* 改为自动布局，支持内容自适应 */
+      background: rgba(10, 15, 28, 0.4);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      min-width: 850px; /* 增加最小宽度以容纳选择列 */
+    }
+
+    /* 选择列样式 */
+    .table th:first-child,
+    .table td:first-child {
+      width: 50px;
+      min-width: 50px;
+      max-width: 50px;
+      text-align: center;
+      vertical-align: middle;
+      padding: 12px 8px !important;
+      position: relative;
+      background: rgba(99, 102, 241, 0.02);
+      border-right: 1px solid rgba(99, 102, 241, 0.1);
+    }
+
+    .table th:first-child {
+      background: rgba(99, 102, 241, 0.08);
+      border-top-left-radius: 12px;
+    }
+
+    .table td:first-child {
+      pointer-events: auto;
+    }
+
+    .table td:first-child input[type="checkbox"],
+    .table th:first-child input[type="checkbox"] {
+      pointer-events: auto;
+      position: relative;
+      z-index: 20;
+      margin: 0 auto;
+      display: block;
+    }
+
+    .table th:nth-child(2),
+    .table td:nth-child(2) {
+      width: auto;
+      min-width: 200px;
+      max-width: 400px;
+    }
+
+    .table th:nth-child(3),
+    .table td:nth-child(3) {
+      width: auto;
+      min-width: 250px;
+      max-width: 500px;
+    }
+
+    .table th:nth-child(4),
+    .table td:nth-child(4) {
+      width: auto;
+      min-width: 200px;
+      max-width: 400px;
+    }
+
+    /* 移除强制行高限制，让内容自然展示 */
+    .table tr {
+      height: auto;
+      min-height: 80px;
+    }
+
+    /* 选择框样式 */
+    .row-checkbox,
+    .select-all-checkbox {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent-primary);
+      cursor: pointer;
+      border-radius: 3px;
+      border: 2px solid rgba(99, 102, 241, 0.4);
+      background: rgba(99, 102, 241, 0.1);
+      transition: all var(--transition-normal);
+      position: relative;
+      z-index: 10;
+      pointer-events: auto;
+      margin: 0 auto;
+      padding: 0;
+      display: block;
+      flex-shrink: 0;
+    }
+
+    /* 确保复选框在移动端也有合适的大小 */
+    @media (max-width: 768px) {
+      .row-checkbox,
+      .select-all-checkbox {
+        width: 14px;
+        height: 14px;
+      }
+    }
+
+    .row-checkbox:checked,
+    .select-all-checkbox:checked {
+      background: var(--accent-primary);
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+    }
+
+    .row-checkbox:hover,
+    .select-all-checkbox:hover {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 6px rgba(99, 102, 241, 0.3);
+    }
+
+    /* 选中行的样式 */
+    .table tr.selected td {
+      background: rgba(99, 102, 241, 0.15) !important;
+      box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.3) inset;
+    }
+
+    .table tr.selected td:first-child {
+      background: rgba(99, 102, 241, 0.25) !important;
+    }
+
+    .table tr.selected:hover td {
+      background: rgba(99, 102, 241, 0.2) !important;
+    }
+
+    .table tr.selected:hover td:first-child {
+      background: rgba(99, 102, 241, 0.3) !important;
+    }
+
+    /* 选择列的悬停效果 */
+    .table tr:hover td:first-child {
+      background: rgba(99, 102, 241, 0.08) !important;
+    }
+
+    .table th {
+      text-align: left;
+      padding: 16px 14px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
+      color: var(--text-primary);
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      border-bottom: 2px solid rgba(99, 102, 241, 0.4);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(12px);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    /* 第一列的圆角已在上面定义 */
+
+    .table th:last-child {
+      border-top-right-radius: 12px;
+      padding-right: 18px;
+    }
+
+    .table td {
+      text-align: left;
+      padding: 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      position: relative;
+      transition: all var(--transition-fast);
+      vertical-align: top;
+      line-height: 1.6;
+      height: auto; /* 移除固定高度，支持内容自适应 */
+      min-height: 80px; /* 设置最小高度保持视觉一致性 */
+      overflow: visible; /* 允许内容自然展示 */
+    }
+
+    /* 第一列的内边距已在上面定义 */
+
+    .table td:last-child {
+      padding-right: 18px;
+    }
+
+    .table tr:hover td {
+      background: rgba(99, 102, 241, 0.08);
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+    }
+
+    .table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .table tr:last-child td:first-child {
+      border-bottom-left-radius: 12px;
+    }
+
+    .table tr:last-child td:last-child {
+      border-bottom-right-radius: 12px;
+    }
+
+    .table tr:nth-child(even) td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .table tr:nth-child(even):hover td {
+      background: rgba(99, 102, 241, 0.1);
+    }
+
+    .table code {
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+      font-size: 0.8rem;
+      color: #c7d2fe;
+      background: rgba(99, 102, 241, 0.15);
+      padding: 4px 8px;
+      border-radius: 6px;
+      word-break: break-all;
+      display: block;
+      line-height: 1.5;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+
+    .table a {
+      color: var(--accent-tertiary);
+      text-decoration: none;
+      transition: all var(--transition-fast);
+      border-bottom: 1px solid transparent;
+      word-break: break-all;
+      display: block;
+      line-height: 1.5;
+      font-weight: 500;
+    }
+
+    .table a:hover {
+      color: #22d3ee;
+      border-bottom-color: #22d3ee;
+      text-shadow: 0 0 8px rgba(34, 211, 238, 0.3);
+    }
+
+    /* 表格容器优化 - 增强滚动和响应式支持 */
+    #tableWrap {
+      overflow-x: auto; /* 水平滚动支持 */
+      overflow-y: auto; /* 垂直滚动支持 */
+      min-height: 400px; /* 调整最小高度，更灵活 */
+      max-height: 75vh; /* 最大高度限制 */
+      height: auto; /* 自适应高度 */
+      border-radius: 12px; /* 保持圆角 */
+      position: relative; /* 为滚动阴影做准备 */
+      scroll-behavior: smooth; /* 平滑滚动 */
+      -webkit-overflow-scrolling: touch; /* iOS滚动优化 */
+    }
+
+    /* 表格水平滚动阴影提示 */
+    #tableWrap::before,
+    #tableWrap::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 20px;
+      pointer-events: none;
+      z-index: 5;
+      transition: opacity 0.3s ease;
+    }
+
+    #tableWrap::before {
+      left: 0;
+      background: linear-gradient(90deg, rgba(99, 102, 241, 0.15) 0%, transparent 100%);
+      opacity: 0;
+    }
+
+    #tableWrap::after {
+      right: 0;
+      background: linear-gradient(-90deg, rgba(99, 102, 241, 0.15) 0%, transparent 100%);
+      opacity: 0;
+    }
+
+    /* 当可以滚动时显示阴影 */
+    #tableWrap.can-scroll-left::before {
+      opacity: 1;
+    }
+
+    #tableWrap.can-scroll-right::after {
+      opacity: 1;
+    }
+
+    /* 移动端增强滚动阴影 */
+    @media (max-width: 768px) {
+      #tableWrap::before,
+      #tableWrap::after {
+        width: 25px;
+      }
+
+      #tableWrap::before {
+        background: linear-gradient(90deg, rgba(99, 102, 241, 0.25) 0%, transparent 100%);
+      }
+
+      #tableWrap::after {
+        background: linear-gradient(-90deg, rgba(99, 102, 241, 0.25) 0%, transparent 100%);
+      }
+    }
+
+    /* 确保表格容器内的表格可以正常滚动 */
+    #tableWrap .table {
+      width: 100%;
+      min-width: 800px; /* 确保最小宽度，支持水平滚动 */
+    }
+
+    /* 自定义滚动条样式 */
+    #tableWrap::-webkit-scrollbar,
+    .table td::-webkit-scrollbar,
+    .cell-wrapper::-webkit-scrollbar,
+    .cell-content::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    #tableWrap::-webkit-scrollbar-track,
+    .table td::-webkit-scrollbar-track,
+    .cell-wrapper::-webkit-scrollbar-track,
+    .cell-content::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+    }
+
+    #tableWrap::-webkit-scrollbar-thumb,
+    .table td::-webkit-scrollbar-thumb,
+    .cell-wrapper::-webkit-scrollbar-thumb,
+    .cell-content::-webkit-scrollbar-thumb {
+      background: rgba(99, 102, 241, 0.6);
+      border-radius: 3px;
+    }
+
+    #tableWrap::-webkit-scrollbar-thumb:hover,
+    .table td::-webkit-scrollbar-thumb:hover,
+    .cell-wrapper::-webkit-scrollbar-thumb:hover,
+    .cell-content::-webkit-scrollbar-thumb:hover {
+      background: rgba(99, 102, 241, 0.8);
+    }
+
+    /* ========== 单元格复制按钮 ========== */
+    .cell-wrapper {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      justify-content: space-between;
+      flex-wrap: nowrap;
+      min-height: 50px; /* 设置最小高度而不是固定高度 */
+      height: auto; /* 让高度自适应内容 */
+      overflow: visible; /* 允许内容自然展示 */
+    }
+
+    .cell-content {
+      flex: 1;
+      word-break: break-word; /* 更好的词汇断行策略 */
+      overflow-wrap: break-word;
+      min-width: 0;
+      line-height: 1.6;
+      max-width: 100%;
+      height: auto; /* 移除固定高度 */
+      max-height: 200px; /* 设置合理的最大高度，超过时显示滚动 */
+      overflow-y: auto; /* 垂直方向超出时滚动 */
+      overflow-x: hidden; /* 水平方向隐藏，依靠换行处理 */
+      padding: 4px 0; /* 添加少许内边距提升可读性 */
+      white-space: pre-wrap; /* 保持空格和换行，支持自动换行 */
+    }
+
+    .copy-cell-btn {
+      padding: 6px 12px;
+      font-size: 0.7rem;
+      border-radius: 8px;
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
+      color: #c7d2fe;
+      cursor: pointer;
+      transition: all var(--transition-normal) cubic-bezier(0.4, 0, 0.2, 1);
+      white-space: nowrap;
+      flex-shrink: 0;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      position: relative;
+      overflow: hidden;
+      align-self: flex-start;
+    }
+
+    .copy-cell-btn::before {
+      content: '📋';
+      margin-right: 4px;
+      font-size: 0.9rem;
+    }
+
+    .copy-cell-btn::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.4s, height 0.4s;
+    }
+
+    .copy-cell-btn:hover {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(139, 92, 246, 0.25));
+      border-color: rgba(99, 102, 241, 0.6);
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+      color: #e0e7ff;
+    }
+
+    .copy-cell-btn:hover::after {
+      width: 200px;
+      height: 200px;
+    }
+
+    .copy-cell-btn:active {
+      transform: translateY(-1px) scale(0.96);
+    }
+
+    .copy-cell-btn.copied {
+      background: var(--accent-gradient);
+      border-color: transparent;
+      color: white;
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+      animation: copySuccess 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .copy-cell-btn.copied::before {
+      content: '✓';
+      font-size: 1rem;
+    }
+
+    @keyframes copySuccess {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.15); box-shadow: 0 8px 24px rgba(99, 102, 241, 0.6); }
+      100% { transform: scale(1); }
+    }
+
+    .empty-cell {
+      color: var(--text-dim);
+      font-style: italic;
+      opacity: 0.6;
+    }
+
+    /* ========== 页脚样式 ========== */
+    .footer {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-top: 32px;
+      padding: 20px;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(139, 92, 246, 0.06));
+      border-radius: 12px;
+      border: 1px solid rgba(99, 102, 241, 0.15);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      line-height: 1.6;
+    }
+
+    .footer b {
+      color: var(--text-primary);
+      font-weight: 700;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ========== 响应式设计 ========== */
+    @media (max-width: 1024px) {
+      .grid {
+        gap: 24px;
+      }
+
+      .grid > div > .pre {
+        min-height: 500px;
+        max-height: 65vh;
+      }
+
+      #tableWrap {
+        min-height: 500px;
+        max-height: 65vh;
+      }
+
+      .controls {
+        padding: 20px;
+      }
+
+      /* 平板端表格优化 */
+      .table {
+        font-size: 0.85rem;
+      }
+
+      .table th,
+      .table td {
+        padding: 14px 10px;
+      }
+
+      /* 优化复制按钮在平板上的显示 */
+      .copy-cell-btn {
+        font-size: 0.65rem;
+        padding: 5px 10px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .wrap {
+        padding: 30px 20px;
+      }
+
+      h1 {
+        font-size: 2rem;
+        letter-spacing: -0.5px;
+      }
+
+      p.sub {
+        font-size: 0.9rem;
+      }
+
+      .panel {
+        padding: 24px 18px;
+        border-radius: 14px;
+      }
+
+      .controls {
+        padding: 18px;
+        gap: 20px;
+      }
+
+      .row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+
+      .file,
+      .btn {
+        width: 100%;
+        justify-content: center;
+        min-width: auto;
+      }
+
+      .table {
+        font-size: 0.8rem;
+        table-layout: auto;
+      }
+
+      .table th,
+      .table td {
+        padding: 12px 8px;
+      }
+
+      /* 平板端选择列优化 */
+      .table th:first-child,
+      .table td:first-child {
+        width: 45px !important;
+        min-width: 45px !important;
+        max-width: 45px !important;
+        padding: 10px 6px !important;
+      }
+
+      .table th:last-child,
+      .table td:last-child {
+        padding-right: 12px;
+      }
+
+      .table th:nth-child(2),
+      .table td:nth-child(2),
+      .table th:nth-child(3),
+      .table td:nth-child(3),
+      .table th:nth-child(4),
+      .table td:nth-child(4) {
+        width: auto;
+        min-width: 120px; /* 移动端最小宽度 */
+      }
+
+      /* 移动端优化表格滚动 */
+      #tableWrap {
+        min-height: 350px;
+        max-height: 60vh;
+        /* 增强滚动指示器 */
+        position: relative;
+      }
+
+      /* 移动端滚动提示更明显 */
+      #tableWrap::before,
+      #tableWrap::after {
+        width: 30px;
+        background: linear-gradient(90deg, rgba(99, 102, 241, 0.2) 0%, transparent 100%);
+      }
+
+      #tableWrap::after {
+        background: linear-gradient(-90deg, rgba(99, 102, 241, 0.2) 0%, transparent 100%);
+      }
+
+      #tableWrap .table {
+        min-width: 620px; /* 移动端表格最小宽度，优化选择列后调整 */
+      }
+
+      .copy-cell-btn {
+        font-size: 0.65rem;
+        padding: 5px 10px;
+      }
+
+      /* 移动端内容优化 */
+      .cell-content {
+        font-size: 0.8rem;
+        line-height: 1.5;
+        max-height: 150px; /* 移动端减少最大高度 */
+      }
+
+      /* 移动端长文本处理 */
+      .table a,
+      .table code {
+        font-size: 0.75rem;
+        line-height: 1.4;
+      }
+
+      .grid {
+        gap: 20px;
+      }
+
+      .grid > div {
+        padding: 16px;
+      }
+
+      .grid > div > .pre {
+        min-height: 400px;
+        max-height: 55vh;
+        font-size: 0.85rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .wrap {
+        padding: 24px 16px;
+      }
+
+      h1 {
+        font-size: 1.75rem;
+        letter-spacing: -0.3px;
+      }
+
+      .panel {
+        padding: 18px 14px;
+      }
+
+      .controls {
+        padding: 16px;
+        gap: 16px;
+      }
+
+      .table {
+        font-size: 0.75rem;
+      }
+
+      .table th,
+      .table td {
+        padding: 10px 6px;
+        font-size: 0.75rem;
+      }
+
+      /* 小屏幕选择列优化 */
+      .table th:first-child,
+      .table td:first-child {
+        width: 40px !important;
+        min-width: 40px !important;
+        max-width: 40px !important;
+        padding: 8px 4px !important;
+      }
+
+      .table th:nth-child(2),
+      .table td:nth-child(2) {
+        padding-left: 8px;
+      }
+
+      .table th:last-child,
+      .table td:last-child {
+        padding-right: 8px;
+      }
+
+      .cell-wrapper {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .copy-cell-btn {
+        width: 100%;
+        justify-content: center;
+        font-size: 0.7rem;
+        padding: 6px 12px;
+      }
+
+      /* 小屏幕内容优化 */
+      .cell-content {
+        font-size: 0.75rem;
+        line-height: 1.4;
+        max-height: 120px;
+      }
+
+      .table a,
+      .table code {
+        font-size: 0.7rem;
+        line-height: 1.3;
+      }
+
+      /* 小屏幕滚动优化 */
+      #tableWrap {
+        min-height: 350px;
+        max-height: 50vh;
+        /* 增强触摸滚动 */
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+      }
+
+      #tableWrap .table {
+        min-width: 520px; /* 小屏幕进一步减少最小宽度，优化选择列后调整 */
+      }
+
+      .grid > div {
+        padding: 14px;
+      }
+
+      .grid > div > .pre {
+        min-height: 350px;
+        max-height: 50vh;
+        font-size: 0.8rem;
+        padding: 16px;
+      }
+    }
+
+    /* ========== 极小屏幕卡片式布局 ========== */
+    @media (max-width: 360px) {
+      /* 在极小屏幕上提供卡片式布局选项 */
+      .table-card-view {
+        display: block !important;
+      }
+
+      .table-card-view .table {
+        display: none;
+      }
+
+      .table-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding: 16px;
+      }
+
+      .table-card {
+        background: rgba(99, 102, 241, 0.05);
+        border: 1px solid rgba(99, 102, 241, 0.15);
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        position: relative;
+        transition: all var(--transition-normal);
+      }
+
+      .table-card.selected {
+        background: rgba(99, 102, 241, 0.15);
+        border-color: rgba(99, 102, 241, 0.4);
+        box-shadow: 0 4px 16px rgba(99, 102, 241, 0.2);
+      }
+
+      .table-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+      }
+
+      .table-card-title {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .table-card-checkbox {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--accent-primary);
+        cursor: pointer;
+      }
+
+      .table-card-row {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .table-card-row:last-child {
+        margin-bottom: 0;
+      }
+
+      .table-card-field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .table-card-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .table-card-value {
+        font-size: 0.75rem;
+        color: var(--text-primary);
+        word-break: break-all;
+        line-height: 1.4;
+      }
+
+      .table-card-value.empty {
+        color: var(--text-dim);
+        font-style: italic;
+        opacity: 0.6;
+      }
+
+      .table-card-value code {
+        font-size: 0.7rem;
+        padding: 4px 6px;
+        border-radius: 4px;
+        background: rgba(99, 102, 241, 0.1);
+        border: 1px solid rgba(99, 102, 241, 0.2);
+      }
+
+      .table-card-value a {
+        color: var(--accent-tertiary);
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      .table-card-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+        flex-wrap: wrap;
+      }
+
+      .table-card-copy-btn {
+        flex: 1;
+        min-width: 80px;
+        padding: 8px 12px;
+        font-size: 0.65rem;
+        border-radius: 6px;
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: all var(--transition-normal);
+        text-align: center;
+        font-weight: 600;
+      }
+
+      .table-card-copy-btn:hover {
+        background: rgba(99, 102, 241, 0.2);
+        border-color: rgba(99, 102, 241, 0.5);
+      }
+
+      .table-card-copy-btn.copied {
+        background: var(--accent-gradient);
+        border-color: transparent;
+        color: white;
+      }
+
+      /* 卡片视图切换按钮 */
+      .view-toggle {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+        padding: 4px;
+        background: rgba(99, 102, 241, 0.05);
+        border-radius: 8px;
+        border: 1px solid rgba(99, 102, 241, 0.1);
+      }
+
+      .view-toggle-btn {
+        flex: 1;
+        padding: 8px 12px;
+        font-size: 0.7rem;
+        border: none;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all var(--transition-normal);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .view-toggle-btn.active {
+        background: var(--accent-gradient);
+        color: white;
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+      }
+    }
+
+    /* ========== 滚动条美化 ========== */
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 5px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(99, 102, 241, 0.4);
+      border-radius: 5px;
+      transition: background var(--transition-normal);
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(99, 102, 241, 0.6);
+    }
+
+    /* ========== 选中文本样式 ========== */
+    ::selection {
+      background: rgba(99, 102, 241, 0.3);
+      color: white;
+    }
+
+    ::-moz-selection {
+      background: rgba(99, 102, 241, 0.3);
+      color: white;
+    }
+
+    /* ========== 加载动画 ========== */
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
+      }
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: -1000px 0;
+      }
+      100% {
+        background-position: 1000px 0;
+      }
+    }
+
+    /* ========== 响应式工具类 ========== */
+    .mobile-hidden {
+      display: block;
+    }
+
+    .mobile-only {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .mobile-hidden {
+        display: none;
+      }
+
+      .mobile-only {
+        display: block;
+      }
+    }
+
+    /* 表格滚动增强 */
+    .table-scroll-hint {
+      display: none;
+      text-align: center;
+      padding: 8px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      background: rgba(99, 102, 241, 0.05);
+      border-radius: 6px;
+      margin-bottom: 8px;
+      animation: pulse 2s infinite;
+    }
+
+    @media (max-width: 768px) {
+      .table-scroll-hint {
+        display: block;
+      }
+    }
+
+    /* 内容密度调整 */
+    .compact-mode .table th,
+    .compact-mode .table td {
+      padding: 8px 6px;
+      font-size: 0.8rem;
+    }
+
+    .compact-mode .cell-content {
+      max-height: 100px;
+      font-size: 0.8rem;
+    }
+
+    .compact-mode .copy-cell-btn {
+      font-size: 0.65rem;
+      padding: 4px 8px;
+    }
+
+    /* 长文本智能处理 */
+    .text-truncate {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 200px;
+    }
+
+    .text-truncate:hover {
+      white-space: normal;
+      overflow: visible;
+      text-overflow: unset;
+      max-width: none;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 8px;
+      border-radius: 6px;
+      position: relative;
+      z-index: 1000;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    /* ========== 辅助类 ========== */
+    .fade-in {
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    .hover-lift:hover {
+      transform: translateY(-2px);
+      transition: transform var(--transition-normal);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>JSON 转换器</h1>
+      <p class="sub">支持导入 <b>任意结构的 JSON</b> 或 <b>纯文本</b>，智能识别并提取「租户URL / 访问令牌 / Portal URL」字段，支持单字段快速复制，并可下载为 <b>.txt</b>。</p>
+    </header>
+
+    <div class="panel">
+      <div class="controls">
+        <div class="row">
+          <label class="file">
+            <span>选择或拖拽文件（JSON/TXT）</span>
+            <input id="file" type="file" accept="application/json,.json,.txt,text/plain" />
+          </label>
+          <span class="pill" id="count">未导入</span>
+          <span class="pill" id="selectedCount" style="display: none;">已选中 0 项</span>
+        </div>
+
+        <div class="row">
+          <button id="download" class="btn accent" disabled>导出全部</button>
+          <button id="downloadSelected" class="btn" disabled>导出选中项</button>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <input type="number" id="exportCount" class="export-count-input" placeholder="数量" min="1" disabled style="width: 80px; padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(99, 102, 241, 0.3); background: rgba(99, 102, 241, 0.05); color: var(--text-primary); font-size: 0.9rem;">
+            <button id="downloadCount" class="btn" disabled>导出指定数量</button>
+          </div>
+          <button id="copy" class="btn" disabled>复制到剪贴板</button>
+        </div>
+        <div class="hint">支持多种输入格式：<br>① 任意结构的 JSON 文件 ② 纯文本文件（每行一条数据）③ 智能识别 URL、令牌等字段。</div>
+        <div class="status" id="status">—</div>
+      </div>
+
+      <div class="grid">
+        <div>
+          <h3 style="margin:6px 0 8px;font-size:14px;color:#cbd5e1">预览（表格）</h3>
+
+          <!-- 视图切换按钮（仅在极小屏幕显示） -->
+          <div class="view-toggle mobile-only" id="viewToggle" style="display: none;">
+            <button class="view-toggle-btn active" data-view="table">表格视图</button>
+            <button class="view-toggle-btn" data-view="card">卡片视图</button>
+          </div>
+
+          <!-- 滚动提示（移动端显示） -->
+          <div class="table-scroll-hint mobile-only">
+            👈 左右滑动查看更多内容 👉
+          </div>
+
+          <div class="pre" id="tableWrap" style="padding:0">
+            <!-- 表格视图 -->
+            <div id="tableView">
+              <table class="table" id="table"></table>
+            </div>
+
+            <!-- 卡片视图（默认隐藏） -->
+            <div id="cardView" class="table-cards" style="display: none;"></div>
+          </div>
+        </div>
+        <div>
+          <h3 style="margin:10px 0 8px;font-size:14px;color:#cbd5e1">导出结果（JSON 文本）</h3>
+          <pre class="pre" id="out">[]</pre>
+        </div>
+      </div>
+
+      <div class="footer">固定字段名：<b>租户URL</b>、<b>访问令牌</b>、<b>Portal URL</b>。缺失字段将留空。</div>
+    </div>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById('file');
+    const out = document.getElementById('out');
+    const statusEl = document.getElementById('status');
+    const downloadBtn = document.getElementById('download');
+    const downloadSelectedBtn = document.getElementById('downloadSelected');
+    const downloadCountBtn = document.getElementById('downloadCount');
+    const exportCountInput = document.getElementById('exportCount');
+    const copyBtn = document.getElementById('copy');
+    const countEl = document.getElementById('count');
+    const selectedCountEl = document.getElementById('selectedCount');
+    const tableEl = document.getElementById('table');
+
+    let transformed = [];
+    let selectedRows = new Set(); // 存储选中的行索引
+
+    // 提前定义全局函数，确保HTML中的onclick能够访问
+    window.copyCellValue = async function(value, button) {
+      try {
+        // 解码HTML实体
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = value;
+        const decodedValue = textarea.value;
+
+        await navigator.clipboard.writeText(decodedValue);
+
+        // 视觉反馈
+        const originalText = button.textContent;
+        button.textContent = '已复制';
+        button.classList.add('copied');
+
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.classList.remove('copied');
+        }, 1500);
+
+        setStatus('已复制到剪贴板');
+      } catch (err) {
+        console.error('复制失败:', err);
+        setStatus('复制失败：浏览器限制或权限问题', true);
+      }
+    };
+
+    window.toggleRowSelection = function(index, checkbox) {
+      console.log('toggleRowSelection called:', index, checkbox.checked);
+
+      try {
+        if (checkbox.checked) {
+          selectedRows.add(index);
+        } else {
+          selectedRows.delete(index);
+        }
+
+        // 更新对应的行/卡片样式
+        updateRowStyles(index);
+        updateSelectionUI();
+        updateSelectAllCheckbox();
+
+        console.log('Selection updated, selectedRows:', Array.from(selectedRows));
+      } catch (error) {
+        console.error('Error in toggleRowSelection:', error);
+      }
+    };
+
+    window.toggleSelectAll = function(checkbox) {
+      console.log('toggleSelectAll called:', checkbox.checked);
+
+      try {
+        if (checkbox.checked) {
+          // 全选
+          for (let i = 0; i < transformed.length; i++) {
+            selectedRows.add(i);
+          }
+        } else {
+          // 取消全选
+          selectedRows.clear();
+        }
+
+        // 更新所有行的复选框和样式
+        updateAllRowStyles();
+        updateSelectionUI();
+
+        console.log('Select all updated, selectedRows:', Array.from(selectedRows));
+      } catch (error) {
+        console.error('Error in toggleSelectAll:', error);
+      }
+    };
+
+    // 拖拽支持
+    ;(() => {
+      const label = document.querySelector('.file');
+      const prevent = e => { e.preventDefault(); e.stopPropagation(); };
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => label.addEventListener(ev, prevent));
+      label.addEventListener('dragover', () => { label.style.borderColor = 'rgba(34,211,238,.6)'; });
+      ;['dragleave','drop'].forEach(ev => label.addEventListener(ev, () => { label.style.borderColor = 'rgba(255,255,255,.18)'; }));
+      label.addEventListener('drop', (e) => {
+        const file = e.dataTransfer.files?.[0];
+        if (file) handleFile(file);
+      });
+    })();
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if (file) handleFile(file);
+    });
+
+    function handleFile(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          let data;
+          const content = reader.result;
+
+          // 尝试解析为 JSON
+          try {
+            data = JSON.parse(content);
+            transformed = transformData(data);
+          } catch (jsonErr) {
+            // JSON 解析失败，尝试作为纯文本处理
+            transformed = parseTextData(content);
+          }
+
+          if (transformed.length === 0) {
+            setStatus('未能识别任何有效数据，请检查文件格式', true);
+          } else {
+            render(transformed);
+            setStatus(`已导入：${file.name}，成功解析 ${transformed.length} 条数据`);
+          }
+        } catch (err) {
+          console.error(err);
+          setStatus('解析失败：' + err.message, true);
+        }
+      };
+      reader.readAsText(file, 'utf-8');
+    }
+
+    // 智能模式识别函数
+    function smartExtract(obj) {
+      const result = {
+        '租户URL': '',
+        '访问令牌': '',
+        'Portal URL': ''
+      };
+
+      // URL 正则模式
+      const urlPattern = /^https?:\/\//i;
+      const portalPattern = /portal|check|limit/i;
+
+      // 令牌模式（通常是长字符串，包含字母数字和特殊字符）
+      const tokenPattern = /^[A-Za-z0-9_\-\.]{20,}$/;
+
+      // 遍历对象的所有键值对
+      function traverse(o, prefix = '') {
+        if (!o || typeof o !== 'object') return;
+
+        for (let key in o) {
+          const value = o[key];
+          const lowerKey = key.toLowerCase();
+
+          // 跳过数组索引和null值
+          if (value === null || value === undefined) continue;
+
+          // 如果是对象或数组，递归遍历
+          if (typeof value === 'object') {
+            traverse(value, prefix + key + '.');
+            continue;
+          }
+
+          const strValue = String(value).trim();
+          if (!strValue) continue;
+
+          // 识别租户URL
+          if (!result['租户URL'] &&
+              (lowerKey.includes('tenant') || lowerKey.includes('base')) &&
+              urlPattern.test(strValue) &&
+              !portalPattern.test(strValue)) {
+            result['租户URL'] = strValue;
+          }
+
+          // 识别Portal URL
+          if (!result['Portal URL'] &&
+              (portalPattern.test(lowerKey) || lowerKey.includes('portal')) &&
+              urlPattern.test(strValue)) {
+            result['Portal URL'] = strValue;
+          }
+
+          // 识别访问令牌
+          if (!result['访问令牌'] &&
+              (lowerKey.includes('token') || lowerKey.includes('auth') || lowerKey.includes('client')) &&
+              tokenPattern.test(strValue)) {
+            result['访问令牌'] = strValue;
+          }
+        }
+      }
+
+      traverse(obj);
+
+      // 如果没有找到，尝试更宽松的匹配
+      if (!result['租户URL'] || !result['访问令牌'] || !result['Portal URL']) {
+        function relaxedTraverse(o) {
+          if (!o || typeof o !== 'object') return;
+
+          for (let key in o) {
+            const value = o[key];
+            if (value === null || value === undefined) continue;
+
+            if (typeof value === 'object') {
+              relaxedTraverse(value);
+              continue;
+            }
+
+            const strValue = String(value).trim();
+            if (!strValue) continue;
+
+            // 宽松匹配：任何URL
+            if (!result['租户URL'] && urlPattern.test(strValue) && !portalPattern.test(strValue)) {
+              result['租户URL'] = strValue;
+            }
+
+            // 宽松匹配：包含portal的URL
+            if (!result['Portal URL'] && urlPattern.test(strValue) && portalPattern.test(strValue)) {
+              result['Portal URL'] = strValue;
+            }
+
+            // 宽松匹配：长字符串作为令牌
+            if (!result['访问令牌'] && tokenPattern.test(strValue)) {
+              result['访问令牌'] = strValue;
+            }
+          }
+        }
+
+        relaxedTraverse(obj);
+      }
+
+      return result;
+    }
+
+    function transformData(input) {
+      let rows = [];
+
+      // 处理不同的输入格式
+      if (Array.isArray(input)) {
+        rows = input;
+      } else if (input && typeof input === 'object') {
+        // 尝试找到数组字段
+        if (Array.isArray(input.rows)) {
+          rows = input.rows;
+        } else if (Array.isArray(input.data)) {
+          rows = input.data;
+        } else if (Array.isArray(input.items)) {
+          rows = input.items;
+        } else if (Array.isArray(input.list)) {
+          rows = input.list;
+        } else {
+          // 如果没有找到数组，将对象本身作为单条数据
+          rows = [input];
+        }
+      }
+
+      if (!rows.length) return [];
+
+      // 字段名匹配函数
+      const get = (o, keys) => {
+        const found = keys.find(k => k in o);
+        return found ? o[found] : '';
+      };
+
+      const out = rows.map(o => {
+        // 首先尝试直接字段匹配
+        let item = {
+          '租户URL': get(o, ['tenantUrl','tenantURL','tenant_url','tenant','url','tenantBase','tenantBaseUrl','baseUrl','base_url']),
+          '访问令牌': get(o, ['augClientToken','token','accessToken','clientToken','access_token','client_token','authToken','auth_token']),
+          'Portal URL': get(o, ['checkLimitUrl','portalUrl','portal','urlPortal','portal_url','checkUrl','check_url','limitUrl','limit_url'])
+        };
+
+        // 如果字段匹配失败，使用智能识别
+        if (!item['租户URL'] && !item['访问令牌'] && !item['Portal URL']) {
+          item = smartExtract(o);
+        }
+
+        return item;
+      });
+
+      return out;
+    }
+
+    // 解析纯文本数据
+    function parseTextData(text) {
+      const lines = text.split('\n').filter(line => line.trim());
+      const results = [];
+
+      for (let line of lines) {
+        // 尝试解析每一行
+        const item = {
+          '租户URL': '',
+          '访问令牌': '',
+          'Portal URL': ''
+        };
+
+        // 尝试按分隔符分割（逗号、制表符、多个空格）
+        const parts = line.split(/[,\t]+|  +/).map(p => p.trim()).filter(p => p);
+
+        const urlPattern = /^https?:\/\//i;
+        const portalPattern = /portal|check|limit/i;
+        const tokenPattern = /^[A-Za-z0-9_\-\.]{20,}$/;
+
+        for (let part of parts) {
+          // 识别URL
+          if (urlPattern.test(part)) {
+            if (portalPattern.test(part) && !item['Portal URL']) {
+              item['Portal URL'] = part;
+            } else if (!item['租户URL']) {
+              item['租户URL'] = part;
+            }
+          }
+          // 识别令牌
+          else if (tokenPattern.test(part) && !item['访问令牌']) {
+            item['访问令牌'] = part;
+          }
+        }
+
+        // 如果至少识别出一个字段，就添加到结果中
+        if (item['租户URL'] || item['访问令牌'] || item['Portal URL']) {
+          results.push(item);
+        }
+      }
+
+      return results;
+    }
+
+    function render(list) {
+      out.textContent = JSON.stringify(list, null, 2);
+      downloadBtn.disabled = !list.length;
+      copyBtn.disabled = !list.length;
+      exportCountInput.disabled = !list.length;
+      exportCountInput.max = list.length;
+      countEl.textContent = list.length ? `共 ${list.length} 条` : '未导入';
+
+      // 重置选择状态
+      selectedRows.clear();
+      updateSelectionUI();
+
+      drawTable(list);
+    }
+
+    // 更新选择相关的UI状态
+    function updateSelectionUI() {
+      const selectedCount = selectedRows.size;
+      downloadSelectedBtn.disabled = selectedCount === 0;
+      downloadCountBtn.disabled = !transformed.length || !exportCountInput.value;
+
+      if (selectedCount > 0) {
+        selectedCountEl.textContent = `已选中 ${selectedCount} 项`;
+        selectedCountEl.style.display = 'inline-flex';
+      } else {
+        selectedCountEl.style.display = 'none';
+      }
+    }
+
+    function drawTable(list) {
+      if (!list.length) {
+        tableEl.innerHTML = '';
+        document.getElementById('cardView').innerHTML = '';
+        return;
+      }
+
+      // 绘制表格视图
+      const thead = `<tr>
+        <th>
+          <input type="checkbox" class="select-all-checkbox" title="全选/取消全选">
+        </th>
+        <th>租户URL</th>
+        <th>访问令牌</th>
+        <th>Portal URL</th>
+      </tr>`;
+
+      const rows = list.map((item, index) => {
+        const tenantUrl = item['租户URL'] || '';
+        const token = item['访问令牌'] || '';
+        const portalUrl = item['Portal URL'] || '';
+        const isSelected = selectedRows.has(index);
+
+        return `
+        <tr class="${isSelected ? 'selected' : ''}" data-index="${index}">
+          <td>
+            <input type="checkbox" class="row-checkbox" ${isSelected ? 'checked' : ''}
+                   data-index="${index}" title="选择此行">
+          </td>
+          <td>
+            <div class="cell-wrapper">
+              <div class="cell-content ${!tenantUrl ? 'empty-cell' : ''}">
+                ${tenantUrl ? escapeHtml(tenantUrl) : '未识别'}
+              </div>
+              ${tenantUrl ? `<button class="copy-cell-btn" onclick="event.stopPropagation(); window.copyCellValue('${escapeAttr(tenantUrl)}', this)">复制</button>` : ''}
+            </div>
+          </td>
+          <td>
+            <div class="cell-wrapper">
+              <div class="cell-content ${!token ? 'empty-cell' : ''}">
+                ${token ? `<code style="word-break:break-all">${escapeHtml(token)}</code>` : '未识别'}
+              </div>
+              ${token ? `<button class="copy-cell-btn" onclick="event.stopPropagation(); window.copyCellValue('${escapeAttr(token)}', this)">复制</button>` : ''}
+            </div>
+          </td>
+          <td>
+            <div class="cell-wrapper">
+              <div class="cell-content ${!portalUrl ? 'empty-cell' : ''}">
+                ${portalUrl ? `<a href="${escapeAttr(portalUrl)}" target="_blank" rel="noopener">${escapeHtml(portalUrl)}</a>` : '未识别'}
+              </div>
+              ${portalUrl ? `<button class="copy-cell-btn" onclick="event.stopPropagation(); window.copyCellValue('${escapeAttr(portalUrl)}', this)">复制</button>` : ''}
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+      tableEl.innerHTML = thead + rows;
+
+      // 绘制卡片视图
+      drawCardView(list);
+
+      // 表格重新渲染后，绑定事件监听器
+      setTimeout(() => {
+        bindCheckboxEvents();
+        if (window.updateScrollShadows) {
+          window.updateScrollShadows();
+        }
+        // 确保选择状态正确显示
+        updateSelectAllCheckbox();
+        updateSelectionUI();
+      }, 50);
+    }
+
+    // 绘制卡片视图
+    function drawCardView(list) {
+      const cardView = document.getElementById('cardView');
+      if (!cardView) return;
+
+      const cards = list.map((item, index) => {
+        const tenantUrl = item['租户URL'] || '';
+        const token = item['访问令牌'] || '';
+        const portalUrl = item['Portal URL'] || '';
+        const isSelected = selectedRows.has(index);
+
+        return `
+        <div class="table-card ${isSelected ? 'selected' : ''}" data-index="${index}">
+          <div class="table-card-header">
+            <div class="table-card-title">数据项 ${index + 1}</div>
+            <input type="checkbox" class="table-card-checkbox" ${isSelected ? 'checked' : ''}
+                   data-index="${index}" title="选择此项">
+          </div>
+
+          <div class="table-card-row">
+            <div class="table-card-field">
+              <div class="table-card-label">租户URL</div>
+              <div class="table-card-value ${!tenantUrl ? 'empty' : ''}">
+                ${tenantUrl ? escapeHtml(tenantUrl) : '未识别'}
+              </div>
+              ${tenantUrl ? `
+              <div class="table-card-actions">
+                <button class="table-card-copy-btn" onclick="event.stopPropagation(); window.copyCellValue('${escapeAttr(tenantUrl)}', this)">复制</button>
+              </div>` : ''}
+            </div>
+          </div>
+
+          <div class="table-card-row">
+            <div class="table-card-field">
+              <div class="table-card-label">访问令牌</div>
+              <div class="table-card-value ${!token ? 'empty' : ''}">
+                ${token ? `<code>${escapeHtml(token)}</code>` : '未识别'}
+              </div>
+              ${token ? `
+              <div class="table-card-actions">
+                <button class="table-card-copy-btn" onclick="event.stopPropagation(); window.copyCellValue('${escapeAttr(token)}', this)">复制</button>
+              </div>` : ''}
+            </div>
+          </div>
+
+          <div class="table-card-row">
+            <div class="table-card-field">
+              <div class="table-card-label">Portal URL</div>
+              <div class="table-card-value ${!portalUrl ? 'empty' : ''}">
+                ${portalUrl ? `<a href="${escapeAttr(portalUrl)}" target="_blank" rel="noopener">${escapeHtml(portalUrl)}</a>` : '未识别'}
+              </div>
+              ${portalUrl ? `
+              <div class="table-card-actions">
+                <button class="table-card-copy-btn" onclick="event.stopPropagation(); window.copyCellValue('${escapeAttr(portalUrl)}', this)">复制</button>
+              </div>` : ''}
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+
+      cardView.innerHTML = cards;
+    }
+
+    // copyCellValue 函数已在上面定义为全局函数
+
+    // 智能文本截断功能
+    function smartTruncate(text, maxLength = 50) {
+      if (!text || text.length <= maxLength) return text;
+
+      // 对于URL，保留协议和域名部分
+      if (text.startsWith('http')) {
+        const url = new URL(text);
+        const domain = url.protocol + '//' + url.hostname;
+        if (domain.length < maxLength - 3) {
+          const remaining = maxLength - domain.length - 3;
+          const path = url.pathname + url.search;
+          if (path.length > remaining) {
+            return domain + '...' + path.slice(-remaining);
+          }
+        }
+      }
+
+      // 对于令牌，显示前后部分
+      if (text.length > maxLength) {
+        const start = Math.floor((maxLength - 3) / 2);
+        const end = Math.ceil((maxLength - 3) / 2);
+        return text.slice(0, start) + '...' + text.slice(-end);
+      }
+
+      return text;
+    }
+
+    // 添加文本展开/收缩功能
+    function addTextToggle(element, fullText, truncatedText) {
+      let isExpanded = false;
+      element.style.cursor = 'pointer';
+      element.title = '点击展开/收缩';
+
+      element.addEventListener('click', () => {
+        isExpanded = !isExpanded;
+        element.textContent = isExpanded ? fullText : truncatedText;
+        element.style.wordBreak = isExpanded ? 'break-all' : 'normal';
+      });
+    }
+
+    // 绑定复选框事件监听器
+    function bindCheckboxEvents() {
+      console.log('Binding checkbox events...');
+
+      // 绑定全选复选框
+      const selectAllCheckbox = document.querySelector('.select-all-checkbox');
+      if (selectAllCheckbox) {
+        // 移除旧的事件监听器
+        selectAllCheckbox.removeEventListener('change', handleSelectAll);
+        // 添加新的事件监听器
+        selectAllCheckbox.addEventListener('change', handleSelectAll);
+        console.log('Select all checkbox bound');
+      }
+
+      // 绑定所有行复选框
+      const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+      rowCheckboxes.forEach((checkbox, i) => {
+        const index = parseInt(checkbox.getAttribute('data-index'));
+        // 移除旧的事件监听器
+        checkbox.removeEventListener('change', checkbox._handleRowSelection);
+        // 创建新的事件处理函数
+        checkbox._handleRowSelection = function(event) {
+          handleRowSelection(index, this);
+        };
+        // 添加新的事件监听器
+        checkbox.addEventListener('change', checkbox._handleRowSelection);
+        console.log(`Row checkbox ${index} bound`);
+      });
+
+      // 绑定所有卡片复选框
+      const cardCheckboxes = document.querySelectorAll('.table-card-checkbox');
+      cardCheckboxes.forEach((checkbox, i) => {
+        const index = parseInt(checkbox.getAttribute('data-index'));
+        // 移除旧的事件监听器
+        checkbox.removeEventListener('change', checkbox._handleCardSelection);
+        // 创建新的事件处理函数
+        checkbox._handleCardSelection = function(event) {
+          handleRowSelection(index, this);
+        };
+        // 添加新的事件监听器
+        checkbox.addEventListener('change', checkbox._handleCardSelection);
+        console.log(`Card checkbox ${index} bound`);
+      });
+    }
+
+    // 事件处理函数
+    function handleSelectAll(event) {
+      console.log('handleSelectAll called:', event.target.checked);
+      window.toggleSelectAll(event.target);
+    }
+
+    function handleRowSelection(index, checkbox) {
+      console.log('handleRowSelection called:', index, checkbox.checked);
+      window.toggleRowSelection(index, checkbox);
+    }
+
+    function updateRowStyles(index) {
+      const isSelected = selectedRows.has(index);
+
+      // 更新表格行
+      const tableRow = document.querySelector(`#table tr[data-index="${index}"]`);
+      if (tableRow) {
+        tableRow.classList.toggle('selected', isSelected);
+        const checkbox = tableRow.querySelector('.row-checkbox');
+        if (checkbox) checkbox.checked = isSelected;
+      }
+
+      // 更新卡片
+      const card = document.querySelector(`#cardView .table-card[data-index="${index}"]`);
+      if (card) {
+        card.classList.toggle('selected', isSelected);
+        const checkbox = card.querySelector('.table-card-checkbox');
+        if (checkbox) checkbox.checked = isSelected;
+      }
+    }
+
+    function updateAllRowStyles() {
+      for (let i = 0; i < transformed.length; i++) {
+        updateRowStyles(i);
+      }
+    }
+
+    function updateSelectAllCheckbox() {
+      const selectAllCheckbox = document.querySelector('.select-all-checkbox');
+      if (selectAllCheckbox) {
+        const totalRows = transformed.length;
+        const selectedCount = selectedRows.size;
+
+        if (selectedCount === 0) {
+          selectAllCheckbox.checked = false;
+          selectAllCheckbox.indeterminate = false;
+        } else if (selectedCount === totalRows) {
+          selectAllCheckbox.checked = true;
+          selectAllCheckbox.indeterminate = false;
+        } else {
+          selectAllCheckbox.checked = false;
+          selectAllCheckbox.indeterminate = true;
+        }
+      }
+    }
+
+    // 将剩余函数暴露到全局作用域
+    window.smartTruncate = smartTruncate;
+    window.addTextToggle = addTextToggle;
+
+    function escapeHtml(s){return String(s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));}
+    function escapeAttr(s){return String(s).replace(/["'>]/g, m=>({"\"":"&quot;","'":"&#39;",">":"&gt;"}[m]));}
+
+    // 导出功能
+    function downloadData(data, filename) {
+      if (!data.length) return;
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function generateFilename(suffix = '') {
+      const ts = new Date();
+      const base = `augment_formatted_${ts.getFullYear()}-${pad(ts.getMonth()+1)}-${pad(ts.getDate())}_${pad(ts.getHours())}${pad(ts.getMinutes())}`;
+      return suffix ? `${base}_${suffix}.txt` : `${base}.txt`;
+    }
+
+    // 导出全部
+    downloadBtn.addEventListener('click', () => {
+      if (!transformed.length) return;
+      downloadData(transformed, generateFilename('all'));
+      setStatus(`已导出全部 ${transformed.length} 条数据`);
+    });
+
+    // 导出选中项
+    downloadSelectedBtn.addEventListener('click', () => {
+      if (selectedRows.size === 0) return;
+      const selectedData = Array.from(selectedRows).map(index => transformed[index]);
+      downloadData(selectedData, generateFilename('selected'));
+      setStatus(`已导出选中的 ${selectedData.length} 条数据`);
+    });
+
+    // 导出指定数量
+    downloadCountBtn.addEventListener('click', () => {
+      const count = parseInt(exportCountInput.value);
+      if (!count || count <= 0 || count > transformed.length) {
+        setStatus('请输入有效的导出数量', true);
+        return;
+      }
+      const countData = transformed.slice(0, count);
+      downloadData(countData, generateFilename(`first${count}`));
+      setStatus(`已导出前 ${count} 条数据`);
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      if (!transformed.length) return;
+      try {
+        await navigator.clipboard.writeText(JSON.stringify(transformed, null, 2));
+        setStatus('已复制到剪贴板');
+      } catch {
+        setStatus('复制失败：浏览器限制或权限问题', true);
+      }
+    });
+
+    // 导出数量输入框验证
+    exportCountInput.addEventListener('input', () => {
+      const count = parseInt(exportCountInput.value);
+      const maxCount = transformed.length;
+
+      if (count && count > 0 && count <= maxCount) {
+        downloadCountBtn.disabled = false;
+        exportCountInput.style.borderColor = 'rgba(99, 102, 241, 0.3)';
+        exportCountInput.title = `输入 1-${maxCount} 之间的数字`;
+      } else {
+        downloadCountBtn.disabled = true;
+        if (count > maxCount) {
+          exportCountInput.style.borderColor = 'var(--error)';
+          exportCountInput.title = `数量不能超过 ${maxCount}`;
+        } else if (count <= 0) {
+          exportCountInput.style.borderColor = 'var(--error)';
+          exportCountInput.title = '数量必须大于 0';
+        } else {
+          exportCountInput.style.borderColor = 'rgba(99, 102, 241, 0.3)';
+          exportCountInput.title = `输入 1-${maxCount} 之间的数字`;
+        }
+      }
+    });
+
+    // 输入框失去焦点时重置边框颜色
+    exportCountInput.addEventListener('blur', () => {
+      exportCountInput.style.borderColor = 'rgba(99, 102, 241, 0.3)';
+    });
+
+    function pad(n){return String(n).padStart(2,'0');}
+
+    function setStatus(msg, isErr=false) {
+      statusEl.textContent = msg;
+      statusEl.style.color = isErr ? '#fda4af' : 'var(--muted)';
+    }
+
+    // 表格滚动阴影效果
+    function setupScrollShadows() {
+      const tableWrap = document.getElementById('tableWrap');
+      if (!tableWrap) return;
+
+      function updateScrollShadows() {
+        if (!tableWrap) return;
+        const { scrollLeft, scrollWidth, clientWidth } = tableWrap;
+        
+        // 判断是否可以向左滚动
+        if (scrollLeft > 0) {
+          tableWrap.classList.add('can-scroll-left');
+        } else {
+          tableWrap.classList.remove('can-scroll-left');
+        }
+        
+        // 判断是否可以向右滚动
+        if (scrollLeft < scrollWidth - clientWidth - 1) {
+          tableWrap.classList.add('can-scroll-right');
+        } else {
+          tableWrap.classList.remove('can-scroll-right');
+        }
+      }
+
+      // 监听滚动事件
+      tableWrap.addEventListener('scroll', updateScrollShadows);
+      
+      // 窗口大小改变时重新计算
+      window.addEventListener('resize', updateScrollShadows);
+      
+      // 初始化
+      setTimeout(updateScrollShadows, 100);
+      
+      // 将函数暴露到全局作用域，供其他函数调用
+      window.updateScrollShadows = updateScrollShadows;
+      
+      return updateScrollShadows;
+    }
+
+    // 视图切换功能
+    function setupViewToggle() {
+      const viewToggle = document.getElementById('viewToggle');
+      const tableView = document.getElementById('tableView');
+      const cardView = document.getElementById('cardView');
+
+      if (!viewToggle || !tableView || !cardView) return;
+
+      // 检查屏幕尺寸，决定是否显示切换按钮
+      function checkScreenSize() {
+        if (window.innerWidth <= 360) {
+          viewToggle.style.display = 'flex';
+        } else {
+          viewToggle.style.display = 'none';
+          // 大屏幕时强制显示表格视图
+          tableView.style.display = 'block';
+          cardView.style.display = 'none';
+          // 重置按钮状态
+          document.querySelectorAll('.view-toggle-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.view === 'table') {
+              btn.classList.add('active');
+            }
+          });
+        }
+      }
+
+      // 视图切换处理
+      function switchView(viewType) {
+        if (viewType === 'table') {
+          tableView.style.display = 'block';
+          cardView.style.display = 'none';
+        } else if (viewType === 'card') {
+          tableView.style.display = 'none';
+          cardView.style.display = 'block';
+        }
+
+        // 更新按钮状态
+        document.querySelectorAll('.view-toggle-btn').forEach(btn => {
+          btn.classList.remove('active');
+          if (btn.dataset.view === viewType) {
+            btn.classList.add('active');
+          }
+        });
+      }
+
+      // 绑定切换按钮事件
+      viewToggle.addEventListener('click', (e) => {
+        if (e.target.classList.contains('view-toggle-btn')) {
+          const viewType = e.target.dataset.view;
+          switchView(viewType);
+        }
+      });
+
+      // 监听窗口大小变化
+      window.addEventListener('resize', checkScreenSize);
+
+      // 初始化
+      checkScreenSize();
+
+      return { switchView, checkScreenSize };
+    }
+
+    // 增强的滚动阴影功能
+    function enhancedScrollShadows() {
+      const tableWrap = document.getElementById('tableWrap');
+      if (!tableWrap) return;
+
+      function updateScrollShadows() {
+        if (!tableWrap) return;
+        const { scrollLeft, scrollWidth, clientWidth } = tableWrap;
+
+        // 判断是否可以向左滚动
+        if (scrollLeft > 5) {
+          tableWrap.classList.add('can-scroll-left');
+        } else {
+          tableWrap.classList.remove('can-scroll-left');
+        }
+
+        // 判断是否可以向右滚动
+        if (scrollLeft < scrollWidth - clientWidth - 5) {
+          tableWrap.classList.add('can-scroll-right');
+        } else {
+          tableWrap.classList.remove('can-scroll-right');
+        }
+      }
+
+      // 监听滚动事件
+      tableWrap.addEventListener('scroll', updateScrollShadows);
+
+      // 窗口大小改变时重新计算
+      window.addEventListener('resize', () => {
+        setTimeout(updateScrollShadows, 100);
+      });
+
+      // 初始化
+      setTimeout(updateScrollShadows, 100);
+
+      // 将函数暴露到全局作用域
+      window.updateScrollShadows = updateScrollShadows;
+
+      return updateScrollShadows;
+    }
+
+    // 页面加载完成后初始化所有功能
+    document.addEventListener('DOMContentLoaded', () => {
+      setupScrollShadows();
+      setupViewToggle();
+      enhancedScrollShadows();
+    });
+  </script>
+</body>
+</html>

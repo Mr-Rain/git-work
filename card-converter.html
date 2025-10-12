@@ -275,7 +275,7 @@
                     
                     <div class="example">
                         <div class="example-title">输出示例：</div>
-                        <div class="example-text">6259699214344305,1128,340<br>4532123456789012,525,23<br>5555444433332222,1227,456</div>
+                        <div class="example-text">6259699214344305,1128,640<br>4532123456789012,525,123<br>5555444433332222,1227,456</div>
                     </div>
                 </div>
                 
@@ -304,10 +304,10 @@
                     const cardNumber = parts[0];
                     const month = parts[1].padStart(2, '0'); // 确保月份是两位数
                     const year = (parseInt(parts[2]) % 100).toString().padStart(2, '0'); // 取年份后两位并确保是两位数
-                    const cvvModified = parts[3].substring(1); // 去掉第四个字段的第一位数字
+                    const cvv = parts[3]; // 第四个字段保持不变
 
-                    // 合并月份和年份，去掉CVV的第一位
-                    return `${cardNumber},${month}${year},${cvvModified}`;
+                    // 合并月份和年份，CVV保持不变
+                    return `${cardNumber},${month}${year},${cvv}`;
                 }
                 return trimmedLine; // 如果格式不正确，原样返回
             }).filter(line => line !== ''); // 过滤空行

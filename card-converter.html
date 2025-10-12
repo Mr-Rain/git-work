@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>卡片格式转换工具</title>
+    <style>
+        :root {
+            --primary-color: #8C52FF;
+            --primary-dark: #6E3AD9;
+            --secondary-color: #FF2E93;
+            --accent-color: #00E9FF;
+            --dark-bg: #121212;
+            --card-bg: #1E1E1E;
+            --text-light: #FFFFFF;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #121212, #1A1A2E);
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* 动画背景 */
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 50px 160px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 90px 40px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 130px 80px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 160px 120px, #fff, rgba(0,0,0,0));
+            background-repeat: repeat;
+            background-size: 200px 200px;
+            animation: twinkle 4s infinite;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 0;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin: 20px 0;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+        
+        .converter-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-light);
+            font-size: 14px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(140, 82, 255, 0.2);
+        }
+        
+        textarea::placeholder {
+            color: var(--text-secondary);
+        }
+        
+        .convert-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px 0;
+        }
+        
+        .convert-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(140, 82, 255, 0.4);
+        }
+        
+        .result-section {
+            margin-top: 30px;
+        }
+        
+        .result-textarea {
+            background: rgba(0, 255, 133, 0.05);
+            border-color: rgba(0, 255, 133, 0.3);
+        }
+        
+        .copy-button {
+            background: linear-gradient(90deg, var(--accent-color), #00B8CC);
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .copy-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 233, 255, 0.3);
+        }
+        
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+        
+        .example {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .example-title {
+            color: var(--primary-color);
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .example-text {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+                padding: 20px 0;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .converter-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background">
+        <div class="stars"></div>
+    </div>
+    
+    <button class="back-button" onclick="window.history.back()" title="返回上一页">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M19 12H5M12 19L5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </button>
+    
+    <div class="container">
+        <header>
+            <h1>卡片格式转换工具</h1>
+            <p class="subtitle">快速转换卡片数据格式，提升工作效率</p>
+        </header>
+        
+        <div class="converter-card">
+            <div class="form-group">
+                <label for="inputText">输入数据</label>
+                <textarea id="inputText" placeholder="请粘贴格式为 6259699214344305|11|2028|640 的数据，每行一组"></textarea>
+                
+                <div class="example">
+                    <div class="example-title">输入示例：</div>
+                    <div class="example-text">6259699214344305|11|2028|640<br>4532123456789012|05|2025|123<br>5555444433332222|12|2027|456</div>
+                </div>
+            </div>
+            
+            <button class="convert-button" onclick="convertText()">开始转换</button>
+            
+            <div class="result-section">
+                <div class="form-group">
+                    <label for="outputText">转换结果</label>
+                    <textarea id="outputText" class="result-textarea" readonly placeholder="转换结果将在这里显示..."></textarea>
+                    
+                    <div class="example">
+                        <div class="example-title">输出示例：</div>
+                        <div class="example-text">6259699214344305,1128,340<br>4532123456789012,525,23<br>5555444433332222,1227,456</div>
+                    </div>
+                </div>
+                
+                <button class="copy-button" onclick="copyResult()">复制结果</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function convertText() {
+            const input = document.getElementById('inputText').value.trim();
+            const output = document.getElementById('outputText');
+            
+            if (!input) {
+                alert('请输入要转换的数据');
+                return;
+            }
+            
+            const lines = input.split('\n');
+            const convertedLines = lines.map(line => {
+                const trimmedLine = line.trim();
+                if (!trimmedLine) return '';
+                
+                const parts = trimmedLine.split('|');
+                if (parts.length === 4) {
+                    const cardNumber = parts[0];
+                    const month = parts[1].padStart(2, '0'); // 确保月份是两位数
+                    const year = (parseInt(parts[2]) % 100).toString().padStart(2, '0'); // 取年份后两位并确保是两位数
+                    const cvvModified = parts[3].substring(1); // 去掉第四个字段的第一位数字
+
+                    // 合并月份和年份，去掉CVV的第一位
+                    return `${cardNumber},${month}${year},${cvvModified}`;
+                }
+                return trimmedLine; // 如果格式不正确，原样返回
+            }).filter(line => line !== ''); // 过滤空行
+            
+            output.value = convertedLines.join('\n');
+            
+            // 添加转换完成的视觉反馈
+            output.style.background = 'rgba(0, 255, 133, 0.1)';
+            setTimeout(() => {
+                output.style.background = 'rgba(0, 255, 133, 0.05)';
+            }, 500);
+        }
+        
+        function copyResult() {
+            const output = document.getElementById('outputText');
+            if (!output.value) {
+                alert('没有可复制的内容');
+                return;
+            }
+            
+            output.select();
+            document.execCommand('copy');
+            
+            // 更改按钮文本提供反馈
+            const button = event.target;
+            const originalText = button.textContent;
+            button.textContent = '已复制!';
+            button.style.background = 'linear-gradient(90deg, #00FF85, #00CC6A)';
+            
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.style.background = 'linear-gradient(90deg, var(--accent-color), #00B8CC)';
+            }, 2000);
+        }
+        
+        // 支持Enter键转换
+        document.getElementById('inputText').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                convertText();
+            }
+        });
+        
+        // 页面加载动画
+        document.addEventListener('DOMContentLoaded', function() {
+            const card = document.querySelector('.converter-card');
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                card.style.transition = 'all 0.6s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 100);
+        });
+    </script>
+</body>
+</html>

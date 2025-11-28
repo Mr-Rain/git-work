@@ -1,0 +1,4120 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRIZ工业旋转设备故障监测 - 可视化思维导图</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            text-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .header p {
+            color: #a0a0a0;
+            font-size: 1.1em;
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .controls button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            margin: 5px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .controls button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .mind-map-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* 中心节点 */
+        .center-node {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            border-radius: 50%;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 50px;
+            box-shadow: 0 10px 40px rgba(255, 107, 107, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 10;
+        }
+
+        .center-node:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 50px rgba(255, 107, 107, 0.7);
+        }
+
+        .center-node .content {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .center-node h2 {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }
+
+        .center-node p {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        /* 主分支容器 */
+        .branches {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        /* 主分支节点 */
+        .branch {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .branch:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .branch-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .branch-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-right: 15px;
+        }
+
+        .branch-title {
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .branch-number {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            margin-left: auto;
+        }
+
+        /* 不同分支的颜色 */
+        .branch-1 .branch-icon { background: linear-gradient(135deg, #00d4ff, #0099cc); }
+        .branch-2 .branch-icon { background: linear-gradient(135deg, #7b2cbf, #9b59b6); }
+        .branch-3 .branch-icon { background: linear-gradient(135deg, #00b894, #00a085); }
+        .branch-4 .branch-icon { background: linear-gradient(135deg, #fdcb6e, #f39c12); }
+        .branch-5 .branch-icon { background: linear-gradient(135deg, #e17055, #d63031); }
+        .branch-6 .branch-icon { background: linear-gradient(135deg, #74b9ff, #0984e3); }
+
+        /* 子节点列表 */
+        .sub-items {
+            list-style: none;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+
+        .branch.expanded .sub-items {
+            max-height: 1000px;
+        }
+
+        .sub-item {
+            background: rgba(255, 255, 255, 0.05);
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 3px solid;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .sub-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .branch-1 .sub-item { border-left-color: #00d4ff; }
+        .branch-2 .sub-item { border-left-color: #7b2cbf; }
+        .branch-3 .sub-item { border-left-color: #00b894; }
+        .branch-4 .sub-item { border-left-color: #fdcb6e; }
+        .branch-5 .sub-item { border-left-color: #e17055; }
+        .branch-6 .sub-item { border-left-color: #74b9ff; }
+
+        .sub-item-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .sub-item-title::before {
+            content: '▸';
+            margin-right: 8px;
+            color: inherit;
+        }
+
+        .sub-item-desc {
+            font-size: 0.9em;
+            color: #b0b0b0;
+            line-height: 1.6;
+        }
+
+
+        /* 关键词标签 */
+        .keyword-tag {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            margin: 3px;
+            transition: all 0.3s ease;
+        }
+
+        .keyword-tag:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* 展开/收起指示器 */
+        .expand-indicator {
+            float: right;
+            transition: transform 0.3s ease;
+        }
+
+        .branch.expanded .expand-indicator {
+            transform: rotate(180deg);
+        }
+
+        /* 记忆技巧区域 */
+        .memory-tips {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .memory-tips h3 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .memory-tips h3::before {
+            content: '💡';
+            margin-right: 10px;
+        }
+
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .tip-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .tip-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-3px);
+        }
+
+        .tip-card h4 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+
+        .tip-card p {
+            color: #b0b0b0;
+            line-height: 1.6;
+        }
+
+        /* 流程图区域 */
+        .flow-section {
+            margin-top: 50px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+        }
+
+        .flow-section h3 {
+            text-align: center;
+            font-size: 1.5em;
+            margin-bottom: 30px;
+        }
+
+        .flow-chart {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .flow-step {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 15px 25px;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 120px;
+            transition: all 0.3s ease;
+        }
+
+        .flow-step:hover {
+            transform: scale(1.05);
+        }
+
+        .flow-arrow {
+            font-size: 24px;
+            color: #667eea;
+        }
+
+        /* 术语卡片区域 */
+        .terms-section {
+            margin-top: 50px;
+        }
+
+        .terms-section h3 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .terms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .term-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 4px solid #00d4ff;
+            transition: all 0.3s ease;
+        }
+
+        .term-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .term-name {
+            font-weight: bold;
+            color: #00d4ff;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+        }
+
+        .term-desc {
+            color: #b0b0b0;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+
+        /* 动画效果 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .branch {
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
+        .branch:nth-child(1) { animation-delay: 0.1s; }
+        .branch:nth-child(2) { animation-delay: 0.2s; }
+        .branch:nth-child(3) { animation-delay: 0.3s; }
+        .branch:nth-child(4) { animation-delay: 0.4s; }
+        .branch:nth-child(5) { animation-delay: 0.5s; }
+        .branch:nth-child(6) { animation-delay: 0.6s; }
+
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .branches {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .branches {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .center-node {
+                width: 150px;
+                height: 150px;
+            }
+
+            .flow-chart {
+                flex-direction: column;
+            }
+
+            .flow-arrow {
+                transform: rotate(90deg);
+            }
+        }
+
+        /* ========== 答辩模式样式 ========== */
+        .mode-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            padding: 12px 30px;
+            border: 2px solid #667eea;
+            background: transparent;
+            color: #667eea;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* 答辩流程区域 */
+        .defense-section {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .defense-section.active {
+            display: block;
+        }
+
+        .defense-timeline {
+            position: relative;
+            padding-left: 40px;
+            padding-bottom: 120px; /* 避免被底部控制面板遮挡 */
+        }
+
+        .defense-timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, #00d4ff, #7b2cbf, #ff6b6b);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-item::before {
+            content: attr(data-step);
+            position: absolute;
+            left: -40px;
+            top: 20px;
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .timeline-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .timeline-item.active {
+            border-left-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .timeline-item.completed {
+            opacity: 0.6;
+        }
+
+        .timeline-item.completed::before {
+            background: linear-gradient(135deg, #00b894, #00a085);
+            content: '✓';
+        }
+
+        .timeline-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #00d4ff;
+        }
+
+        .timeline-content {
+            color: #b0b0b0;
+            line-height: 1.8;
+            display: none;
+        }
+
+        .timeline-item.active .timeline-content {
+            display: block;
+        }
+
+        .timeline-item.expanded .timeline-content {
+            display: block;
+        }
+
+        .timeline-keywords {
+            margin-top: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .keyword-tag {
+            background: rgba(102, 126, 234, 0.3);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            color: #a0a0ff;
+            border: 1px solid rgba(102, 126, 234, 0.5);
+        }
+
+        /* 12方案区域 */
+        .solutions-section {
+            margin-top: 50px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+        }
+
+        .solutions-section h3 {
+            text-align: center;
+            font-size: 1.5em;
+            margin-bottom: 30px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .solutions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .solution-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .solution-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .solution-card[data-problem="1"] { border-left-color: #00d4ff; }
+        .solution-card[data-problem="2"] { border-left-color: #7b2cbf; }
+        .solution-card[data-problem="3"] { border-left-color: #00b894; }
+        .solution-card[data-problem="4"] { border-left-color: #fdcb6e; }
+        .solution-card[data-problem="5"] { border-left-color: #e17055; }
+        .solution-card[data-problem="ifr"] { border-left-color: #ff6b6b; }
+
+        .solution-number {
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .solution-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            padding-right: 60px;
+        }
+
+        .solution-method {
+            display: inline-block;
+            background: rgba(0, 212, 255, 0.2);
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 0.85em;
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+
+        .solution-desc {
+            color: #b0b0b0;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        .solution-problem {
+            margin-top: 10px;
+            font-size: 0.85em;
+            color: #888;
+        }
+
+        /* 问题-方案映射 */
+        .mapping-section {
+            margin-top: 50px;
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(123, 44, 191, 0.1));
+            border-radius: 20px;
+        }
+
+        .mapping-section h3 {
+            text-align: center;
+            font-size: 1.5em;
+            margin-bottom: 30px;
+        }
+
+        .mapping-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .mapping-row {
+            display: flex;
+            align-items: stretch;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .problem-box {
+            flex: 0 0 200px;
+            background: linear-gradient(135deg, #e17055, #d63031);
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .arrow-box {
+            display: flex;
+            align-items: center;
+            font-size: 24px;
+            color: #667eea;
+        }
+
+        .methods-box {
+            flex: 1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .method-tag {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .solution-tag {
+            background: rgba(0, 212, 255, 0.2);
+            border: 1px solid #00d4ff;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            color: #00d4ff;
+        }
+
+        /* 关键数据卡片 */
+        .data-cards-section {
+            margin-top: 50px;
+        }
+
+        .data-cards-section h3 {
+            text-align: center;
+            font-size: 1.5em;
+            margin-bottom: 30px;
+        }
+
+        .data-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .data-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .data-card:hover {
+            transform: scale(1.05);
+            border-color: #00d4ff;
+        }
+
+        .data-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .data-label {
+            color: #b0b0b0;
+            margin-top: 10px;
+            font-size: 0.95em;
+        }
+
+        .data-context {
+            color: #888;
+            font-size: 0.85em;
+            margin-top: 5px;
+        }
+
+        /* 答辩进度条 */
+        .defense-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+            display: none;
+        }
+
+        .defense-progress.active {
+            display: block;
+        }
+
+        .defense-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf, #ff6b6b);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* 旧版答辩控制面板样式已移至底部新版样式区域 */
+
+        /* 高亮文本 */
+        .highlight {
+            color: #00d4ff;
+            font-weight: bold;
+        }
+
+        .highlight-yellow {
+            color: #fdcb6e;
+            font-weight: bold;
+        }
+
+        .highlight-green {
+            color: #00b894;
+            font-weight: bold;
+        }
+
+        .highlight-red {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+
+        /* ========== 填词法记忆样式 ========== */
+        .blank {
+            display: inline-block;
+            min-width: 60px;
+            padding: 2px 8px;
+            margin: 0 3px;
+            background: rgba(255, 107, 107, 0.3);
+            border: 1px dashed #ff6b6b;
+            border-radius: 5px;
+            color: transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            user-select: none;
+        }
+
+        .blank:hover {
+            background: rgba(255, 107, 107, 0.5);
+            border-style: solid;
+        }
+
+        .blank.revealed {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.15);
+            border-style: solid;
+            font-weight: bold;
+            animation: revealPop 0.3s ease;
+        }
+
+        @keyframes revealPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* 数字高亮 - 黄色 */
+        .blank.num {
+            background: rgba(253, 203, 110, 0.3);
+            border-color: #fdcb6e;
+        }
+        .blank.num:hover {
+            background: rgba(253, 203, 110, 0.5);
+        }
+        .blank.num.revealed {
+            color: #fdcb6e;
+            background: rgba(253, 203, 110, 0.15);
+            font-size: 1.05em;
+        }
+
+        /* TRIZ方法高亮 - 紫色 */
+        .blank.triz-method {
+            background: linear-gradient(135deg, rgba(123, 44, 191, 0.3), rgba(102, 126, 234, 0.3));
+            border-color: #a78bfa;
+        }
+        .blank.triz-method:hover {
+            background: linear-gradient(135deg, rgba(123, 44, 191, 0.5), rgba(102, 126, 234, 0.5));
+        }
+        .blank.triz-method.revealed {
+            color: #a78bfa;
+            background: linear-gradient(135deg, rgba(123, 44, 191, 0.2), rgba(102, 126, 234, 0.2));
+            border-radius: 12px;
+        }
+
+        /* 专业术语高亮 - 蓝绿色 */
+        .blank.tech-term {
+            background: rgba(0, 212, 255, 0.3);
+            border-color: #00d4ff;
+        }
+        .blank.tech-term:hover {
+            background: rgba(0, 212, 255, 0.5);
+        }
+        .blank.tech-term.revealed {
+            color: #00d4ff;
+            background: rgba(0, 212, 255, 0.15);
+        }
+
+        /* 关键动词 - 橙色 */
+        .blank.action-verb {
+            background: rgba(255, 159, 67, 0.3);
+            border-color: #ff9f43;
+        }
+        .blank.action-verb:hover {
+            background: rgba(255, 159, 67, 0.5);
+        }
+        .blank.action-verb.revealed {
+            color: #ff9f43;
+            background: rgba(255, 159, 67, 0.15);
+        }
+
+        /* 重要名词 - 粉色 */
+        .blank.important-noun {
+            background: rgba(255, 107, 181, 0.3);
+            border-color: #ff6bb5;
+        }
+        .blank.important-noun:hover {
+            background: rgba(255, 107, 181, 0.5);
+        }
+        .blank.important-noun.revealed {
+            color: #ff6bb5;
+            background: rgba(255, 107, 181, 0.15);
+        }
+
+        /* 新增关键词分类样式 */
+        /* 专业术语 - 蓝绿色 */
+        .blank.keyword-term {
+            background: rgba(0, 212, 255, 0.3);
+            border-color: #00d4ff;
+        }
+        .blank.keyword-term:hover {
+            background: rgba(0, 212, 255, 0.5);
+        }
+        .blank.keyword-term.revealed {
+            color: #00d4ff;
+            background: rgba(0, 212, 255, 0.15);
+        }
+
+        /* 关键动词 - 橙色 */
+        .blank.keyword-verb {
+            background: rgba(255, 159, 67, 0.3);
+            border-color: #ff9f43;
+        }
+        .blank.keyword-verb:hover {
+            background: rgba(255, 159, 67, 0.5);
+        }
+        .blank.keyword-verb.revealed {
+            color: #ff9f43;
+            background: rgba(255, 159, 67, 0.15);
+        }
+
+        /* 形容词修饰语 - 淡粉色 */
+        .blank.keyword-adj {
+            background: rgba(253, 121, 168, 0.3);
+            border-color: #fd79a8;
+        }
+        .blank.keyword-adj:hover {
+            background: rgba(253, 121, 168, 0.5);
+        }
+        .blank.keyword-adj.revealed {
+            color: #fd79a8;
+            background: rgba(253, 121, 168, 0.15);
+        }
+
+        /* 重要名词 - 粉色 */
+        .blank.keyword-name {
+            background: rgba(255, 107, 181, 0.3);
+            border-color: #ff6bb5;
+        }
+        .blank.keyword-name:hover {
+            background: rgba(255, 107, 181, 0.5);
+        }
+        .blank.keyword-name.revealed {
+            color: #ff6bb5;
+            background: rgba(255, 107, 181, 0.15);
+        }
+
+        /* 关键连接词 - 青色 */
+        .blank.keyword-connector {
+            background: rgba(0, 206, 201, 0.3);
+            border-color: #00cec9;
+        }
+        .blank.keyword-connector:hover {
+            background: rgba(0, 206, 201, 0.5);
+        }
+        .blank.keyword-connector.revealed {
+            color: #00cec9;
+            background: rgba(0, 206, 201, 0.15);
+        }
+
+        /* 关键词呼吸动画效果 */
+        .blank.revealed {
+            animation: revealPop 0.3s ease, gentleBreathe 2s ease-in-out infinite 0.3s;
+        }
+
+        @keyframes gentleBreathe {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.02); opacity: 0.9; }
+        }
+
+        /* 段落不同背景渐变色（防困倦设计）*/
+        .timeline-item[data-step="1"] { background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.05)); }
+        .timeline-item[data-step="2"] { background: linear-gradient(135deg, rgba(0, 212, 255, 0.08), rgba(102, 126, 234, 0.05)); }
+        .timeline-item[data-step="3"] { background: linear-gradient(135deg, rgba(255, 107, 107, 0.08), rgba(255, 159, 67, 0.05)); }
+        .timeline-item[data-step="4"] { background: linear-gradient(135deg, rgba(0, 184, 148, 0.08), rgba(0, 206, 201, 0.05)); }
+        .timeline-item[data-step="5"] { background: linear-gradient(135deg, rgba(167, 139, 250, 0.08), rgba(123, 44, 191, 0.05)); }
+        .timeline-item[data-step="6"] { background: linear-gradient(135deg, rgba(253, 203, 110, 0.08), rgba(255, 159, 67, 0.05)); }
+        .timeline-item[data-step="7"] { background: linear-gradient(135deg, rgba(255, 107, 181, 0.08), rgba(253, 121, 168, 0.05)); }
+        .timeline-item[data-step="8"] { background: linear-gradient(135deg, rgba(0, 206, 201, 0.08), rgba(0, 184, 148, 0.05)); }
+        .timeline-item[data-step="9"] { background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(167, 139, 250, 0.05)); }
+        .timeline-item[data-step="10"] { background: linear-gradient(135deg, rgba(255, 159, 67, 0.08), rgba(253, 203, 110, 0.05)); }
+        .timeline-item[data-step="11"] { background: linear-gradient(135deg, rgba(123, 44, 191, 0.08), rgba(102, 126, 234, 0.05)); }
+        .timeline-item[data-step="12"] { background: linear-gradient(135deg, rgba(0, 212, 255, 0.08), rgba(0, 206, 201, 0.05)); }
+        .timeline-item[data-step="13"] { background: linear-gradient(135deg, rgba(255, 107, 107, 0.08), rgba(225, 112, 85, 0.05)); }
+        .timeline-item[data-step="14"] { background: linear-gradient(135deg, rgba(0, 184, 148, 0.08), rgba(102, 126, 234, 0.05)); }
+        .timeline-item[data-step="15"] { background: linear-gradient(135deg, rgba(253, 121, 168, 0.08), rgba(255, 107, 181, 0.05)); }
+        .timeline-item[data-step="16"] { background: linear-gradient(135deg, rgba(253, 203, 110, 0.08), rgba(255, 159, 67, 0.05)); }
+        .timeline-item[data-step="17"] { background: linear-gradient(135deg, rgba(167, 139, 250, 0.08), rgba(102, 126, 234, 0.05)); }
+        .timeline-item[data-step="18"] { background: linear-gradient(135deg, rgba(0, 206, 201, 0.08), rgba(0, 212, 255, 0.05)); }
+        .timeline-item[data-step="19"] { background: linear-gradient(135deg, rgba(255, 107, 181, 0.08), rgba(167, 139, 250, 0.05)); }
+        .timeline-item[data-step="20"] { background: linear-gradient(135deg, rgba(0, 184, 148, 0.08), rgba(0, 206, 201, 0.05)); }
+        .timeline-item[data-step="21"] { background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 107, 181, 0.08)); }
+
+        /* 答辩原文样式 */
+        .script-text {
+            font-size: 1.05em;
+            line-height: 2.2;
+            color: #e0e0e0;
+            text-align: justify;
+        }
+
+        .script-text p {
+            margin-bottom: 12px;
+        }
+
+        /* 答辩控制按钮组 */
+        .blank-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .blank-controls button {
+            background: linear-gradient(135deg, #e17055, #d63031);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .blank-controls button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(225, 112, 85, 0.4);
+        }
+
+        .blank-controls button.secondary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        /* 段落标记 */
+        .para-marker {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-size: 12px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        /* 段落填空计数器 */
+        .blank-counter {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(167, 139, 250, 0.2));
+            border: 1px solid rgba(0, 212, 255, 0.4);
+            border-radius: 10px;
+            padding: 8px 15px;
+            margin-bottom: 12px;
+            font-size: 0.9em;
+            color: #00d4ff;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .blank-counter .current-count {
+            font-weight: bold;
+            color: #fdcb6e;
+            font-size: 1.1em;
+        }
+
+        .blank-counter .total-count {
+            font-weight: bold;
+            color: #a78bfa;
+        }
+
+        /* ========== 爱心特效样式 ========== */
+        .heart {
+            position: fixed;
+            pointer-events: none;
+            font-size: 20px;
+            z-index: 9999;
+            animation: floatHeart 1.5s ease-out forwards;
+        }
+
+        @keyframes floatHeart {
+            0% {
+                opacity: 1;
+                transform: translateY(0) rotate(0deg) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px) rotate(20deg) scale(1.5);
+            }
+        }
+
+        /* 星星特效 */
+        .star {
+            position: fixed;
+            pointer-events: none;
+            font-size: 16px;
+            z-index: 9999;
+            animation: floatStar 1.2s ease-out forwards;
+        }
+
+        @keyframes floatStar {
+            0% {
+                opacity: 1;
+                transform: translateY(0) rotate(0deg) scale(0.5);
+            }
+            50% {
+                transform: translateY(-50px) rotate(180deg) scale(1.2);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-80px) rotate(360deg) scale(0.8);
+            }
+        }
+
+        /* ========== 温馨提示区域（可伸缩） ========== */
+        .warm-tips {
+            position: fixed;
+            top: 10px;
+            right: 20px;
+            background: linear-gradient(135deg, rgba(255, 107, 181, 0.95), rgba(255, 159, 67, 0.95));
+            border-radius: 20px;
+            color: white;
+            font-size: 14px;
+            z-index: 1000;
+            box-shadow: 0 5px 20px rgba(255, 107, 181, 0.4);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .warm-tips .tips-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 15px;
+            cursor: pointer;
+            gap: 10px;
+        }
+
+        .warm-tips .tips-header:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .warm-tips .toggle-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .warm-tips .toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .warm-tips .tips-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 15px 12px 15px;
+            flex-wrap: wrap;
+            max-height: 200px;
+            transition: all 0.3s ease;
+        }
+
+        .warm-tips.collapsed .tips-content {
+            max-height: 0;
+            padding: 0 15px;
+            opacity: 0;
+        }
+
+        .warm-tips .tip-text {
+            animation: breathe 3s ease-in-out infinite;
+            white-space: nowrap;
+        }
+
+        .warm-tips .tip-divider {
+            opacity: 0.5;
+        }
+
+        @keyframes breathe {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* ========== 记忆进度追踪 ========== */
+        .memory-stats {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+            border: 1px solid rgba(167, 139, 250, 0.5);
+            border-radius: 15px;
+            padding: 15px 25px;
+            margin: 20px auto;
+            max-width: 800px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-item .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #fdcb6e;
+        }
+
+        .stat-item .stat-label {
+            font-size: 0.85em;
+            color: #a0a0a0;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            max-width: 300px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #a78bfa, #ff6b6b);
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+
+        /* ========== 鼓励语弹窗 ========== */
+        .encouragement {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 30px 50px;
+            border-radius: 20px;
+            color: white;
+            font-size: 1.3em;
+            font-weight: bold;
+            z-index: 10000;
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.6);
+            text-align: center;
+            animation: popIn 0.5s ease forwards;
+        }
+
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            70% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .encouragement.hide {
+            animation: popOut 0.3s ease forwards;
+        }
+
+        @keyframes popOut {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+        }
+
+        /* ========== 段落完成度显示 ========== */
+        .para-progress {
+            display: inline-block;
+            background: rgba(0, 212, 255, 0.2);
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 0.85em;
+            color: #00d4ff;
+            margin-left: 10px;
+        }
+
+        /* 不同段落背景色 */
+        .timeline-item[data-step="1"] .timeline-content { background: linear-gradient(135deg, rgba(255, 107, 107, 0.05), rgba(255, 159, 67, 0.05)); }
+        .timeline-item[data-step="2"] .timeline-content { background: linear-gradient(135deg, rgba(253, 203, 110, 0.05), rgba(255, 159, 67, 0.05)); }
+        .timeline-item[data-step="3"] .timeline-content { background: linear-gradient(135deg, rgba(0, 184, 148, 0.05), rgba(0, 212, 255, 0.05)); }
+        .timeline-item[data-step="4"] .timeline-content { background: linear-gradient(135deg, rgba(0, 212, 255, 0.05), rgba(102, 126, 234, 0.05)); }
+        .timeline-item[data-step="5"] .timeline-content { background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(123, 44, 191, 0.05)); }
+        .timeline-item[data-step="6"] .timeline-content { background: linear-gradient(135deg, rgba(123, 44, 191, 0.05), rgba(167, 139, 250, 0.05)); }
+        .timeline-item[data-step="7"] .timeline-content { background: linear-gradient(135deg, rgba(167, 139, 250, 0.05), rgba(255, 107, 181, 0.05)); }
+        .timeline-item[data-step="8"] .timeline-content { background: linear-gradient(135deg, rgba(255, 107, 181, 0.05), rgba(255, 107, 107, 0.05)); }
+        .timeline-item[data-step="9"] .timeline-content { background: linear-gradient(135deg, rgba(255, 107, 107, 0.05), rgba(253, 203, 110, 0.05)); }
+        .timeline-item[data-step="10"] .timeline-content { background: linear-gradient(135deg, rgba(253, 203, 110, 0.05), rgba(0, 184, 148, 0.05)); }
+        .timeline-item[data-step="11"] .timeline-content { background: linear-gradient(135deg, rgba(0, 184, 148, 0.05), rgba(0, 212, 255, 0.05)); }
+        .timeline-item[data-step="12"] .timeline-content { background: linear-gradient(135deg, rgba(0, 212, 255, 0.05), rgba(102, 126, 234, 0.05)); }
+        .timeline-item[data-step="13"] .timeline-content { background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(123, 44, 191, 0.05)); }
+        .timeline-item[data-step="14"] .timeline-content { background: linear-gradient(135deg, rgba(123, 44, 191, 0.05), rgba(167, 139, 250, 0.05)); }
+        .timeline-item[data-step="15"] .timeline-content { background: linear-gradient(135deg, rgba(167, 139, 250, 0.05), rgba(255, 107, 181, 0.05)); }
+        .timeline-item[data-step="16"] .timeline-content { background: linear-gradient(135deg, rgba(255, 107, 181, 0.05), rgba(255, 107, 107, 0.05)); }
+        .timeline-item[data-step="17"] .timeline-content { background: linear-gradient(135deg, rgba(255, 107, 107, 0.05), rgba(253, 203, 110, 0.05)); }
+        .timeline-item[data-step="18"] .timeline-content { background: linear-gradient(135deg, rgba(253, 203, 110, 0.05), rgba(0, 184, 148, 0.05)); }
+        .timeline-item[data-step="19"] .timeline-content { background: linear-gradient(135deg, rgba(0, 184, 148, 0.05), rgba(0, 212, 255, 0.05)); }
+        .timeline-item[data-step="20"] .timeline-content { background: linear-gradient(135deg, rgba(0, 212, 255, 0.05), rgba(102, 126, 234, 0.05)); }
+        .timeline-item[data-step="21"] .timeline-content { background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(255, 107, 107, 0.05)); }
+
+        /* 颜色图例 */
+        .color-legend {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.85em;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 5px;
+            border: 1px dashed;
+        }
+
+        .legend-color.num { background: rgba(253, 203, 110, 0.3); border-color: #fdcb6e; }
+        .legend-color.triz { background: linear-gradient(135deg, rgba(123, 44, 191, 0.3), rgba(102, 126, 234, 0.3)); border-color: #a78bfa; }
+        .legend-color.tech { background: rgba(0, 212, 255, 0.3); border-color: #00d4ff; }
+        .legend-color.verb { background: rgba(255, 159, 67, 0.3); border-color: #ff9f43; }
+        .legend-color.noun { background: rgba(255, 107, 181, 0.3); border-color: #ff6bb5; }
+        .legend-color.default { background: rgba(255, 107, 107, 0.3); border-color: #ff6b6b; }
+
+        /* ========== 爱心特效 ========== */
+        .heart-effect {
+            position: fixed;
+            pointer-events: none;
+            z-index: 10000;
+            animation: heartFloat 2s ease-out forwards;
+            font-size: 20px;
+        }
+
+        @keyframes heartFloat {
+            0% {
+                opacity: 1;
+                transform: translateY(0) rotate(0deg) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px) rotate(45deg) scale(1.5);
+            }
+        }
+
+        /* ========== 星星特效 ========== */
+        .star-effect {
+            position: fixed;
+            pointer-events: none;
+            z-index: 10000;
+            animation: starSparkle 1.5s ease-out forwards;
+        }
+
+        @keyframes starSparkle {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(0.5) rotate(0deg);
+            }
+            50% {
+                opacity: 1;
+                transform: translateY(-30px) scale(1.2) rotate(180deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-80px) scale(0.8) rotate(360deg);
+            }
+        }
+
+        /* ========== 鼓励弹窗 ========== */
+        .encourage-toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.5);
+            background: linear-gradient(135deg, #ff6b9d, #ff4757);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 20px;
+            font-size: 1.3em;
+            font-weight: bold;
+            box-shadow: 0 10px 40px rgba(255, 107, 157, 0.5);
+            z-index: 10001;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .encourage-toast.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* ========== 进度提示弹窗 ========== */
+        .progress-toast {
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px 50px;
+            border-radius: 25px;
+            font-size: 1.4em;
+            font-weight: bold;
+            box-shadow: 0 15px 50px rgba(102, 126, 234, 0.6);
+            z-index: 10002;
+            opacity: 0;
+            transition: all 0.4s ease;
+        }
+
+        .progress-toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ========== 温馨提示弹窗 ========== */
+        .warm-tip-popup {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 20px;
+            font-size: 1.1em;
+            box-shadow: 0 10px 40px rgba(0, 184, 148, 0.5);
+            z-index: 10003;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            opacity: 0;
+            transform: translateX(100px);
+            transition: all 0.4s ease;
+        }
+
+        .warm-tip-popup.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .warm-tip-popup button {
+            background: rgba(255, 255, 255, 0.3);
+            border: none;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .warm-tip-popup button:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* ========== 段落完成高亮 ========== */
+        .timeline-item.completed {
+            border-color: #00b894 !important;
+            background: linear-gradient(135deg, rgba(0, 184, 148, 0.15), rgba(0, 206, 201, 0.1)) !important;
+        }
+
+        .timeline-item.completed::before {
+            content: '✅';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.2em;
+        }
+
+        /* ========== 旧版背景音乐控制（已弃用，隐藏） ========== */
+        .music-control {
+            display: none !important; /* 已合并到底部控制栏 */
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9));
+            padding: 12px 20px;
+            border-radius: 25px;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .music-control button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .music-control button:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(1.1);
+        }
+
+        .music-control .music-label {
+            color: white;
+            font-size: 0.85em;
+        }
+
+        .music-control.playing button {
+            animation: musicPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes musicPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* ========== 颜色分类形容词样式 ========== */
+        .legend-color.adj { background: rgba(253, 121, 168, 0.3); border-color: #fd79a8; }
+        .legend-color.connector { background: rgba(0, 206, 201, 0.3); border-color: #00cec9; }
+
+        /* ========== 移动端响应式适配 ========== */
+        @media screen and (max-width: 1024px) {
+            body {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .mind-map-container {
+                flex-direction: column;
+                gap: 20px;
+                padding: 10px;
+            }
+
+            .branch-group {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .branch {
+                width: 100%;
+                margin: 5px 0;
+            }
+
+            .center-node {
+                width: 200px;
+                height: 200px;
+                font-size: 0.9em;
+            }
+
+            .memory-stats {
+                padding: 10px 15px;
+                gap: 10px;
+            }
+
+            .stat-item .stat-value {
+                font-size: 1.2em;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .header p {
+                font-size: 0.9em;
+            }
+
+            .mode-toggle {
+                flex-direction: column;
+                gap: 8px;
+                padding: 10px;
+            }
+
+            .mode-btn {
+                width: 100%;
+                padding: 12px 15px;
+                font-size: 0.95em;
+            }
+
+            .controls {
+                flex-direction: column;
+                gap: 8px;
+                padding: 10px;
+            }
+
+            .controls button {
+                width: 100%;
+                padding: 12px;
+                font-size: 0.9em;
+            }
+
+            .center-node {
+                width: 180px;
+                height: 180px;
+            }
+
+            .center-node h2 {
+                font-size: 1.2em;
+            }
+
+            .warm-tips {
+                position: relative;
+                top: 0;
+                right: 0;
+                flex-direction: column;
+                max-width: 100%;
+                padding: 10px 15px;
+                border-radius: 10px;
+                margin: 10px 0;
+                gap: 8px;
+            }
+
+            .warm-tips .tip-divider {
+                display: none;
+            }
+
+            .defense-content {
+                padding: 15px;
+            }
+
+            .timeline-item {
+                padding: 15px;
+            }
+
+            .timeline-title {
+                font-size: 1em;
+            }
+
+            .script-text {
+                font-size: 0.95em;
+                line-height: 2;
+            }
+
+            .blank {
+                min-width: 50px;
+                padding: 2px 6px;
+                font-size: 0.9em;
+            }
+
+            .blank-controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .blank-controls button {
+                width: 100%;
+                padding: 12px;
+            }
+
+            .blank-counter {
+                padding: 6px 12px;
+                font-size: 0.85em;
+                flex-wrap: wrap;
+            }
+
+            .memory-stats {
+                flex-direction: column;
+                padding: 12px;
+                gap: 12px;
+            }
+
+            .stat-item {
+                width: 100%;
+            }
+
+            .stat-item .progress-bar-container {
+                max-width: 100%;
+            }
+
+            .color-legend {
+                gap: 8px;
+                padding: 10px;
+            }
+
+            .legend-item {
+                font-size: 0.75em;
+            }
+
+            .legend-color {
+                width: 16px;
+                height: 16px;
+            }
+
+            .music-control {
+                padding: 8px 15px;
+                gap: 8px;
+            }
+
+            .music-control button {
+                width: 35px;
+                height: 35px;
+                font-size: 14px;
+            }
+
+            .music-control .music-label {
+                font-size: 0.75em;
+            }
+
+            .encourage-toast {
+                padding: 15px 25px;
+                font-size: 1.1em;
+            }
+
+            .progress-toast {
+                padding: 18px 30px;
+                font-size: 1.2em;
+            }
+
+            .warm-tip-popup {
+                bottom: 80px;
+                right: 15px;
+                left: 15px;
+                padding: 15px 20px;
+                font-size: 1em;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+
+            .header {
+                padding: 15px 0;
+            }
+
+            .header h1 {
+                font-size: 1.2em;
+            }
+
+            .header p {
+                font-size: 0.8em;
+            }
+
+            .center-node {
+                width: 150px;
+                height: 150px;
+            }
+
+            .center-node h2 {
+                font-size: 1em;
+            }
+
+            .center-node p {
+                font-size: 0.75em;
+            }
+
+            .timeline-item {
+                padding: 12px;
+            }
+
+            .timeline-title {
+                font-size: 0.9em;
+            }
+
+            .script-text {
+                font-size: 0.85em;
+                line-height: 1.9;
+            }
+
+            .blank {
+                min-width: 40px;
+                padding: 1px 4px;
+                font-size: 0.85em;
+                margin: 0 2px;
+            }
+
+            .blank-counter {
+                font-size: 0.8em;
+                padding: 5px 10px;
+            }
+
+            .stat-item .stat-value {
+                font-size: 1.1em;
+            }
+
+            .stat-item .stat-label {
+                font-size: 0.75em;
+            }
+
+            .legend-item {
+                font-size: 0.7em;
+            }
+
+            .legend-color {
+                width: 14px;
+                height: 14px;
+            }
+
+            .music-control {
+                left: 10px;
+                bottom: 10px;
+                padding: 6px 12px;
+            }
+
+            .music-control button {
+                width: 30px;
+                height: 30px;
+                font-size: 12px;
+            }
+
+            .music-control .music-label {
+                display: none;
+            }
+
+            .encourage-toast {
+                padding: 12px 20px;
+                font-size: 1em;
+                max-width: 90%;
+            }
+
+            .progress-toast {
+                padding: 15px 25px;
+                font-size: 1em;
+                max-width: 90%;
+            }
+        }
+
+        /* ========== 触摸优化 ========== */
+        @media (hover: none) and (pointer: coarse) {
+            .blank {
+                min-height: 35px;
+                padding: 6px 10px;
+            }
+
+            .timeline-item {
+                padding: 15px;
+            }
+
+            .controls button,
+            .mode-btn,
+            .blank-controls button {
+                min-height: 44px;
+            }
+
+            .music-control button {
+                min-width: 44px;
+                min-height: 44px;
+            }
+        }
+
+        /* ========== 鼠标移动爱心特效 ========== */
+        .mouse-heart {
+            position: fixed;
+            pointer-events: none;
+            z-index: 99999;
+            animation: mouseHeartFloat 1.8s ease-out forwards;
+            font-size: 16px;
+            text-shadow: 0 0 10px rgba(255, 107, 157, 0.6);
+        }
+
+        @keyframes mouseHeartFloat {
+            0% {
+                opacity: 1;
+                transform: translateY(0) translateX(0) scale(1) rotate(0deg);
+            }
+            25% {
+                transform: translateY(-20px) translateX(8px) scale(1.1) rotate(10deg);
+            }
+            50% {
+                transform: translateY(-40px) translateX(-5px) scale(0.9) rotate(-8deg);
+            }
+            75% {
+                transform: translateY(-60px) translateX(6px) scale(0.7) rotate(5deg);
+                opacity: 0.6;
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-80px) translateX(0) scale(0.3) rotate(0deg);
+            }
+        }
+
+        /* ========== 鼠标尾缀粒子追踪特效 ========== */
+        .mouse-particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 99998;
+            border-radius: 50%;
+            animation: mouseParticleFade 1s ease-out forwards;
+        }
+
+        .mouse-particle.star {
+            border-radius: 0;
+            font-size: 12px;
+            background: transparent !important;
+        }
+
+        @keyframes mouseParticleFade {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.1);
+            }
+        }
+
+        /* ========== 统一底部控制栏（合并答辩导航+音乐+特效控制） ========== */
+        .unified-bottom-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: linear-gradient(135deg, rgba(30, 30, 60, 0.95), rgba(50, 50, 80, 0.95));
+            border-radius: 20px;
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 5px 30px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            max-width: 95vw;
+        }
+
+        .unified-bottom-bar .bar-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+        }
+
+        .unified-bottom-bar .bar-header:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.4), rgba(118, 75, 162, 0.4));
+        }
+
+        .unified-bottom-bar .bar-header-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .unified-bottom-bar .bar-toggle {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .unified-bottom-bar .bar-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(180deg);
+        }
+
+        .unified-bottom-bar .bar-content {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 15px 20px;
+            max-height: 300px;
+            transition: all 0.3s ease;
+        }
+
+        .unified-bottom-bar.collapsed .bar-content {
+            max-height: 0;
+            padding: 0 20px;
+            opacity: 0;
+        }
+
+        /* 答辩导航区域 */
+        .defense-nav-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 10px 15px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.25), rgba(118, 75, 162, 0.25));
+            border-radius: 15px;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            flex-wrap: wrap;
+        }
+
+        .defense-nav-section .nav-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .defense-nav-section .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .defense-nav-section .step-info {
+            background: rgba(253, 203, 110, 0.2);
+            padding: 8px 18px;
+            border-radius: 12px;
+            font-weight: bold;
+            color: #fdcb6e;
+            border: 1px solid rgba(253, 203, 110, 0.3);
+        }
+
+        /* 媒体控制区域（音乐+特效） */
+        .media-controls-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        /* 音乐控制区 */
+        .music-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            background: rgba(167, 139, 250, 0.15);
+            border-radius: 15px;
+            border: 1px solid rgba(167, 139, 250, 0.3);
+        }
+
+        .music-section .music-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .music-section .music-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 3px 15px rgba(102, 126, 234, 0.5);
+        }
+
+        .music-section .music-info {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .music-section .track-name {
+            font-size: 12px;
+            color: #a78bfa;
+            font-weight: bold;
+        }
+
+        .music-section .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .music-section .volume-control input[type="range"] {
+            width: 60px;
+            height: 4px;
+            cursor: pointer;
+            accent-color: #a78bfa;
+        }
+
+        .music-section .switch-track-btn {
+            background: linear-gradient(135deg, #ff6b9d, #ff85a1);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.3s ease;
+        }
+
+        .music-section .switch-track-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* 特效控制区 */
+        .effects-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 15px;
+            background: rgba(0, 206, 201, 0.15);
+            border-radius: 15px;
+            border: 1px solid rgba(0, 206, 201, 0.3);
+        }
+
+        .effects-section .section-label {
+            font-size: 12px;
+            color: #00cec9;
+            font-weight: bold;
+        }
+
+        .effect-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            color: #e0e0e0;
+        }
+
+        .effect-toggle:hover {
+            background: rgba(0, 206, 201, 0.2);
+        }
+
+        .effect-toggle input[type="checkbox"] {
+            display: none;
+        }
+
+        .effect-toggle .toggle-switch {
+            width: 32px;
+            height: 18px;
+            background: rgba(100, 100, 100, 0.5);
+            border-radius: 9px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .effect-toggle .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .effect-toggle input:checked + .toggle-switch {
+            background: linear-gradient(135deg, #00cec9, #00b894);
+        }
+
+        .effect-toggle input:checked + .toggle-switch::after {
+            left: 16px;
+        }
+
+        /* 旧的 defense-controls 样式已废弃，保留隐藏样式用于兼容 */
+        .defense-controls {
+            display: none !important;
+        }
+
+        /* ========== 移动端响应式适配 ========== */
+        @media (max-width: 1024px) {
+            .unified-bottom-bar {
+                max-width: 90vw;
+            }
+
+            .defense-nav-section {
+                gap: 8px;
+            }
+
+            .defense-nav-section .nav-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .warm-tips {
+                right: 10px;
+                top: 10px;
+                max-width: calc(100vw - 20px);
+            }
+
+            .warm-tips .tips-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .warm-tips .tip-divider {
+                display: none;
+            }
+
+            .unified-bottom-bar {
+                left: 10px;
+                right: 10px;
+                transform: none;
+                bottom: 10px;
+                max-width: none;
+            }
+
+            .unified-bottom-bar .bar-content {
+                padding: 12px 15px;
+                gap: 10px;
+            }
+
+            .defense-nav-section {
+                width: 100%;
+                padding: 8px 10px;
+            }
+
+            .media-controls-section {
+                width: 100%;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .music-section, .effects-section {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .warm-tips .tips-header {
+                padding: 8px 12px;
+            }
+
+            .warm-tips .tip-text {
+                font-size: 12px;
+            }
+
+            .unified-bottom-bar .bar-header {
+                padding: 8px 15px;
+            }
+
+            .unified-bottom-bar .bar-header-title {
+                font-size: 12px;
+            }
+
+            .defense-nav-section .nav-btn {
+                padding: 5px 10px;
+                font-size: 11px;
+            }
+
+            .defense-nav-section .step-info {
+                padding: 5px 12px;
+                font-size: 12px;
+            }
+
+            .music-section {
+                flex-wrap: wrap;
+                justify-content: center;
+                padding: 6px 10px;
+            }
+
+            .effects-section {
+                flex-wrap: wrap;
+                justify-content: center;
+                padding: 6px 10px;
+            }
+
+            .effect-toggle span:last-child {
+                display: none;
+            }
+
+            .music-section .switch-track-btn {
+                display: none;
+            }
+        }
+
+        /* 触摸设备优化 */
+        @media (hover: none) and (pointer: coarse) {
+            .unified-bottom-bar .bar-header,
+            .warm-tips .tips-header {
+                min-height: 44px;
+            }
+
+            .defense-nav-section .nav-btn,
+            .music-section .music-btn {
+                min-width: 44px;
+                min-height: 44px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔧 TRIZ工业旋转设备故障监测系统</h1>
+        <p>基于TRIZ理论的智能监测解决方案 | 可视化思维导图</p>
+    </div>
+
+    <!-- 模式切换 -->
+    <div class="mode-toggle">
+        <button class="mode-btn active" onclick="switchMode('mindmap')" id="btn-mindmap">🗺️ 思维导图模式</button>
+        <button class="mode-btn" onclick="switchMode('defense')" id="btn-defense">🎤 答辩模式</button>
+    </div>
+
+    <div class="controls" id="mindmap-controls">
+        <button onclick="expandAll()">📖 展开全部</button>
+        <button onclick="collapseAll()">📕 收起全部</button>
+        <button onclick="scrollToSolutions()">📋 12个方案</button>
+        <button onclick="scrollToMapping()">🔗 问题映射</button>
+        <button onclick="scrollToData()">📊 关键数据</button>
+        <button onclick="scrollToTerms()">📚 查看术语</button>
+        <button onclick="scrollToTips()">💡 记忆技巧</button>
+    </div>
+
+    <!-- 答辩进度条 -->
+    <div class="defense-progress" id="defense-progress">
+        <div class="defense-progress-bar" id="progress-bar"></div>
+    </div>
+
+    <!-- 温馨提示区域（可伸缩） -->
+    <div class="warm-tips" id="warm-tips">
+        <div class="tips-header" onclick="toggleWarmTips()">
+            <span class="tip-icon">💖</span>
+            <span>学习助手</span>
+            <button class="toggle-btn" id="tips-toggle-btn">▼</button>
+        </div>
+        <div class="tips-content" id="tips-content">
+            <span class="tip-text" id="study-time">⏱️ 学习时长：0分00秒</span>
+            <span class="tip-divider">|</span>
+            <span class="tip-text" id="click-counter">✏️ 已练习 0 次</span>
+            <span class="tip-divider">|</span>
+            <span class="tip-text">💡 点击填空显示答案</span>
+        </div>
+    </div>
+
+    <!-- 背景音乐（双曲目） -->
+    <audio id="bg-music-1" loop preload="auto">
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="bg-music-2" loop preload="auto">
+        <source src="https://www.bensound.com/bensound-music/bensound-tenderness.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- 统一底部控制栏（合并答辩导航+音乐+特效控制） -->
+    <div class="unified-bottom-bar" id="unified-bottom-bar">
+        <div class="bar-header" onclick="toggleUnifiedBar()">
+            <div class="bar-header-title">
+                <span>🎛️</span>
+                <span id="bar-mode-label">控制面板</span>
+                <span class="step-display" id="bar-step-display" style="display: none;">| 步骤 1/21</span>
+            </div>
+            <button class="bar-toggle" id="bar-toggle-btn">▲</button>
+        </div>
+        <div class="bar-content" id="bar-content">
+            <!-- 答辩导航区（仅在答辩模式显示） -->
+            <div class="defense-nav-section" id="defense-nav-section" style="display: none;">
+                <button class="nav-btn" onclick="event.stopPropagation(); prevStep()">⬅️ 上一步</button>
+                <span class="step-info" id="step-info">步骤 1/21</span>
+                <button class="nav-btn" onclick="event.stopPropagation(); nextStep()">下一步 ➡️</button>
+                <button class="nav-btn" onclick="event.stopPropagation(); resetDefense()">🔄 重置</button>
+            </div>
+
+            <!-- 媒体控制区（音乐+特效） -->
+            <div class="media-controls-section">
+                <!-- 音乐控制区 -->
+                <div class="music-section">
+                    <button class="music-btn" id="music-toggle" onclick="event.stopPropagation(); toggleMusic()" title="播放/暂停">🎵</button>
+                    <div class="music-info">
+                        <span class="track-name" id="music-label">轻快音乐</span>
+                        <div class="volume-control">
+                            <span>🔊</span>
+                            <input type="range" id="volume-slider" min="0" max="100" value="30"
+                                   onchange="changeVolume(this.value)" onclick="event.stopPropagation()">
+                        </div>
+                    </div>
+                    <button class="switch-track-btn" onclick="event.stopPropagation(); switchMusicTrack()">🎹 切换曲目</button>
+                </div>
+
+                <!-- 特效控制区 -->
+                <div class="effects-section">
+                    <span class="section-label">✨ 鼠标特效</span>
+                    <label class="effect-toggle" onclick="event.stopPropagation()">
+                        <input type="checkbox" id="toggle-heart-effect" checked onchange="toggleHeartEffect(this.checked)">
+                        <span class="toggle-switch"></span>
+                        <span>💖 爱心</span>
+                    </label>
+                    <label class="effect-toggle" onclick="event.stopPropagation()">
+                        <input type="checkbox" id="toggle-particle-effect" checked onchange="toggleParticleEffect(this.checked)">
+                        <span class="toggle-switch"></span>
+                        <span>✨ 粒子</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mind-map-container">
+        <!-- 中心节点 -->
+        <div class="center-node" onclick="toggleAllBranches()">
+            <div class="content">
+                <h2>TRIZ理论</h2>
+                <p>创新问题解决理论</p>
+                <p style="font-size: 0.8em; margin-top: 10px;">点击展开详情</p>
+            </div>
+        </div>
+
+        <!-- 六大分支 -->
+        <div class="branches">
+            <!-- 分支1: 项目背景 -->
+            <div class="branch branch-1" onclick="toggleBranch(this)">
+                <div class="branch-header">
+                    <div class="branch-icon">📊</div>
+                    <div class="branch-title">项目背景</div>
+                    <div class="branch-number">01</div>
+                    <span class="expand-indicator">▼</span>
+                </div>
+                <ul class="sub-items">
+                    <li class="sub-item">
+                        <div class="sub-item-title">智能制造政策推动</div>
+                        <div class="sub-item-desc">国家大力推动智能制造发展，为行业带来机遇</div>
+                    </li>
+                    <li class="sub-item">
+                        <div class="sub-item-title">市场渗透率85%</div>
+                        <div class="sub-item-desc">监测设备在工业领域已达到较高渗透率</div>
+                    </li>
+                    <li class="sub-item">
+                        <div class="sub-item-title">市场规模3550亿元</div>
+                        <div class="sub-item-desc">预计到2027年市场规模将超过3550亿元</div>
+                    </li>
+                    <li class="sub-item">
+                        <div class="sub-item-title">现有问题</div>
+                        <div class="sub-item-desc">
+                            <span class="keyword-tag">单一感知</span>
+                            <span class="keyword-tag">智能不足</span>
+                            <span class="keyword-tag">架构失衡</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+
+            <!-- 分支2: 技术选型 -->
+            <div class="branch branch-2" onclick="toggleBranch(this)">
+                <div class="branch-header">
+                    <div class="branch-icon">🔬</div>
+                    <div class="branch-title">技术选型</div>
+                    <div class="branch-number">02</div>
+                    <span class="expand-indicator">▼</span>
+                </div>
+                <ul class="sub-items">
+                    <li class="sub-item">
+                        <div class="sub-item-title">选择典型专利</div>
+                        <div class="sub-item-desc">团队调研并选择旋转系统中的振动监测与故障诊断专利作为初始系统</div>
+                    </li>
+                    <li class="sub-item">
+                        <div class="sub-item-title">TRIZ理论指导</div>
+                        <div class="sub-item-desc">采用TRIZ创新问题解决理论作为方法论指导</div>
+                    </li>
+                    <li class="sub-item">
+                        <div class="sub-item-title">核心设备类型</div>
+                        <div class="sub-item-desc">
+                            <span class="keyword-tag">风机</span>
+                            <span class="keyword-tag">电机</span>
+                            <span class="keyword-tag">泵</span>
+                            <span class="keyword-tag">数控机床</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 分支3: TRIZ理论分析 -->
+            <div class="branch branch-3" onclick="toggleBranch(this)">
+                <div class="branch-header">
+                    <div class="branch-icon">🧠</div>
+                    <div class="branch-title">TRIZ理论分析</div>
+                    <div class="branch-number">03</div>
+                    <span class="expand-indicator">▼</span>
+                </div>
+                <ul class="sub-items">
+                    <li class="sub-item">
+                        <div class="sub-item-title">组件分析</div>
+                        <div class="sub-item-desc">
+                            核心组件：<span class="keyword-tag">传感器</span>
+                            <span class="keyword-tag">边缘计算单元</span>
+                            <span class="keyword-tag">数据处理模块</span>
+                        </div>
+                    </li>
+                    <li class="sub-item">
+                        <div class="sub-item-title">功能分析</div>
+                        <div class="sub-item-desc">发现系统缺陷：有益功能不足、有害功能存在、功能缺失</div>
+                    </li>
+                    <li class="sub-item">
+                        <div class="sub-item-title">因果分析</div>
+                        <div class="sub-item-desc">针对关键问题进行分析，转化为五个关键问题</div>
+                    </li>
+                    <li class="sub-item">
+                        <div class="sub-item-title">九屏分析</div>
+                        <div class="sub-item-desc">TRIZ方法中的分析工具，用于问题的系统化分析</div>
+                    </li>
+                    <li class="sub-item">
+                        <div class="sub-item-title">超系统影响因素</div>
+                        <div class="sub-item-desc">分析影响系统性能的外部因素</div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 分支4: 解决方案 -->
+            <div class="branch branch-4" onclick="toggleBranch(this)">
+                <div class="branch-header">
+                    <div class="branch-icon">💡</div>
+                    <div class="branch-title">解决方案</div>
+                    <div class="branch-number">04</div>
+                    <span class="expand-indicator">▼</span>
+                </div>
+                <ul class="sub-items">
+                    <li class="sub-item">
+                        <div class="sub-item-title">IFR理想解</div>
+                        <div class="sub-item-desc">设备实现"零误报漏报"，误报率降低至3%以下</div>
+                    </li>
+                    <li class="sub-item">
+                        <div class="sub-item-title">精度提升</div>
+                        <div class="sub-item-desc">通过AI算法与NPU神经网络提升监测精度</div>
+                    </li>
+                    <li class="sub-item">
+                        <div class="sub-item-title">降低复杂性</div>
+                        <div class="sub-item-desc">硬件集成，将多个传感单元嵌套到一个模块</div>
+                    </li>
+                    <li class="sub-item">
+                        <div class="sub-item-title">智能化提升</div>
+                        <div class="sub-item-desc">
+                            <span class="keyword-tag">故障经验知识库</span>
+                            <span class="keyword-tag">全生命周期档案</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 分支5: 技术原理 -->
+            <div class="branch branch-5" onclick="toggleBranch(this)">
+                <div class="branch-header">
+                    <div class="branch-icon">⚙️</div>
+                    <div class="branch-title">技术原理</div>
+                    <div class="branch-number">05</div>
+                    <span class="expand-indicator">▼</span>
+                </div>
+                <ul class="sub-items">
+                    <li class="sub-item">
+                        <div class="sub-item-title">嵌套原理</div>
+                        <div class="sub-item-desc">将声、振、温传感单元嵌套集成到一个硬件模块中，解决精度与复杂性的矛盾</div>
+                    </li>
+                    <li class="sub-item">
+                        <div class="sub-item-title">分离原理</div>
+                        <div class="sub-item-desc">确保系统既稳定又能够持续进化</div>
+                    </li>
+                    <li class="sub-item">
+                        <div class="sub-item-title">物场模型</div>
+                        <div class="sub-item-desc">通过NPU神经网络和AI算法场提升监测精度</div>
+                    </li>
+                    <li class="sub-item">
+                        <div class="sub-item-title">裁剪法</div>
+                        <div class="sub-item-desc">减少对工程师依赖，优化系统结构</div>
+                    </li>
+                    <li class="sub-item">
+                        <div class="sub-item-title">金鱼法</div>
+                        <div class="sub-item-desc">通过构思极端或幻想的解决方案来启发思路</div>
+                    </li>
+                    <li class="sub-item">
+                        <div class="sub-item-title">STC算子</div>
+                        <div class="sub-item-desc">基于尺寸(Size)、时间(Time)、成本(Cost)的综合分析</div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 分支6: 成果验证 -->
+            <div class="branch branch-6" onclick="toggleBranch(this)">
+                <div class="branch-header">
+                    <div class="branch-icon">🏆</div>
+                    <div class="branch-title">成果验证</div>
+                    <div class="branch-number">06</div>
+                    <span class="expand-indicator">▼</span>
+                </div>
+                <ul class="sub-items">
+                    <li class="sub-item">
+                        <div class="sub-item-title">性能超越</div>
+                        <div class="sub-item-desc">系统性能超越行业同类产品</div>
+                    </li>
+                    <li class="sub-item">
+                        <div class="sub-item-title">符合标准</div>
+                        <div class="sub-item-desc">经检测符合国家标准要求</div>
+                    </li>
+                    <li class="sub-item">
+                        <div class="sub-item-title">专利申请</div>
+                        <div class="sub-item-desc">
+                            <span class="keyword-tag">1项发明专利</span>
+                            <span class="keyword-tag">2项实用新型专利</span>
+                            <span class="keyword-tag">3项软件著作权</span>
+                        </div>
+                    </li>
+                    <li class="sub-item">
+                        <div class="sub-item-title">推动创新</div>
+                        <div class="sub-item-desc">推动"中国创造"和"中国制造"发展</div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+
+        <!-- TRIZ分析流程图 -->
+        <div class="flow-section">
+            <h3>📈 TRIZ分析流程</h3>
+            <div class="flow-chart">
+                <div class="flow-step">组件分析</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">功能分析</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">因果分析</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">理想解转化</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">方案实施</div>
+            </div>
+        </div>
+
+        <!-- 关键术语区域 -->
+        <div class="terms-section" id="terms-section">
+            <h3>📚 关键术语速查</h3>
+            <div class="terms-grid">
+                <div class="term-card">
+                    <div class="term-name">TRIZ理论</div>
+                    <div class="term-desc">创新问题解决理论，基于工程学和发明学，用于系统性解决技术问题</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">工业旋转类设备</div>
+                    <div class="term-desc">包括风机、电机、泵等机械设备</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">边缘计算</div>
+                    <div class="term-desc">数据处理靠近数据来源的地方，而不是云端，降低延迟</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">九屏分析</div>
+                    <div class="term-desc">TRIZ方法中的分析工具，从时间和空间维度系统化分析问题</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">IFR (理想解)</div>
+                    <div class="term-desc">Ideal Final Result，理想最终结果，指导解决方案的方向</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">嵌套原理</div>
+                    <div class="term-desc">在一个系统中嵌入其他功能或设备，实现集成化</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">分离原理</div>
+                    <div class="term-desc">将问题分开处理，从而更有效解决矛盾</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">物场模型</div>
+                    <div class="term-desc">物理场与系统间的相互关系模型，用于分析系统功能</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">金鱼法</div>
+                    <div class="term-desc">通过构思极端或幻想的解决方案来启发创新思路</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">STC算子</div>
+                    <div class="term-desc">尺寸(Size)、时间(Time)、成本(Cost)的综合分析工具</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">NPU神经网络</div>
+                    <div class="term-desc">神经网络处理单元，用于AI算法加速</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">AI算法场</div>
+                    <div class="term-desc">基于人工智能的计算环境，提升监测精度</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 记忆技巧区域 -->
+        <div class="memory-tips" id="memory-tips">
+            <h3>快速记忆技巧</h3>
+            <div class="tips-grid">
+                <div class="tip-card">
+                    <h4>🎯 核心问题记忆</h4>
+                    <p>记住系统的主要问题是<strong>误报漏报多</strong>，解决方法围绕"精度"和"智能化"展开。三个关键点：精度提升（AI）、降低复杂性（硬件集成）、智能化（知识库）</p>
+                </div>
+                <div class="tip-card">
+                    <h4>🔄 TRIZ框架记忆</h4>
+                    <p>记住TRIZ的分析路径：<strong>组件分析 → 功能分析 → 因果分析 → 理想解转化</strong>。这是一个递进的逻辑链条。</p>
+                </div>
+                <div class="tip-card">
+                    <h4>📝 首字母法</h4>
+                    <p><strong>T</strong>RIZ理论、<strong>M</strong>误报漏报、<strong>P</strong>精度提升、<strong>I</strong>智能化 = TMPI，可以联想为"太美皮衣"</p>
+                </div>
+                <div class="tip-card">
+                    <h4>🔢 数字记忆</h4>
+                    <p><strong>85%</strong>渗透率、<strong>3550</strong>亿市场、<strong>96.7%</strong>精度、<strong>3%</strong>误报率、<strong>1-2-3</strong>专利</p>
+                </div>
+                <div class="tip-card">
+                    <h4>🎨 原理三兄弟</h4>
+                    <p>核心技术原理：<strong>嵌套</strong>（集成）、<strong>分离</strong>（稳定+进化）、<strong>物场</strong>（AI提升）。可以想象成"嵌分物"三兄弟</p>
+                </div>
+                <div class="tip-card">
+                    <h4>🐟 金鱼STC</h4>
+                    <p>金鱼法（幻想启发）+ STC算子（尺寸Size、时间Time、成本Cost）。想象一条金鱼在STC三个维度游动</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 12个解决方案区域 ========== -->
+        <div class="solutions-section" id="solutions-section">
+            <h3>📋 12个解决方案完整梳理</h3>
+            <div class="solutions-grid">
+                <!-- 方案1 -->
+                <div class="solution-card" data-problem="1">
+                    <div class="solution-number">方案1</div>
+                    <div class="solution-title">针对关键问题1的初步方案</div>
+                    <div class="solution-method">因果分析</div>
+                    <div class="solution-desc">针对误报漏报多的关键问题进行因果分析，确定关键缺点，提出初步解决思路</div>
+                    <div class="solution-problem">→ 关键问题1</div>
+                </div>
+
+                <!-- 方案2 -->
+                <div class="solution-card" data-problem="2">
+                    <div class="solution-number">方案2</div>
+                    <div class="solution-title">针对关键问题2的方案</div>
+                    <div class="solution-method">因果分析</div>
+                    <div class="solution-desc">针对关键问题2提出的解决方案</div>
+                    <div class="solution-problem">→ 关键问题2</div>
+                </div>
+
+                <!-- 方案3 -->
+                <div class="solution-card" data-problem="2">
+                    <div class="solution-number">方案3</div>
+                    <div class="solution-title">针对关键问题2的补充方案</div>
+                    <div class="solution-method">因果分析</div>
+                    <div class="solution-desc">与方案2配合，共同解决关键问题2</div>
+                    <div class="solution-problem">→ 关键问题2</div>
+                </div>
+
+                <!-- 方案4 -->
+                <div class="solution-card" data-problem="ifr">
+                    <div class="solution-number">方案4</div>
+                    <div class="solution-title">IFR理想解牵引方案</div>
+                    <div class="solution-method">IFR理想解</div>
+                    <div class="solution-desc">确定最终理想解为"设备自主实现<span class="highlight">零误报漏报</span>的健康监测"，结合可用资源提出理想方向</div>
+                    <div class="solution-problem">→ 理想解牵引</div>
+                </div>
+
+                <!-- 方案5 -->
+                <div class="solution-card" data-problem="1">
+                    <div class="solution-number">方案5</div>
+                    <div class="solution-title">声振温三合一集成</div>
+                    <div class="solution-method">嵌套原理（物理矛盾）</div>
+                    <div class="solution-desc">将<span class="highlight">声、振、温</span>三种传感单元嵌套集成于一个硬件模组中，解决精度与复杂性的矛盾</div>
+                    <div class="solution-problem">→ 关键问题1 → 物理矛盾</div>
+                </div>
+
+                <!-- 方案6 -->
+                <div class="solution-card" data-problem="2">
+                    <div class="solution-number">方案6</div>
+                    <div class="solution-title">稳定与进化分离</div>
+                    <div class="solution-method">分离原理（技术矛盾）</div>
+                    <div class="solution-desc">解决系统模型既要保持<span class="highlight">稳定</span>，又要持续<span class="highlight">进化</span>的技术矛盾</div>
+                    <div class="solution-problem">→ 关键问题2 → 技术矛盾</div>
+                </div>
+
+                <!-- 方案7 -->
+                <div class="solution-card" data-problem="3">
+                    <div class="solution-number">方案7</div>
+                    <div class="solution-title">NPU+AI算法场</div>
+                    <div class="solution-method">物场模型</div>
+                    <div class="solution-desc">在边缘计算单元中嵌套NPU神经网络处理单元，引入AI算法场，精度从<span class="highlight-yellow">85%→96.7%</span>，误报率降至<span class="highlight-green">3%以下</span></div>
+                    <div class="solution-problem">→ 关键问题3</div>
+                </div>
+
+                <!-- 方案8 -->
+                <div class="solution-card" data-problem="4">
+                    <div class="solution-number">方案8</div>
+                    <div class="solution-title">故障经验知识库</div>
+                    <div class="solution-method">裁剪法</div>
+                    <div class="solution-desc">裁剪掉系统对<span class="highlight-red">资深工程师</span>的直接依赖，将诊断决策任务分配给故障经验知识库</div>
+                    <div class="solution-problem">→ 关键问题4</div>
+                </div>
+
+                <!-- 方案9 -->
+                <div class="solution-card" data-problem="4">
+                    <div class="solution-number">方案9</div>
+                    <div class="solution-title">全生命周期故障档案</div>
+                    <div class="solution-method">金鱼法</div>
+                    <div class="solution-desc">提出幻想方案，区分现实与幻想，最终构建设备<span class="highlight">全生命周期</span>故障档案</div>
+                    <div class="solution-problem">→ 关键问题4</div>
+                </div>
+
+                <!-- 方案10 -->
+                <div class="solution-card" data-problem="5">
+                    <div class="solution-number">方案10</div>
+                    <div class="solution-title">尺寸优化方案</div>
+                    <div class="solution-method">STC算子-Size</div>
+                    <div class="solution-desc">基于尺寸(Size)维度分析，优化系统硬件体积与集成度</div>
+                    <div class="solution-problem">→ 关键问题5</div>
+                </div>
+
+                <!-- 方案11 -->
+                <div class="solution-card" data-problem="5">
+                    <div class="solution-number">方案11</div>
+                    <div class="solution-title">时间优化方案</div>
+                    <div class="solution-method">STC算子-Time</div>
+                    <div class="solution-desc">基于时间(Time)维度分析，优化响应速度与处理效率</div>
+                    <div class="solution-problem">→ 关键问题5</div>
+                </div>
+
+                <!-- 方案12 -->
+                <div class="solution-card" data-problem="5">
+                    <div class="solution-number">方案12</div>
+                    <div class="solution-title">成本优化方案</div>
+                    <div class="solution-method">STC算子-Cost</div>
+                    <div class="solution-desc">基于成本(Cost)维度分析，实现高性能与低成本的平衡</div>
+                    <div class="solution-problem">→ 关键问题5</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 问题-方案映射区域 ========== -->
+        <div class="mapping-section" id="mapping-section">
+            <h3>🔗 5个关键问题与方案映射关系</h3>
+            <div class="mapping-container">
+                <!-- 问题1映射 -->
+                <div class="mapping-row">
+                    <div class="problem-box">关键问题1<br><small>误报漏报多</small></div>
+                    <div class="arrow-box">→</div>
+                    <div class="methods-box">
+                        <span class="solution-tag">方案1</span>
+                        <span class="arrow-box">→</span>
+                        <span class="method-tag">物理矛盾</span>
+                        <span class="arrow-box">→</span>
+                        <span class="method-tag">嵌套原理</span>
+                        <span class="arrow-box">→</span>
+                        <span class="solution-tag">方案5 (声振温集成)</span>
+                    </div>
+                </div>
+
+                <!-- 问题2映射 -->
+                <div class="mapping-row">
+                    <div class="problem-box">关键问题2<br><small>稳定vs进化</small></div>
+                    <div class="arrow-box">→</div>
+                    <div class="methods-box">
+                        <span class="solution-tag">方案2、3</span>
+                        <span class="arrow-box">→</span>
+                        <span class="method-tag">技术矛盾</span>
+                        <span class="arrow-box">→</span>
+                        <span class="method-tag">分离原理</span>
+                        <span class="arrow-box">→</span>
+                        <span class="solution-tag">方案6</span>
+                    </div>
+                </div>
+
+                <!-- 问题3映射 -->
+                <div class="mapping-row">
+                    <div class="problem-box">关键问题3<br><small>精度不足</small></div>
+                    <div class="arrow-box">→</div>
+                    <div class="methods-box">
+                        <span class="method-tag">物场模型</span>
+                        <span class="arrow-box">→</span>
+                        <span class="method-tag">标准解</span>
+                        <span class="arrow-box">→</span>
+                        <span class="solution-tag">方案7 (NPU+AI, 85%→96.7%)</span>
+                    </div>
+                </div>
+
+                <!-- 问题4映射 -->
+                <div class="mapping-row">
+                    <div class="problem-box">关键问题4<br><small>依赖工程师</small></div>
+                    <div class="arrow-box">→</div>
+                    <div class="methods-box">
+                        <span class="method-tag">裁剪法</span>
+                        <span class="arrow-box">→</span>
+                        <span class="solution-tag">方案8 (知识库)</span>
+                        <span class="arrow-box">+</span>
+                        <span class="method-tag">金鱼法</span>
+                        <span class="arrow-box">→</span>
+                        <span class="solution-tag">方案9 (生命周期档案)</span>
+                    </div>
+                </div>
+
+                <!-- 问题5映射 -->
+                <div class="mapping-row">
+                    <div class="problem-box">关键问题5<br><small>综合优化</small></div>
+                    <div class="arrow-box">→</div>
+                    <div class="methods-box">
+                        <span class="method-tag">STC算子</span>
+                        <span class="arrow-box">→</span>
+                        <span class="solution-tag">方案10 (Size)</span>
+                        <span class="solution-tag">方案11 (Time)</span>
+                        <span class="solution-tag">方案12 (Cost)</span>
+                    </div>
+                </div>
+
+                <!-- IFR理想解 -->
+                <div class="mapping-row">
+                    <div class="problem-box" style="background: linear-gradient(135deg, #ff6b6b, #ee5a24);">IFR理想解<br><small>零误报漏报</small></div>
+                    <div class="arrow-box">→</div>
+                    <div class="methods-box">
+                        <span class="method-tag">九屏分析</span>
+                        <span class="arrow-box">→</span>
+                        <span class="method-tag">可用资源评估</span>
+                        <span class="arrow-box">→</span>
+                        <span class="solution-tag">方案4 (理想方向)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 关键数据卡片区域 ========== -->
+        <div class="data-cards-section" id="data-section">
+            <h3>📊 关键数据速记</h3>
+            <div class="data-cards-grid">
+                <div class="data-card">
+                    <div class="data-value">85%</div>
+                    <div class="data-label">市场渗透率</div>
+                    <div class="data-context">工业监测设备</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-value">3550亿</div>
+                    <div class="data-label">市场规模</div>
+                    <div class="data-context">2027年预计</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-value">85%→96.7%</div>
+                    <div class="data-label">精度提升</div>
+                    <div class="data-context">AI算法优化后</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-value">&lt;3%</div>
+                    <div class="data-label">误报率</div>
+                    <div class="data-context">优化后目标</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-value">50分</div>
+                    <div class="data-label">方案评分总分</div>
+                    <div class="data-context">35分以上入选</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-value">1+2+3</div>
+                    <div class="data-label">专利成果</div>
+                    <div class="data-context">发明+实用+软著</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-value">12个</div>
+                    <div class="data-label">解决方案</div>
+                    <div class="data-context">综合评价筛选</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-value">5个</div>
+                    <div class="data-label">关键问题</div>
+                    <div class="data-context">因果分析转化</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 答辩模式区域 ========== -->
+    <div class="defense-section" id="defense-section">
+        <div class="mind-map-container">
+            <h2 style="text-align: center; margin-bottom: 20px; font-size: 1.8em;">
+                🎤 答辩稿填词记忆模式
+            </h2>
+            <p style="text-align: center; color: #b0b0b0; margin-bottom: 15px;">
+                点击填空显示答案 | 空格键/→ 下一步 | ← 上一步 | S显示全部 | H隐藏全部
+            </p>
+
+            <!-- 颜色图例 -->
+            <div class="color-legend">
+                <div class="legend-item"><div class="legend-color num"></div><span>数字数据</span></div>
+                <div class="legend-item"><div class="legend-color triz"></div><span>TRIZ方法</span></div>
+                <div class="legend-item"><div class="legend-color tech"></div><span>专业术语</span></div>
+                <div class="legend-item"><div class="legend-color verb"></div><span>关键动词</span></div>
+                <div class="legend-item"><div class="legend-color adj"></div><span>形容词</span></div>
+                <div class="legend-item"><div class="legend-color noun"></div><span>重要名词</span></div>
+                <div class="legend-item"><div class="legend-color connector"></div><span>连接词</span></div>
+                <div class="legend-item"><div class="legend-color default"></div><span>其他关键词</span></div>
+            </div>
+
+            <!-- 记忆进度统计 -->
+            <div class="memory-stats" id="memory-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="study-time-display">0分钟</div>
+                    <div class="stat-label">学习时长</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="click-count">0</div>
+                    <div class="stat-label">练习次数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="revealed-count">0/0</div>
+                    <div class="stat-label">已记忆</div>
+                </div>
+                <div class="stat-item" style="flex: 1; max-width: 200px;">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" id="memory-progress-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="stat-label">总体进度</div>
+                </div>
+            </div>
+
+            <!-- 填词控制按钮 -->
+            <div class="blank-controls">
+                <button onclick="revealAllBlanks()">👁️ 显示全部答案</button>
+                <button onclick="hideAllBlanks()">🙈 隐藏全部答案</button>
+                <button class="secondary" onclick="toggleCurrentStepBlanks()">🔄 切换当前步骤</button>
+            </div>
+
+            <div class="defense-timeline" id="defense-timeline">
+                <!-- 第1段: 开场 -->
+                <div class="timeline-item" data-step="1" onclick="toggleTimelineItem(this)">
+                    <div class="timeline-title">👋 第1段：开场介绍</div>
+                    <div class="timeline-content">
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">5</span> 已完成</div>
+                        <div class="script-text">
+                            <p>尊敬的各位评委、老师：</p>
+                            <p>大家好！我们的项目是 "基于 <span class="blank triz-method" onclick="toggleBlank(event, this)">TRIZ理论</span> 的 <span class="blank keyword-term" onclick="toggleBlank(event, this)">工业旋转类设备故障监测</span>。我是来自 <span class="blank keyword-name" onclick="toggleBlank(event, this)">重庆工程职业技术学院</span> 的 <span class="blank keyword-name" onclick="toggleBlank(event, this)">智鉴先锋</span> 团队项目负责人 <span class="blank keyword-name" onclick="toggleBlank(event, this)">刘凤琴</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第2段: 项目背景 -->
+                <div class="timeline-item" data-step="2" onclick="toggleTimelineItem(this)">
+                    <div class="timeline-title">📊 第2段：项目背景与市场</div>
+                    <div class="timeline-content">
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">6</span> 已完成</div>
+                        <div class="script-text">
+                            <p>在国家大力推动 <span class="blank keyword-term" onclick="toggleBlank(event, this)">智能制造</span> 的政策指引下，我国工业监测设备渗透率已达 <span class="blank num" onclick="toggleBlank(event, this)">85%</span>，<span class="blank num" onclick="toggleBlank(event, this)">2027</span> 年市场规模预计突破 <span class="blank num" onclick="toggleBlank(event, this)">3550亿元</span>，在智能制造、<span class="blank keyword-term" onclick="toggleBlank(event, this)">数控机床</span> 等领域应用广泛。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第3段: 行业痛点 -->
+                <div class="timeline-item" data-step="3" onclick="toggleTimelineItem(this)">
+                    <div class="timeline-title">⚠️ 第3段：行业痛点</div>
+                    <div class="timeline-content">
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">4</span> 已完成</div>
+                        <div class="script-text">
+                            <p>但数据背后的行业痛点也十分突出：传统检测 <span class="blank keyword-term" onclick="toggleBlank(event, this)">感知维度单一</span>，<span class="blank keyword-term" onclick="toggleBlank(event, this)">智能水平不足</span>，<span class="blank keyword-term" onclick="toggleBlank(event, this)">系统架构失衡</span>，且缺乏 <span class="blank keyword-adj" onclick="toggleBlank(event, this)">优质的解决方案</span>。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第4段: 技术选型 -->
+                <div class="timeline-item" data-step="4" onclick="toggleTimelineItem(this)">
+                    <div class="timeline-title">🔬 第4段：技术选型</div>
+                    <div class="timeline-content">
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">6</span> 已完成</div>
+                        <div class="script-text">
+                            <p>团队<span class="blank keyword-verb" onclick="toggleBlank(event, this)">调研</span>了近年来工业旋转设备故障领域的相关资料，<span class="blank keyword-verb" onclick="toggleBlank(event, this)">对比技术优势分析技术缺点</span></p>
+                            <p>最终选取一个 <span class="blank keyword-adj" onclick="toggleBlank(event, this)">典型专利</span> 同时也是发表于 <span class="blank keyword-name" onclick="toggleBlank(event, this)">SCI期刊</span> 上的"<span class="blank keyword-term" onclick="toggleBlank(event, this)">旋转系统中的振动监测与故障诊断</span>"作为初始系统，并在论文中得到多项指标。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第5段: TRIZ组件分析 -->
+                <div class="timeline-item" data-step="5" onclick="toggleTimelineItem(this)">
+                    <div class="timeline-title">🧠 第5段：TRIZ组件分析</div>
+                    <div class="timeline-content">
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">10</span> 已完成</div>
+                        <div class="script-text">
+                            <p><span class="blank keyword-connector" onclick="toggleBlank(event, this)">依托</span> <span class="blank triz-method" onclick="toggleBlank(event, this)">TRIZ理论</span>，我们对系统进行了 <span class="blank keyword-term" onclick="toggleBlank(event, this)">全方位剖析</span>。通过 <span class="blank triz-method" onclick="toggleBlank(event, this)">组件分析</span>，<span class="blank keyword-verb" onclick="toggleBlank(event, this)">梳理出</span> <span class="blank keyword-term" onclick="toggleBlank(event, this)">传感器</span>、<span class="blank keyword-term" onclick="toggleBlank(event, this)">边缘计算单元</span> 等核心组件，以及 <span class="blank" onclick="toggleBlank(event, this)">环境电磁干扰</span> 等 <span class="blank keyword-term" onclick="toggleBlank(event, this)">超系统影响因素</span>；</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第6段: 功能分析 -->
+                <div class="timeline-item" data-step="6" onclick="toggleTimelineItem(this)">
+                    <div class="timeline-title">🔍 第6段：功能分析</div>
+                    <div class="timeline-content">
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">5</span> 已完成</div>
+                        <div class="script-text">
+                            <p><span class="blank triz-method" onclick="toggleBlank(event, this)">功能分析</span> 发现系统存在 <span class="blank keyword-term" onclick="toggleBlank(event, this)">有益功能不足</span>、<span class="blank keyword-term" onclick="toggleBlank(event, this)">有害功能存在</span> 和 <span class="blank keyword-term" onclick="toggleBlank(event, this)">系统功能缺失</span> <span class="blank num" onclick="toggleBlank(event, this)">三大</span>缺陷</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第7段: 因果分析 -->
+                <div class="timeline-item" data-step="7" onclick="toggleTimelineItem(this)">
+                    <div class="timeline-title">🔗 第7段：因果分析</div>
+                    <div class="timeline-content">
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">9</span> 已完成</div>
+                        <div class="script-text">
+                            <p><span class="blank keyword-connector" onclick="toggleBlank(event, this)">针对</span> <span class="blank" onclick="toggleBlank(event, this)">误报漏报多</span> 的关键问题进行 <span class="blank triz-method" onclick="toggleBlank(event, this)">因果分析</span>，确定 <span class="blank num" onclick="toggleBlank(event, this)">五个</span> 关键缺点。</p>
+                            <p>最终<span class="blank keyword-verb" onclick="toggleBlank(event, this)">转化为</span> <span class="blank num" onclick="toggleBlank(event, this)">五个</span> 关键问题，并<span class="blank keyword-connector" onclick="toggleBlank(event, this)">针对</span> <span class="blank" onclick="toggleBlank(event, this)">关键问题1</span>，提出 <span class="blank" onclick="toggleBlank(event, this)">方案1</span>，并<span class="blank keyword-connector" onclick="toggleBlank(event, this)">针对</span> <span class="blank" onclick="toggleBlank(event, this)">关键问题2</span>，提出 <span class="blank" onclick="toggleBlank(event, this)">方案2</span>,<span class="blank" onclick="toggleBlank(event, this)">方案3</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第8段: 九屏分析 -->
+                <div class="timeline-item" data-step="8" onclick="toggleTimelineItem(this)">
+                    <div class="timeline-title">📐 第8段：九屏分析</div>
+                    <div class="timeline-content">
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">4</span> 已完成</div>
+                        <div class="script-text">
+                            <p>进行 <span class="blank triz-method" onclick="toggleBlank(event, this)">九屏分析</span> 发现工业旋转类设备故障监测系统朝着 <span class="blank keyword-adj" onclick="toggleBlank(event, this)">智能化</span>、<span class="blank keyword-adj" onclick="toggleBlank(event, this)">集成化</span> 和 <span class="blank keyword-adj" onclick="toggleBlank(event, this)">自治化</span> 发展，这也符合我们对产品的理想改进方向</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第9段: IFR理想解 -->
+                <div class="timeline-item" data-step="9" onclick="toggleTimelineItem(this)">
+                    <div class="timeline-title">🎯 第9段：IFR理想解</div>
+                    <div class="timeline-content">
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">7</span> 已完成</div>
+                        <div class="script-text">
+                            <p><span class="blank keyword-connector" onclick="toggleBlank(event, this)">更进一步</span>通过 <span class="blank" onclick="toggleBlank(event, this)">价值</span> <span class="blank" onclick="toggleBlank(event, this)">数量</span> <span class="blank" onclick="toggleBlank(event, this)">质量</span> <span class="blank" onclick="toggleBlank(event, this)">可用性</span> 等多层面评估分析可用资源</p>
+                            <p>在求解过程中以 <span class="blank triz-method" onclick="toggleBlank(event, this)">IFR</span> 为牵引解决更具体问题，确定最终理想解为"设备自主实现 <span class="blank keyword-term" onclick="toggleBlank(event, this)">零误报漏报</span> 的健康监测"，结合可用资源，我们提出 <span class="blank" onclick="toggleBlank(event, this)">方案4</span> 为后续技术设计提供理想方向</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第10段: 嵌套原理 -->
+                <div class="timeline-item" data-step="10" onclick="toggleTimelineItem(this)">
+                    <div class="timeline-title">🔧 第10段：嵌套原理 → 方案5</div>
+                    <div class="timeline-content">
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">7</span> 已完成</div>
+                        <div class="script-text">
+                            <p><span class="blank keyword-connector" onclick="toggleBlank(event, this)">针对</span>方案一提出 <span class="blank keyword-term" onclick="toggleBlank(event, this)">物理矛盾</span>，我们运用 <span class="blank triz-method" onclick="toggleBlank(event, this)">嵌套原理</span>，提出 <span class="blank" onclick="toggleBlank(event, this)">方案5</span>，将 <span class="blank keyword-term" onclick="toggleBlank(event, this)">声振温</span> 三种传感单元<span class="blank keyword-verb" onclick="toggleBlank(event, this)">嵌套</span>集成于一个硬件模组中，解决了 <span class="blank" onclick="toggleBlank(event, this)">精度与复杂性</span> 的矛盾。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第11段: 分离原理 -->
+                <div class="timeline-item" data-step="11" onclick="toggleTimelineItem(this)">
+                    <div class="timeline-title">⚡ 第11段：分离原理 → 方案6</div>
+                    <div class="timeline-content">
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">6</span> 已完成</div>
+                        <div class="script-text">
+                            <p><span class="blank keyword-connector" onclick="toggleBlank(event, this)">针对</span>方案2分析出系统模型既要保持 <span class="blank" onclick="toggleBlank(event, this)">稳定</span>，又要持续 <span class="blank" onclick="toggleBlank(event, this)">进化</span> 的 <span class="blank keyword-term" onclick="toggleBlank(event, this)">技术矛盾</span>，基于 <span class="blank triz-method" onclick="toggleBlank(event, this)">分离原理</span> 提出 <span class="blank" onclick="toggleBlank(event, this)">方案6</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第12段: 物场模型 -->
+                <div class="timeline-item" data-step="12" onclick="toggleTimelineItem(this)">
+                    <div class="timeline-title">🔬 第12段：物-场模型分析</div>
+                    <div class="timeline-content">
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">11</span> 已完成</div>
+                        <div class="script-text">
+                            <p><span class="blank keyword-connector" onclick="toggleBlank(event, this)">针对</span> <span class="blank" onclick="toggleBlank(event, this)">关键问题3</span>，运用 <span class="blank triz-method" onclick="toggleBlank(event, this)">物-场模型</span> 分析。根据<span class="blank keyword-term" onclick="toggleBlank(event, this)">标准解</span>在<span class="blank keyword-term" onclick="toggleBlank(event, this)">边缘计算单元</span>中<span class="blank keyword-verb" onclick="toggleBlank(event, this)">嵌套</span> <span class="blank keyword-term" onclick="toggleBlank(event, this)">NPU神经网络处理单元</span>，引入 <span class="blank keyword-term" onclick="toggleBlank(event, this)">AI算法场</span> 使监测精度从 <span class="blank num" onclick="toggleBlank(event, this)">85%</span> 提升至 <span class="blank num" onclick="toggleBlank(event, this)">96.7%</span>，误报率降至 <span class="blank num" onclick="toggleBlank(event, this)">3%以下</span>。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第13段: 裁剪法 -->
+                <div class="timeline-item" data-step="13" onclick="toggleTimelineItem(this)">
+                    <div class="timeline-title">✂️ 第13段：裁剪法</div>
+                    <div class="timeline-content">
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">6</span> 已完成</div>
+                        <div class="script-text">
+                            <p><span class="blank keyword-connector" onclick="toggleBlank(event, this)">针对</span> <span class="blank" onclick="toggleBlank(event, this)">关键问题4</span>，我们采用 <span class="blank triz-method" onclick="toggleBlank(event, this)">裁剪法</span>。<span class="blank keyword-verb" onclick="toggleBlank(event, this)">裁剪掉</span>系统对 <span class="blank" onclick="toggleBlank(event, this)">资深工程师</span> 的直接依赖，将<span class="blank keyword-term" onclick="toggleBlank(event, this)">诊断决策任务</span>分配给 <span class="blank keyword-term" onclick="toggleBlank(event, this)">故障经验知识库</span>。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第14段: 金鱼法 -->
+                <div class="timeline-item" data-step="14" onclick="toggleTimelineItem(this)">
+                    <div class="timeline-title">🐟 第14段：金鱼法 → 方案9</div>
+                    <div class="timeline-content">
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">5</span> 已完成</div>
+                        <div class="script-text">
+                            <p><span class="blank keyword-connector" onclick="toggleBlank(event, this)">同时结合</span> <span class="blank triz-method" onclick="toggleBlank(event, this)">金鱼法</span>，提出幻想方案，再区分现实与幻想最终提出解决 <span class="blank" onclick="toggleBlank(event, this)">方案9</span>——<span class="blank keyword-verb" onclick="toggleBlank(event, this)">构建</span>设备 <span class="blank keyword-term" onclick="toggleBlank(event, this)">全生命周期故障档案</span>。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第15段: STC算子 -->
+                <div class="timeline-item" data-step="15" onclick="toggleTimelineItem(this)">
+                    <div class="timeline-title">📏 第15段：STC算子 → 方案10,11,12</div>
+                    <div class="timeline-content">
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">5</span> 已完成</div>
+                        <div class="script-text">
+                            <p>运用 <span class="blank triz-method" onclick="toggleBlank(event, this)">STC算子</span> 基于 <span class="blank" onclick="toggleBlank(event, this)">尺寸</span>、<span class="blank" onclick="toggleBlank(event, this)">时间</span>、<span class="blank" onclick="toggleBlank(event, this)">成本</span> 分析提出解决 <span class="blank" onclick="toggleBlank(event, this)">方案10,11,12</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第16段: 方案筛选 -->
+                <div class="timeline-item" data-step="16" onclick="toggleTimelineItem(this)">
+                    <div class="timeline-title">📊 第16段：方案筛选</div>
+                    <div class="timeline-content">
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">4</span> 已完成</div>
+                        <div class="script-text">
+                            <p>我们对 <span class="blank num" onclick="toggleBlank(event, this)">12个</span> 解决方案进行<span class="blank keyword-term" onclick="toggleBlank(event, this)">综合评价与筛选</span>。总分 <span class="blank num" onclick="toggleBlank(event, this)">50分</span>，筛选出 <span class="blank num" onclick="toggleBlank(event, this)">35分</span> 及以上的方案。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第17段: 最终方案整合 -->
+                <div class="timeline-item" data-step="17" onclick="toggleTimelineItem(this)">
+                    <div class="timeline-title">🏗️ 第17段：最终方案整合</div>
+                    <div class="timeline-content">
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">9</span> 已完成</div>
+                        <div class="script-text">
+                            <p><span class="blank keyword-verb" onclick="toggleBlank(event, this)">整合</span>出最终方案，在架构上实现 <span class="blank keyword-adj" onclick="toggleBlank(event, this)">高性能</span> 与 <span class="blank keyword-adj" onclick="toggleBlank(event, this)">低成本</span>；算法上采用 <span class="blank keyword-term" onclick="toggleBlank(event, this)">三层融合架构</span>，识别精度大幅提升。</p>
+                            <p style="margin-top: 10px;">实现模型 <span class="blank keyword-adj" onclick="toggleBlank(event, this)">轻量化</span> 与 <span class="blank keyword-adj" onclick="toggleBlank(event, this)">边缘化部署</span>，搭配 <span class="blank keyword-term" onclick="toggleBlank(event, this)">多模态传感器</span>，确保数据<span class="blank keyword-adj" onclick="toggleBlank(event, this)">全面采集</span>与<span class="blank keyword-adj" onclick="toggleBlank(event, this)">高效处理</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第18段: 算法改进 -->
+                <div class="timeline-item" data-step="18" onclick="toggleTimelineItem(this)">
+                    <div class="timeline-title">🧮 第18段：算法改进</div>
+                    <div class="timeline-content">
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">6</span> 已完成</div>
+                        <div class="script-text">
+                            <p>改进<span class="blank keyword-term" onclick="toggleBlank(event, this)">多模态模型混合融合算法</span>，通过 <span class="blank keyword-term" onclick="toggleBlank(event, this)">三层融合架构</span>，让 <span class="blank keyword-adj" onclick="toggleBlank(event, this)">识别精度</span>、<span class="blank keyword-adj" onclick="toggleBlank(event, this)">泛化能力</span>、<span class="blank keyword-adj" onclick="toggleBlank(event, this)">故障预测能力</span> 全面提升；</p>
+                            <p style="margin-top: 10px;">打造工业监测系统，提供专业的数据分析支持，<span class="blank keyword-verb" onclick="toggleBlank(event, this)">全方位保障</span>工业设备的安全。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第19段: 竞品对比 -->
+                <div class="timeline-item" data-step="19" onclick="toggleTimelineItem(this)">
+                    <div class="timeline-title">📈 第19段：竞品对比与验证</div>
+                    <div class="timeline-content">
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">4</span> 已完成</div>
+                        <div class="script-text">
+                            <p>对比竞品数据，<span class="blank keyword-name" onclick="toggleBlank(event, this)">智鉴先锋</span> 系统<span class="blank keyword-adj" onclick="toggleBlank(event, this)">综合性能</span>远超行业同类产品。</p>
+                            <p style="margin-top: 10px;">经 <span class="blank keyword-name" onclick="toggleBlank(event, this)">中国机械工业联合会</span> 检测，我们的系统关键指标也远超国家标准：充分验证系统的<span class="blank keyword-adj" onclick="toggleBlank(event, this)">可靠性与优越性</span>。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第20段: 专利成果 -->
+                <div class="timeline-item" data-step="20" onclick="toggleTimelineItem(this)">
+                    <div class="timeline-title">📜 第20段：专利成果</div>
+                    <div class="timeline-content">
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">6</span> 已完成</div>
+                        <div class="script-text">
+                            <p>目前团队已申请 <span class="blank keyword-name" onclick="toggleBlank(event, this)">发明专利</span> <span class="blank num" onclick="toggleBlank(event, this)">1项</span>，<span class="blank keyword-name" onclick="toggleBlank(event, this)">实用新型专利</span> <span class="blank num" onclick="toggleBlank(event, this)">2项</span>、<span class="blank keyword-name" onclick="toggleBlank(event, this)">软著</span> <span class="blank num" onclick="toggleBlank(event, this)">3项</span>，专利第一发明人及软著权利人均为团队核心成员</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第21段: 结束语 -->
+                <div class="timeline-item" data-step="21" onclick="toggleTimelineItem(this)">
+                    <div class="timeline-title">🎉 第21段：结束语</div>
+                    <div class="timeline-content">
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">2</span> 已完成</div>
+                        <div class="script-text">
+                            <p style="font-size: 1.1em; text-align: center;">诠释"<span class="blank keyword-term" onclick="toggleBlank(event, this)">中国创造</span>"推动"<span class="blank keyword-term" onclick="toggleBlank(event, this)">中国制造</span>"，我的汇报结束，谢谢大家</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 旧的答辩控制面板已移至统一底部控制栏 -->
+
+    <script>
+        // ========== 全局变量 ==========
+        let currentMode = 'mindmap';
+        let currentStep = 1;
+        const totalSteps = 21;
+        let totalClicks = 0;
+        let completedParagraphs = 0;
+        let studyStartTime = null;
+        let studyTimerInterval = null;
+        let lastEyeReminder = 0;
+        let lastWaterReminder = 0;
+
+        // 鼓励语列表
+        const encourageMessages = [
+            "太棒了！继续加油💪",
+            "记忆力真好！👍",
+            "你做得很棒！🌟",
+            "坚持就是胜利！💖",
+            "真厉害！继续保持！✨",
+            "你是最棒的！🎉",
+            "加油，你可以的！💕",
+            "越来越熟练了！🌈"
+        ];
+
+        // 进度鼓励语
+        const progressMessages = [
+            { threshold: 5, message: "已完成1/4，你真厉害！❤️" },
+            { threshold: 10, message: "已完成一半啦，继续加油！💪" },
+            { threshold: 15, message: "已完成3/4，胜利在望！🌟" },
+            { threshold: 20, message: "马上就完成了，冲刺！🎉" }
+        ];
+
+        // 切换模式
+        function switchMode(mode) {
+            currentMode = mode;
+            const mindmapContainer = document.querySelector('.mind-map-container');
+            const defenseSection = document.getElementById('defense-section');
+            const defenseProgress = document.getElementById('defense-progress');
+            const mindmapControls = document.getElementById('mindmap-controls');
+            const warmTips = document.getElementById('warm-tips');
+
+            document.getElementById('btn-mindmap').classList.remove('active');
+            document.getElementById('btn-defense').classList.remove('active');
+
+            if (mode === 'mindmap') {
+                document.getElementById('btn-mindmap').classList.add('active');
+                mindmapContainer.style.display = 'block';
+                defenseSection.style.display = 'none';
+                defenseProgress.style.display = 'none';
+                mindmapControls.style.display = 'flex';
+                warmTips.style.display = 'none';
+                stopStudyTimer();
+                updateBottomBarForMode('mindmap');
+            } else {
+                document.getElementById('btn-defense').classList.add('active');
+                mindmapContainer.style.display = 'none';
+                defenseSection.style.display = 'block';
+                defenseProgress.style.display = 'block';
+                mindmapControls.style.display = 'none';
+                warmTips.style.display = 'block';
+                startStudyTimer();
+                updateProgress();
+                updateAllCounters();
+                goToStep(1);
+                updateBottomBarForMode('defense');
+            }
+        }
+
+        // ========== 思维导图功能 ==========
+        function toggleBranch(element) {
+            element.classList.toggle('expanded');
+        }
+
+        function expandAll() {
+            document.querySelectorAll('.branch').forEach(branch => {
+                branch.classList.add('expanded');
+            });
+        }
+
+        function collapseAll() {
+            document.querySelectorAll('.branch').forEach(branch => {
+                branch.classList.remove('expanded');
+            });
+        }
+
+        function toggleAllBranches() {
+            const branches = document.querySelectorAll('.branch');
+            const allExpanded = Array.from(branches).every(b => b.classList.contains('expanded'));
+            allExpanded ? collapseAll() : expandAll();
+        }
+
+        // 滚动函数
+        function scrollToTerms() {
+            document.getElementById('terms-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function scrollToTips() {
+            document.getElementById('memory-tips').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function scrollToSolutions() {
+            document.getElementById('solutions-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function scrollToMapping() {
+            document.getElementById('mapping-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function scrollToData() {
+            document.getElementById('data-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // ========== 答辩模式功能 ==========
+        function toggleTimelineItem(element) {
+            element.classList.toggle('active');
+        }
+
+        function goToStep(step) {
+            if (step < 1 || step > totalSteps) return;
+            currentStep = step;
+
+            // 移除所有active状态
+            document.querySelectorAll('.timeline-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // 激活当前步骤
+            const currentItem = document.querySelector(`.timeline-item[data-step="${step}"]`);
+            if (currentItem) {
+                currentItem.classList.add('active');
+                currentItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            updateProgress();
+            updateStepInfo();
+        }
+
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                goToStep(currentStep + 1);
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                goToStep(currentStep - 1);
+            }
+        }
+
+        function resetDefense() {
+            currentStep = 1;
+            document.querySelectorAll('.timeline-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            goToStep(1);
+        }
+
+        function updateProgress() {
+            const progressBar = document.getElementById('progress-bar');
+            const percentage = (currentStep / totalSteps) * 100;
+            progressBar.style.width = percentage + '%';
+        }
+
+        function updateStepInfo() {
+            const stepText = `步骤 ${currentStep}/${totalSteps}`;
+            document.getElementById('step-info').textContent = stepText;
+            // 同时更新顶部栏的步骤显示
+            document.getElementById('bar-step-display').textContent = `| ${stepText}`;
+        }
+
+        // ========== 填词法功能 ==========
+        // 切换单个填空（增强版）
+        function toggleBlank(event, element) {
+            event.stopPropagation();
+            const wasRevealed = element.classList.contains('revealed');
+            element.classList.toggle('revealed');
+
+            if (!wasRevealed) {
+                totalClicks++;
+                updateClickCounter();
+
+                // 根据类型触发不同特效
+                if (element.classList.contains('num')) {
+                    createHeartEffect(event);
+                } else if (element.classList.contains('triz-method')) {
+                    createStarEffect(event);
+                }
+
+                // 更新段落计数
+                updateParagraphCounter(element);
+
+                // 检查段落完成
+                checkParagraphComplete(element);
+            }
+        }
+
+        // 爱心特效
+        function createHeartEffect(event) {
+            const colors = ['#ff6b9d', '#ff4757', '#ff6b81', '#ff7979', '#e84393'];
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    const heart = document.createElement('div');
+                    heart.className = 'heart-effect';
+                    heart.innerHTML = '❤️';
+                    heart.style.left = (event.clientX + (Math.random() - 0.5) * 40) + 'px';
+                    heart.style.top = (event.clientY + (Math.random() - 0.5) * 20) + 'px';
+                    heart.style.color = colors[Math.floor(Math.random() * colors.length)];
+                    heart.style.fontSize = (16 + Math.random() * 12) + 'px';
+                    document.body.appendChild(heart);
+
+                    setTimeout(() => heart.remove(), 2000);
+                }, i * 100);
+            }
+        }
+
+        // 星星特效
+        function createStarEffect(event) {
+            const symbols = ['✨', '⭐', '🌟', '💫', '✦'];
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => {
+                    const star = document.createElement('div');
+                    star.className = 'star-effect';
+                    star.innerHTML = symbols[Math.floor(Math.random() * symbols.length)];
+                    star.style.left = (event.clientX + (Math.random() - 0.5) * 60) + 'px';
+                    star.style.top = (event.clientY + (Math.random() - 0.5) * 30) + 'px';
+                    star.style.fontSize = (14 + Math.random() * 10) + 'px';
+                    document.body.appendChild(star);
+
+                    setTimeout(() => star.remove(), 1500);
+                }, i * 80);
+            }
+        }
+
+        // 更新段落计数器
+        function updateParagraphCounter(element) {
+            const timelineItem = element.closest('.timeline-item');
+            if (!timelineItem) return;
+
+            const blanks = timelineItem.querySelectorAll('.blank');
+            const revealed = timelineItem.querySelectorAll('.blank.revealed');
+            const counterEl = timelineItem.querySelector('.current-count');
+            if (counterEl) {
+                counterEl.textContent = revealed.length;
+            }
+        }
+
+        // 检查段落是否完成
+        function checkParagraphComplete(element) {
+            const timelineItem = element.closest('.timeline-item');
+            if (!timelineItem) return;
+
+            const blanks = timelineItem.querySelectorAll('.blank');
+            const revealed = timelineItem.querySelectorAll('.blank.revealed');
+
+            if (blanks.length === revealed.length && blanks.length > 0) {
+                // 段落完成，显示鼓励
+                showEncouragement();
+                completedParagraphs++;
+
+                // 检查进度鼓励
+                checkProgressEncouragement();
+            }
+        }
+
+        // 显示鼓励语
+        function showEncouragement() {
+            const msg = encourageMessages[Math.floor(Math.random() * encourageMessages.length)];
+            const toast = document.createElement('div');
+            toast.className = 'encourage-toast';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+        }
+
+        // 检查进度鼓励
+        function checkProgressEncouragement() {
+            for (const pm of progressMessages) {
+                if (completedParagraphs === pm.threshold) {
+                    setTimeout(() => {
+                        showProgressToast(pm.message);
+                    }, 500);
+                    break;
+                }
+            }
+        }
+
+        // 显示进度提示
+        function showProgressToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'progress-toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // 更新点击计数
+        function updateClickCounter() {
+            const counter = document.getElementById('click-counter');
+            if (counter) {
+                counter.textContent = `已练习 ${totalClicks} 次`;
+            }
+        }
+
+        // 更新所有段落计数器
+        function updateAllCounters() {
+            document.querySelectorAll('.timeline-item').forEach(item => {
+                const blanks = item.querySelectorAll('.blank');
+                const revealed = item.querySelectorAll('.blank.revealed');
+                const currentEl = item.querySelector('.current-count');
+                const totalEl = item.querySelector('.total-count');
+                if (currentEl) currentEl.textContent = revealed.length;
+                if (totalEl) totalEl.textContent = blanks.length;
+            });
+        }
+
+        // 显示全部答案
+        function revealAllBlanks() {
+            document.querySelectorAll('.blank').forEach(blank => {
+                blank.classList.add('revealed');
+            });
+            updateAllCounters();
+        }
+
+        // 隐藏全部答案
+        function hideAllBlanks() {
+            document.querySelectorAll('.blank').forEach(blank => {
+                blank.classList.remove('revealed');
+            });
+            updateAllCounters();
+        }
+
+        // 切换当前步骤的填空
+        function toggleCurrentStepBlanks() {
+            const currentItem = document.querySelector(`.timeline-item[data-step="${currentStep}"]`);
+            if (currentItem) {
+                const blanks = currentItem.querySelectorAll('.blank');
+                const allRevealed = Array.from(blanks).every(b => b.classList.contains('revealed'));
+                blanks.forEach(blank => {
+                    if (allRevealed) {
+                        blank.classList.remove('revealed');
+                    } else {
+                        blank.classList.add('revealed');
+                    }
+                });
+                updateAllCounters();
+            }
+        }
+
+        // ========== 学习计时器 ==========
+        function startStudyTimer() {
+            if (!studyStartTime) {
+                studyStartTime = Date.now();
+            }
+            studyTimerInterval = setInterval(() => {
+                updateStudyTime();
+                checkReminders();
+            }, 1000);
+        }
+
+        function stopStudyTimer() {
+            if (studyTimerInterval) {
+                clearInterval(studyTimerInterval);
+            }
+        }
+
+        function updateStudyTime() {
+            const elapsed = Math.floor((Date.now() - studyStartTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            const timeEl = document.getElementById('study-time');
+            if (timeEl) {
+                timeEl.textContent = `学习时长：${minutes}分${seconds.toString().padStart(2, '0')}秒 🌟`;
+            }
+        }
+
+        function checkReminders() {
+            const elapsed = Math.floor((Date.now() - studyStartTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+
+            // 每10分钟提醒休息眼睛
+            if (minutes > 0 && minutes % 10 === 0 && minutes !== lastEyeReminder) {
+                lastEyeReminder = minutes;
+                showWarmTip("亲爱的，记得休息一下眼睛哦 👀", "eye");
+            }
+
+            // 每15分钟提醒喝水
+            if (minutes > 0 && minutes % 15 === 0 && minutes !== lastWaterReminder) {
+                lastWaterReminder = minutes;
+                showWarmTip("喝口水，放松一下 💧", "water");
+            }
+        }
+
+        function showWarmTip(message, type) {
+            const tip = document.createElement('div');
+            tip.className = 'warm-tip-popup';
+            tip.innerHTML = `<span>${message}</span><button onclick="this.parentElement.remove()">知道啦</button>`;
+            document.body.appendChild(tip);
+
+            setTimeout(() => tip.classList.add('show'), 10);
+
+            // 10秒后自动消失
+            setTimeout(() => {
+                if (tip.parentElement) {
+                    tip.classList.remove('show');
+                    setTimeout(() => tip.remove(), 300);
+                }
+            }, 10000);
+        }
+
+        // ========== 背景音乐状态变量 ==========
+        let isMusicPlaying = false;
+
+        // ========== 更新统计显示 ==========
+        function updateMemoryStats() {
+            const allBlanks = document.querySelectorAll('.blank');
+            const revealedBlanks = document.querySelectorAll('.blank.revealed');
+
+            // 更新已记忆数
+            const revealedCountEl = document.getElementById('revealed-count');
+            if (revealedCountEl) {
+                revealedCountEl.textContent = `${revealedBlanks.length}/${allBlanks.length}`;
+            }
+
+            // 更新进度条
+            const progressBar = document.getElementById('memory-progress-bar');
+            if (progressBar && allBlanks.length > 0) {
+                const percentage = (revealedBlanks.length / allBlanks.length) * 100;
+                progressBar.style.width = `${percentage}%`;
+            }
+
+            // 更新练习次数
+            const clickCountEl = document.getElementById('click-count');
+            if (clickCountEl) {
+                clickCountEl.textContent = totalClicks;
+            }
+
+            // 更新学习时长显示
+            if (studyStartTime) {
+                const elapsed = Math.floor((Date.now() - studyStartTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const studyTimeDisplayEl = document.getElementById('study-time-display');
+                if (studyTimeDisplayEl) {
+                    studyTimeDisplayEl.textContent = `${minutes}分钟`;
+                }
+            }
+        }
+
+        // 扩展 toggleBlank 函数以更新统计
+        const originalToggleBlank = window.toggleBlank;
+        window.toggleBlank = function(event, element) {
+            if (originalToggleBlank) {
+                originalToggleBlank(event, element);
+            }
+            updateMemoryStats();
+        };
+
+        // ========== 面板伸缩功能 ==========
+        // 温馨提示面板伸缩
+        function toggleWarmTips() {
+            const warmTips = document.getElementById('warm-tips');
+            const toggleBtn = document.getElementById('tips-toggle-btn');
+            warmTips.classList.toggle('collapsed');
+            toggleBtn.textContent = warmTips.classList.contains('collapsed') ? '▶' : '▼';
+            localStorage.setItem('warmTipsCollapsed', warmTips.classList.contains('collapsed'));
+        }
+
+        // 统一底部控制栏伸缩
+        function toggleUnifiedBar() {
+            const unifiedBar = document.getElementById('unified-bottom-bar');
+            const toggleBtn = document.getElementById('bar-toggle-btn');
+            unifiedBar.classList.toggle('collapsed');
+            toggleBtn.textContent = unifiedBar.classList.contains('collapsed') ? '▼' : '▲';
+            localStorage.setItem('unifiedBarCollapsed', unifiedBar.classList.contains('collapsed'));
+        }
+
+        // 更新底部控制栏显示（根据模式切换答辩导航区域的显示）
+        function updateBottomBarForMode(mode) {
+            const defenseNavSection = document.getElementById('defense-nav-section');
+            const barModeLabel = document.getElementById('bar-mode-label');
+            const stepDisplay = document.getElementById('bar-step-display');
+
+            if (mode === 'defense') {
+                defenseNavSection.style.display = 'flex';
+                barModeLabel.textContent = '答辩控制';
+                stepDisplay.style.display = 'inline';
+            } else {
+                defenseNavSection.style.display = 'none';
+                barModeLabel.textContent = '控制面板';
+                stepDisplay.style.display = 'none';
+            }
+        }
+
+        // ========== 鼠标移动爱心特效 ==========
+        let heartEffectEnabled = true;
+        let lastHeartX = 0;
+        let lastHeartY = 0;
+        let activeHearts = 0;
+        const MAX_HEARTS = 30;
+        const HEART_DISTANCE_THRESHOLD = 40; // 每移动40px生成一个爱心
+        const heartColors = ['#ff6b9d', '#ffc3d5', '#ff85a1', '#ffa8c5', '#ff7eb3'];
+        const heartSymbols = ['❤️', '💖', '💕', '💗', '💓'];
+
+        function createMouseHeart(x, y) {
+            if (!heartEffectEnabled || activeHearts >= MAX_HEARTS) return;
+
+            const heart = document.createElement('div');
+            heart.className = 'mouse-heart';
+            heart.textContent = heartSymbols[Math.floor(Math.random() * heartSymbols.length)];
+            heart.style.left = x + 'px';
+            heart.style.top = y + 'px';
+            heart.style.fontSize = (12 + Math.random() * 8) + 'px';
+            heart.style.color = heartColors[Math.floor(Math.random() * heartColors.length)];
+            heart.style.animationDuration = (1.5 + Math.random() * 0.5) + 's';
+
+            document.body.appendChild(heart);
+            activeHearts++;
+
+            // 动画结束后移除
+            setTimeout(() => {
+                if (heart.parentElement) {
+                    heart.remove();
+                    activeHearts--;
+                }
+            }, 2000);
+        }
+
+        function toggleHeartEffect(enabled) {
+            heartEffectEnabled = enabled;
+            localStorage.setItem('heartEffectEnabled', enabled);
+        }
+
+        // ========== 鼠标尾缀粒子追踪特效 ==========
+        let particleEffectEnabled = true;
+        let lastParticleX = 0;
+        let lastParticleY = 0;
+        let activeParticles = 0;
+        const MAX_PARTICLES = 50;
+        const PARTICLE_DISTANCE_THRESHOLD = 12; // 每移动12px生成一个粒子
+        const rainbowColors = ['#ff6b6b', '#ffa502', '#ffd700', '#2ed573', '#1e90ff', '#3498db', '#9b59b6'];
+        let colorIndex = 0;
+
+        function createMouseParticle(x, y) {
+            if (!particleEffectEnabled || activeParticles >= MAX_PARTICLES) return;
+
+            const particle = document.createElement('div');
+            const isStarParticle = Math.random() > 0.7;
+
+            if (isStarParticle) {
+                particle.className = 'mouse-particle star';
+                particle.textContent = '✨';
+            } else {
+                particle.className = 'mouse-particle';
+                const size = 3 + Math.random() * 5;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.background = rainbowColors[colorIndex % rainbowColors.length];
+                particle.style.boxShadow = `0 0 ${size}px ${rainbowColors[colorIndex % rainbowColors.length]}`;
+            }
+
+            particle.style.left = x + 'px';
+            particle.style.top = y + 'px';
+            particle.style.animationDuration = (0.8 + Math.random() * 0.4) + 's';
+
+            document.body.appendChild(particle);
+            activeParticles++;
+            colorIndex++;
+
+            // 动画结束后移除
+            setTimeout(() => {
+                if (particle.parentElement) {
+                    particle.remove();
+                    activeParticles--;
+                }
+            }, 1200);
+        }
+
+        function toggleParticleEffect(enabled) {
+            particleEffectEnabled = enabled;
+            localStorage.setItem('particleEffectEnabled', enabled);
+        }
+
+        // 鼠标移动事件处理（使用防抖优化）
+        let mouseMoveRAF = null;
+        function handleMouseMove(e) {
+            if (mouseMoveRAF) return;
+
+            mouseMoveRAF = requestAnimationFrame(() => {
+                const x = e.clientX;
+                const y = e.clientY;
+
+                // 计算移动距离（爱心特效）
+                const heartDistance = Math.sqrt(
+                    Math.pow(x - lastHeartX, 2) + Math.pow(y - lastHeartY, 2)
+                );
+                if (heartDistance >= HEART_DISTANCE_THRESHOLD) {
+                    createMouseHeart(x, y);
+                    lastHeartX = x;
+                    lastHeartY = y;
+                }
+
+                // 计算移动距离（粒子特效）
+                const particleDistance = Math.sqrt(
+                    Math.pow(x - lastParticleX, 2) + Math.pow(y - lastParticleY, 2)
+                );
+                if (particleDistance >= PARTICLE_DISTANCE_THRESHOLD) {
+                    createMouseParticle(x, y);
+                    lastParticleX = x;
+                    lastParticleY = y;
+                }
+
+                mouseMoveRAF = null;
+            });
+        }
+
+        // 检测是否为移动设备（更准确的检测方式）
+        function isMobileDevice() {
+            // 使用 userAgent 检测移动设备
+            const mobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            // 检测是否为纯触摸设备（没有鼠标）
+            const isTouchOnly = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+            return mobileUA || isTouchOnly;
+        }
+
+        // ========== 背景音乐切换功能 ==========
+        let currentTrack = 1;
+        const trackNames = {
+            1: '轻快音乐',
+            2: '温柔钢琴'
+        };
+
+        function switchMusicTrack() {
+            const music1 = document.getElementById('bg-music-1');
+            const music2 = document.getElementById('bg-music-2');
+            const currentVolume = music1.volume;
+            const wasPlaying = isMusicPlaying;
+
+            // 暂停当前曲目
+            if (currentTrack === 1) {
+                music1.pause();
+                currentTrack = 2;
+            } else {
+                music2.pause();
+                currentTrack = 1;
+            }
+
+            // 更新音量
+            music1.volume = currentVolume;
+            music2.volume = currentVolume;
+
+            // 更新显示
+            document.getElementById('music-label').textContent = trackNames[currentTrack];
+
+            // 如果之前在播放，切换后继续播放
+            if (wasPlaying) {
+                const newMusic = currentTrack === 1 ? music1 : music2;
+                newMusic.play().catch(e => console.log('需要用户交互'));
+            }
+
+            // 保存选择
+            localStorage.setItem('currentMusicTrack', currentTrack);
+        }
+
+        // 覆盖原有的 toggleMusic 函数
+        function toggleMusic() {
+            const music1 = document.getElementById('bg-music-1');
+            const music2 = document.getElementById('bg-music-2');
+            const currentMusic = currentTrack === 1 ? music1 : music2;
+            const musicToggle = document.getElementById('music-toggle');
+
+            if (isMusicPlaying) {
+                currentMusic.pause();
+                isMusicPlaying = false;
+                musicToggle.textContent = '🎵';
+            } else {
+                currentMusic.play().catch(e => {
+                    console.log('音乐播放需要用户交互触发');
+                });
+                isMusicPlaying = true;
+                musicToggle.textContent = '⏸️';
+            }
+        }
+
+        // 覆盖原有的 changeVolume 函数
+        function changeVolume(value) {
+            const music1 = document.getElementById('bg-music-1');
+            const music2 = document.getElementById('bg-music-2');
+            const volume = value / 100;
+            if (music1) music1.volume = volume;
+            if (music2) music2.volume = volume;
+            localStorage.setItem('musicVolume', value);
+        }
+
+        // ========== 初始化 ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            // 默认隐藏答辩模式
+            document.getElementById('defense-section').style.display = 'none';
+            document.getElementById('defense-progress').style.display = 'none';
+            document.getElementById('warm-tips').style.display = 'none';
+
+            // 统一底部控制栏始终显示，初始化为思维导图模式
+            document.getElementById('unified-bottom-bar').style.display = 'block';
+            updateBottomBarForMode('mindmap');
+
+            // 延迟展开思维导图
+            setTimeout(() => {
+                expandAll();
+            }, 800);
+
+            // 初始化段落计数
+            updateAllCounters();
+
+            // ===== 初始化面板伸缩状态 =====
+            // 恢复温馨提示面板状态
+            if (localStorage.getItem('warmTipsCollapsed') === 'true') {
+                document.getElementById('warm-tips').classList.add('collapsed');
+                document.getElementById('tips-toggle-btn').textContent = '▶';
+            }
+
+            // 恢复统一底部控制栏状态
+            if (localStorage.getItem('unifiedBarCollapsed') === 'true') {
+                document.getElementById('unified-bottom-bar').classList.add('collapsed');
+                document.getElementById('bar-toggle-btn').textContent = '▼';
+            }
+
+            // ===== 初始化特效状态 =====
+            // 从localStorage恢复特效设置
+            const savedHeartEffect = localStorage.getItem('heartEffectEnabled');
+            const savedParticleEffect = localStorage.getItem('particleEffectEnabled');
+
+            if (savedHeartEffect !== null) {
+                heartEffectEnabled = savedHeartEffect === 'true';
+                document.getElementById('toggle-heart-effect').checked = heartEffectEnabled;
+            }
+
+            if (savedParticleEffect !== null) {
+                particleEffectEnabled = savedParticleEffect === 'true';
+                document.getElementById('toggle-particle-effect').checked = particleEffectEnabled;
+            }
+
+            // 非移动设备启用鼠标特效
+            if (!isMobileDevice()) {
+                document.addEventListener('mousemove', handleMouseMove);
+            } else {
+                // 移动端隐藏特效控制区域（在底部控制栏中）
+                const effectsSection = document.querySelector('.effects-section');
+                if (effectsSection) {
+                    effectsSection.style.display = 'none';
+                }
+            }
+
+            // ===== 初始化音乐设置 =====
+            const savedTrack = localStorage.getItem('currentMusicTrack');
+            const savedVolume = localStorage.getItem('musicVolume');
+
+            if (savedTrack) {
+                currentTrack = parseInt(savedTrack);
+                document.getElementById('music-label').textContent = trackNames[currentTrack];
+            }
+
+            if (savedVolume) {
+                const volumeSlider = document.getElementById('volume-slider');
+                volumeSlider.value = savedVolume;
+                changeVolume(savedVolume);
+            } else {
+                // 初始化默认音量
+                changeVolume(30);
+            }
+        });
+
+        // 键盘快捷键
+        document.addEventListener('keydown', function(e) {
+            if (currentMode === 'mindmap') {
+                if (e.key === 'e' || e.key === 'E') expandAll();
+                else if (e.key === 'c' || e.key === 'C') collapseAll();
+            } else {
+                // 答辩模式快捷键
+                if (e.key === 'ArrowRight' || e.key === ' ') {
+                    e.preventDefault();
+                    nextStep();
+                } else if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    prevStep();
+                } else if (e.key === 'r' || e.key === 'R') {
+                    resetDefense();
+                } else if (e.key === 's' || e.key === 'S') {
+                    revealAllBlanks();
+                } else if (e.key === 'h' || e.key === 'H') {
+                    hideAllBlanks();
+                } else if (e.key === 't' || e.key === 'T') {
+                    toggleCurrentStepBlanks();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1028,6 +1028,7 @@
         .timeline-item[data-step="19"] { background: linear-gradient(135deg, rgba(255, 107, 181, 0.08), rgba(167, 139, 250, 0.05)); }
         .timeline-item[data-step="20"] { background: linear-gradient(135deg, rgba(0, 184, 148, 0.08), rgba(0, 206, 201, 0.05)); }
         .timeline-item[data-step="21"] { background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 107, 181, 0.08)); }
+        .timeline-item[data-step="22"] { background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(255, 107, 107, 0.08)); }
 
         /* 答辩原文样式 */
         .script-text {
@@ -1342,6 +1343,7 @@
         .timeline-item[data-step="19"] .timeline-content { background: linear-gradient(135deg, rgba(0, 184, 148, 0.05), rgba(0, 212, 255, 0.05)); }
         .timeline-item[data-step="20"] .timeline-content { background: linear-gradient(135deg, rgba(0, 212, 255, 0.05), rgba(102, 126, 234, 0.05)); }
         .timeline-item[data-step="21"] .timeline-content { background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(255, 107, 107, 0.05)); }
+        .timeline-item[data-step="22"] .timeline-content { background: linear-gradient(135deg, rgba(255, 107, 107, 0.05), rgba(255, 215, 0, 0.08)); }
 
         /* 颜色图例 */
         .color-legend {
@@ -2351,6 +2353,7 @@
             width: 70px;
             height: 4px;
             -webkit-appearance: none;
+            appearance: none;
             background: rgba(255,255,255,0.2);
             border-radius: 2px;
             cursor: pointer;
@@ -2358,6 +2361,7 @@
 
         .speech-setting-item input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
+            appearance: none;
             width: 14px;
             height: 14px;
             background: linear-gradient(135deg, #74b9ff, #a29bfe);
@@ -2636,9 +2640,145 @@
                 min-height: 44px;
             }
         }
+
+        /* ========== Toast 提示组件样式 ========== */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: linear-gradient(135deg, rgba(116, 185, 255, 0.95), rgba(162, 155, 254, 0.95));
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 4px 20px rgba(116, 185, 255, 0.4);
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            transform: translateY(-20px);
+            animation: toastIn 0.3s ease forwards;
+            white-space: nowrap;
+        }
+
+        .toast.hiding {
+            animation: toastOut 0.3s ease forwards;
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, rgba(0, 206, 201, 0.95), rgba(85, 239, 196, 0.95));
+        }
+
+        .toast.warning {
+            background: linear-gradient(135deg, rgba(253, 203, 110, 0.95), rgba(255, 159, 67, 0.95));
+            color: #2d3436;
+        }
+
+        .toast.complete {
+            background: linear-gradient(135deg, rgba(255, 107, 157, 0.95), rgba(162, 155, 254, 0.95));
+        }
+
+        @keyframes toastIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes toastOut {
+            to {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+
+        /* ========== 逐句高亮样式 ========== */
+        .speaking-highlight {
+            background: linear-gradient(135deg, rgba(116, 185, 255, 0.3), rgba(162, 155, 254, 0.3));
+            border-left: 4px solid #74b9ff;
+            padding: 2px 6px;
+            margin: 0 -6px;
+            border-radius: 4px;
+            animation: sentenceHighlight 1s ease-in-out infinite alternate;
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
+
+        @keyframes sentenceHighlight {
+            0% {
+                background: linear-gradient(135deg, rgba(116, 185, 255, 0.25), rgba(162, 155, 254, 0.25));
+                border-left-color: #74b9ff;
+            }
+            100% {
+                background: linear-gradient(135deg, rgba(116, 185, 255, 0.4), rgba(162, 155, 254, 0.4));
+                border-left-color: #a29bfe;
+            }
+        }
+
+        .speaking-highlight-fade-out {
+            animation: sentenceFadeOut 0.2s ease forwards;
+        }
+
+        @keyframes sentenceFadeOut {
+            to {
+                background: transparent;
+                border-left-color: transparent;
+            }
+        }
+
+        /* 参数值闪烁提示效果 */
+        .value-flash {
+            animation: valueFlash 0.5s ease;
+        }
+
+        @keyframes valueFlash {
+            0%, 100% { color: inherit; }
+            50% { color: #74b9ff; transform: scale(1.1); }
+        }
+
+        /* 滑块拖动时的视觉反馈 */
+        .speech-setting-item input[type="range"]:active::-webkit-slider-thumb {
+            transform: scale(1.3);
+            box-shadow: 0 0 10px rgba(116, 185, 255, 0.6);
+        }
+
+        /* 音量滑块显示数值 */
+        .volume-display {
+            display: inline-block;
+            min-width: 35px;
+            text-align: center;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        /* 移动端 Toast 适配 */
+        @media (max-width: 480px) {
+            .toast-container {
+                top: 60px;
+                width: 90%;
+            }
+
+            .toast {
+                padding: 10px 18px;
+                font-size: 13px;
+                white-space: normal;
+                text-align: center;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Toast 提示容器 -->
+    <div class="toast-container" id="toast-container"></div>
+
     <div class="header">
         <h1>🔧 TRIZ工业旋转设备故障监测系统</h1>
         <p>基于TRIZ理论的智能监测解决方案 | 可视化思维导图</p>
@@ -2718,7 +2858,8 @@
                         <div class="volume-control">
                             <span>🔊</span>
                             <input type="range" id="volume-slider" min="0" max="100" value="30"
-                                   onchange="changeVolume(this.value)" onclick="event.stopPropagation()">
+                                   oninput="changeVolume(this.value, true)" onclick="event.stopPropagation()">
+                            <span id="music-volume-display" class="volume-display">30%</span>
                         </div>
                     </div>
                     <button class="switch-track-btn" onclick="event.stopPropagation(); switchMusicTrack()">🎹 切换曲目</button>
@@ -2786,18 +2927,18 @@
                     <div class="speech-setting-item" onclick="event.stopPropagation()">
                         <label>🐢
                             <input type="range" id="speech-rate" min="0.5" max="2" step="0.1" value="1"
-                                   onchange="updateSpeechRate(this.value)">
+                                   oninput="updateSpeechRate(this.value, true)">
                             🐇
                         </label>
-                        <span id="rate-value">1.0x</span>
+                        <span id="rate-value" class="volume-display">1.0x</span>
                     </div>
                     <div class="speech-setting-item" onclick="event.stopPropagation()">
                         <label>🔇
                             <input type="range" id="speech-volume" min="0" max="1" step="0.1" value="0.8"
-                                   onchange="updateSpeechVolume(this.value)">
+                                   oninput="updateSpeechVolume(this.value, true)">
                             🔊
                         </label>
-                        <span id="volume-value">80%</span>
+                        <span id="volume-value" class="volume-display">80%</span>
                     </div>
                 </div>
             </div>
@@ -3442,9 +3583,9 @@
                 <div class="timeline-item" data-step="2" onclick="toggleTimelineItem(this)">
                     <div class="timeline-title">📊 第2段：项目背景与市场</div>
                     <div class="timeline-content">
-                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">6</span> 已完成</div>
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">4</span> 已完成</div>
                         <div class="script-text">
-                            <p>在国家大力推动 <span class="blank keyword-term" onclick="toggleBlank(event, this)">智能制造</span> 的政策指引下，我国工业监测设备渗透率已达 <span class="blank num" onclick="toggleBlank(event, this)">85%</span>，<span class="blank num" onclick="toggleBlank(event, this)">2027</span> 年市场规模预计突破 <span class="blank num" onclick="toggleBlank(event, this)">3550亿元</span>，在智能制造、<span class="blank keyword-term" onclick="toggleBlank(event, this)">数控机床</span> 等领域应用广泛。</p>
+                            <p>在国家大力推动 <span class="blank keyword-term" onclick="toggleBlank(event, this)">智能制造</span> 的政策指引下，我国工业监测设备渗透率已达 <span class="blank num" onclick="toggleBlank(event, this)">85%</span>，<span class="blank num" onclick="toggleBlank(event, this)">2027</span> 年市场规模预计突破 <span class="blank num" onclick="toggleBlank(event, this)">3550亿元</span>。</p>
                         </div>
                     </div>
                 </div>
@@ -3476,9 +3617,9 @@
                 <div class="timeline-item" data-step="5" onclick="toggleTimelineItem(this)">
                     <div class="timeline-title">🧠 第5段：TRIZ组件分析</div>
                     <div class="timeline-content">
-                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">8</span> 已完成</div>
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">5</span> 已完成</div>
                         <div class="script-text">
-                            <p><span class="blank keyword-connector" onclick="toggleBlank(event, this)">依托</span> <span class="blank triz-method" onclick="toggleBlank(event, this)">TRIZ理论</span>，我们对系统进行 <span class="blank triz-method" onclick="toggleBlank(event, this)">组件分析</span>，<span class="blank keyword-verb" onclick="toggleBlank(event, this)">梳理出</span> <span class="blank keyword-term" onclick="toggleBlank(event, this)">传感器</span>、<span class="blank keyword-term" onclick="toggleBlank(event, this)">边缘计算单元</span> 等核心组件，以及 <span class="blank" onclick="toggleBlank(event, this)">环境电磁干扰</span> 等 <span class="blank keyword-term" onclick="toggleBlank(event, this)">超系统影响因素</span>；</p>
+                            <p><span class="blank keyword-connector" onclick="toggleBlank(event, this)">依托</span> <span class="blank triz-method" onclick="toggleBlank(event, this)">TRIZ理论</span>，我们对系统进行 <span class="blank triz-method" onclick="toggleBlank(event, this)">组件分析</span>，梳理出 <span class="blank keyword-term" onclick="toggleBlank(event, this)">核心组件</span>，以及 <span class="blank keyword-term" onclick="toggleBlank(event, this)">超系统影响因素</span>；</p>
                         </div>
                     </div>
                 </div>
@@ -3498,10 +3639,9 @@
                 <div class="timeline-item" data-step="7" onclick="toggleTimelineItem(this)">
                     <div class="timeline-title">🔗 第7段：因果分析</div>
                     <div class="timeline-content">
-                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">9</span> 已完成</div>
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">10</span> 已完成</div>
                         <div class="script-text">
-                            <p><span class="blank keyword-connector" onclick="toggleBlank(event, this)">针对</span> <span class="blank" onclick="toggleBlank(event, this)">误报漏报多</span> 的关键问题进行 <span class="blank triz-method" onclick="toggleBlank(event, this)">因果分析</span>，确定 <span class="blank num" onclick="toggleBlank(event, this)">五个</span> 关键缺点。</p>
-                            <p>最终<span class="blank keyword-verb" onclick="toggleBlank(event, this)">转化为</span> <span class="blank num" onclick="toggleBlank(event, this)">五个</span> 关键问题，并<span class="blank keyword-connector" onclick="toggleBlank(event, this)">针对</span> <span class="blank" onclick="toggleBlank(event, this)">关键问题1</span>，提出 <span class="blank" onclick="toggleBlank(event, this)">方案1</span>，并<span class="blank keyword-connector" onclick="toggleBlank(event, this)">针对</span> <span class="blank" onclick="toggleBlank(event, this)">关键问题2</span>，提出 <span class="blank" onclick="toggleBlank(event, this)">方案2</span>,<span class="blank" onclick="toggleBlank(event, this)">方案3</span></p>
+                            <p><span class="blank keyword-connector" onclick="toggleBlank(event, this)">针对</span> <span class="blank" onclick="toggleBlank(event, this)">误报漏报多</span> 的关键问题进行 <span class="blank triz-method" onclick="toggleBlank(event, this)">因果分析</span>，确定 <span class="blank num" onclick="toggleBlank(event, this)">五个</span> 关键缺点。最终<span class="blank keyword-verb" onclick="toggleBlank(event, this)">转化为</span> <span class="blank num" onclick="toggleBlank(event, this)">五个</span> 关键问题，并<span class="blank keyword-connector" onclick="toggleBlank(event, this)">针对</span> <span class="blank" onclick="toggleBlank(event, this)">关键问题1</span>，提出 <span class="blank" onclick="toggleBlank(event, this)">方案1</span>，并<span class="blank keyword-connector" onclick="toggleBlank(event, this)">针对</span> <span class="blank" onclick="toggleBlank(event, this)">关键问题2</span>，提出 <span class="blank" onclick="toggleBlank(event, this)">方案2,方案3</span></p>
                         </div>
                     </div>
                 </div>
@@ -3532,9 +3672,9 @@
                 <div class="timeline-item" data-step="10" onclick="toggleTimelineItem(this)">
                     <div class="timeline-title">🎯 第10段：IFR理想解</div>
                     <div class="timeline-content">
-                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">3</span> 已完成</div>
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">4</span> 已完成</div>
                         <div class="script-text">
-                            <p>在求解过程中以 <span class="blank triz-method" onclick="toggleBlank(event, this)">IFR</span> 为牵引解决更具体问题，确定<span class="blank keyword-term" onclick="toggleBlank(event, this)">最终理想解</span>，结合可用资源，我们提出 <span class="blank" onclick="toggleBlank(event, this)">方案4</span> 为后续技术设计提供理想方向</p>
+                            <p>在求解过程中以 <span class="blank triz-method" onclick="toggleBlank(event, this)">IFR</span> 为牵引解决更具体问题，确定<span class="blank keyword-term" onclick="toggleBlank(event, this)">最终理想解</span>，结合<span class="blank keyword-term" onclick="toggleBlank(event, this)">可用资源</span>，提出 <span class="blank" onclick="toggleBlank(event, this)">方案4</span></p>
                         </div>
                     </div>
                 </div>
@@ -3545,7 +3685,7 @@
                     <div class="timeline-content">
                         <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">7</span> 已完成</div>
                         <div class="script-text">
-                            <p><span class="blank keyword-connector" onclick="toggleBlank(event, this)">针对</span>方案一提出 <span class="blank keyword-term" onclick="toggleBlank(event, this)">物理矛盾</span>，我们运用 <span class="blank triz-method" onclick="toggleBlank(event, this)">嵌套原理</span>，提出 <span class="blank" onclick="toggleBlank(event, this)">方案5</span>，将 <span class="blank keyword-term" onclick="toggleBlank(event, this)">声振温</span> 三种传感单元<span class="blank keyword-verb" onclick="toggleBlank(event, this)">嵌套</span>集成于一个硬件模组中，解决了 <span class="blank" onclick="toggleBlank(event, this)">精度与复杂性</span> 的矛盾。</p>
+                            <p><span class="blank keyword-connector" onclick="toggleBlank(event, this)">针对</span>方案一提出 <span class="blank keyword-term" onclick="toggleBlank(event, this)">物理矛盾</span>，运用 <span class="blank triz-method" onclick="toggleBlank(event, this)">嵌套原理</span>，提出 <span class="blank" onclick="toggleBlank(event, this)">方案5</span>，将 <span class="blank keyword-term" onclick="toggleBlank(event, this)">声振温</span> 三种传感单元<span class="blank keyword-verb" onclick="toggleBlank(event, this)">嵌套集成</span>于一个硬件模组中，解决了 <span class="blank" onclick="toggleBlank(event, this)">精度与复杂性</span> 的矛盾。</p>
                         </div>
                     </div>
                 </div>
@@ -3565,9 +3705,9 @@
                 <div class="timeline-item" data-step="13" onclick="toggleTimelineItem(this)">
                     <div class="timeline-title">🔬 第13段：物-场模型分析</div>
                     <div class="timeline-content">
-                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">11</span> 已完成</div>
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">8</span> 已完成</div>
                         <div class="script-text">
-                            <p><span class="blank keyword-connector" onclick="toggleBlank(event, this)">针对</span> <span class="blank" onclick="toggleBlank(event, this)">关键问题3</span>，运用 <span class="blank triz-method" onclick="toggleBlank(event, this)">物-场模型</span> 分析。根据<span class="blank keyword-term" onclick="toggleBlank(event, this)">标准解</span>在<span class="blank keyword-term" onclick="toggleBlank(event, this)">边缘计算单元</span>中<span class="blank keyword-verb" onclick="toggleBlank(event, this)">嵌套</span> <span class="blank keyword-term" onclick="toggleBlank(event, this)">NPU神经网络处理单元</span>，引入 <span class="blank keyword-term" onclick="toggleBlank(event, this)">AI算法场</span> 使监测精度从 <span class="blank num" onclick="toggleBlank(event, this)">85%</span> 提升至 <span class="blank num" onclick="toggleBlank(event, this)">96.7%</span>，误报率降至 <span class="blank num" onclick="toggleBlank(event, this)">3%以下</span>。</p>
+                            <p><span class="blank keyword-connector" onclick="toggleBlank(event, this)">针对</span> <span class="blank" onclick="toggleBlank(event, this)">关键问题3</span>，运用 <span class="blank triz-method" onclick="toggleBlank(event, this)">物-场模型</span> 分析。根据<span class="blank keyword-term" onclick="toggleBlank(event, this)">标准解</span>引入新的物质和场，使监测精度从 <span class="blank num" onclick="toggleBlank(event, this)">85%</span> 提升至 <span class="blank num" onclick="toggleBlank(event, this)">96.7%</span>，误报率降至 <span class="blank num" onclick="toggleBlank(event, this)">3%以下</span>。</p>
                         </div>
                     </div>
                 </div>
@@ -3576,9 +3716,9 @@
                 <div class="timeline-item" data-step="14" onclick="toggleTimelineItem(this)">
                     <div class="timeline-title">✂️ 第14段：裁剪法</div>
                     <div class="timeline-content">
-                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">6</span> 已完成</div>
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">5</span> 已完成</div>
                         <div class="script-text">
-                            <p><span class="blank keyword-connector" onclick="toggleBlank(event, this)">针对</span> <span class="blank" onclick="toggleBlank(event, this)">关键问题4</span>，我们采用 <span class="blank triz-method" onclick="toggleBlank(event, this)">裁剪法</span>。<span class="blank keyword-verb" onclick="toggleBlank(event, this)">裁剪掉</span>系统对 <span class="blank" onclick="toggleBlank(event, this)">资深工程师</span> 的直接依赖，将<span class="blank keyword-term" onclick="toggleBlank(event, this)">诊断决策任务</span>分配给 <span class="blank keyword-term" onclick="toggleBlank(event, this)">故障经验知识库</span>。</p>
+                            <p><span class="blank keyword-connector" onclick="toggleBlank(event, this)">针对</span> <span class="blank" onclick="toggleBlank(event, this)">关键问题4</span>，我们采用 <span class="blank triz-method" onclick="toggleBlank(event, this)">裁剪法</span>。<span class="blank keyword-verb" onclick="toggleBlank(event, this)">裁剪掉</span>系统对 <span class="blank" onclick="toggleBlank(event, this)">资深工程师</span> 的直接依赖，将诊断决策任务分配给 <span class="blank keyword-term" onclick="toggleBlank(event, this)">故障经验知识库</span>。</p>
                         </div>
                     </div>
                 </div>
@@ -3609,9 +3749,9 @@
                 <div class="timeline-item" data-step="17" onclick="toggleTimelineItem(this)">
                     <div class="timeline-title">📊 第17段：方案筛选</div>
                     <div class="timeline-content">
-                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">4</span> 已完成</div>
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">3</span> 已完成</div>
                         <div class="script-text">
-                            <p>我们对 <span class="blank num" onclick="toggleBlank(event, this)">12个</span> 解决方案进行<span class="blank keyword-term" onclick="toggleBlank(event, this)">综合评价与筛选</span>。总分 <span class="blank num" onclick="toggleBlank(event, this)">50分</span>，筛选出 <span class="blank num" onclick="toggleBlank(event, this)">35分</span> 及以上的方案。</p>
+                            <p>我们在 <span class="blank num" onclick="toggleBlank(event, this)">12个</span> 解决方案中筛选出 <span class="blank num" onclick="toggleBlank(event, this)">35分</span> 及以上的方案作为<span class="blank keyword-term" onclick="toggleBlank(event, this)">最终方案</span>。</p>
                         </div>
                     </div>
                 </div>
@@ -3622,8 +3762,7 @@
                     <div class="timeline-content">
                         <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">9</span> 已完成</div>
                         <div class="script-text">
-                            <p><span class="blank keyword-verb" onclick="toggleBlank(event, this)">整合</span>出最终方案，在架构上实现 <span class="blank keyword-adj" onclick="toggleBlank(event, this)">高性能</span> 与 <span class="blank keyword-adj" onclick="toggleBlank(event, this)">低成本</span>；算法上采用 <span class="blank keyword-term" onclick="toggleBlank(event, this)">三层融合架构</span>，识别精度大幅提升。</p>
-                            <p style="margin-top: 10px;">实现模型 <span class="blank keyword-adj" onclick="toggleBlank(event, this)">轻量化</span> 与 <span class="blank keyword-adj" onclick="toggleBlank(event, this)">边缘化部署</span>，搭配 <span class="blank keyword-term" onclick="toggleBlank(event, this)">多模态传感器</span>，确保数据<span class="blank keyword-adj" onclick="toggleBlank(event, this)">全面采集</span>与<span class="blank keyword-adj" onclick="toggleBlank(event, this)">高效处理</span></p>
+                            <p><span class="blank keyword-verb" onclick="toggleBlank(event, this)">整合</span>出最终方案，在架构上实现 <span class="blank keyword-adj" onclick="toggleBlank(event, this)">高性能</span> 与 <span class="blank keyword-adj" onclick="toggleBlank(event, this)">低成本</span>；算法上采用 <span class="blank keyword-term" onclick="toggleBlank(event, this)">三层融合架构</span>，识别精度大幅提升。实现模型 <span class="blank keyword-adj" onclick="toggleBlank(event, this)">轻量化</span> 与 <span class="blank keyword-adj" onclick="toggleBlank(event, this)">边缘化部署</span>，搭配 <span class="blank keyword-term" onclick="toggleBlank(event, this)">多模态传感器</span>，确保数据<span class="blank keyword-adj" onclick="toggleBlank(event, this)">全面采集</span>与<span class="blank keyword-adj" onclick="toggleBlank(event, this)">高效处理</span></p>
                         </div>
                     </div>
                 </div>
@@ -3634,8 +3773,7 @@
                     <div class="timeline-content">
                         <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">5</span> 已完成</div>
                         <div class="script-text">
-                            <p>改进<span class="blank keyword-term" onclick="toggleBlank(event, this)">多模态模型混合融合算法</span>，通过 <span class="blank keyword-term" onclick="toggleBlank(event, this)">三层融合架构</span>，实现<span class="blank keyword-term" onclick="toggleBlank(event, this)">系统性能全面提升</span>；</p>
-                            <p style="margin-top: 10px;">打造工业监测系统，提供专业的数据分析，<span class="blank keyword-verb" onclick="toggleBlank(event, this)">全方位保障</span>工业设备的安全。</p>
+                            <p>改进<span class="blank keyword-term" onclick="toggleBlank(event, this)">多模态模型混合融合算法</span>，通过 <span class="blank keyword-term" onclick="toggleBlank(event, this)">三层融合架构</span>，实现<span class="blank keyword-term" onclick="toggleBlank(event, this)">系统性能全面提升</span>；打造<span class="blank keyword-term" onclick="toggleBlank(event, this)">工业监测系统</span>，提供专业的数据分析，<span class="blank keyword-verb" onclick="toggleBlank(event, this)">全方位保障</span>工业设备的安全。</p>
                         </div>
                     </div>
                 </div>
@@ -3644,10 +3782,9 @@
                 <div class="timeline-item" data-step="20" onclick="toggleTimelineItem(this)">
                     <div class="timeline-title">📈 第20段：竞品对比与验证</div>
                     <div class="timeline-content">
-                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">3</span> 已完成</div>
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">4</span> 已完成</div>
                         <div class="script-text">
-                            <p>对比竞品数据，系统<span class="blank keyword-adj" onclick="toggleBlank(event, this)">综合性能</span>远超行业同类产品。</p>
-                            <p style="margin-top: 10px;">经 <span class="blank keyword-name" onclick="toggleBlank(event, this)">中国机械工业联合会</span> 检测，我们的系统关键指标也远超国家标准：充分验证系统的<span class="blank keyword-adj" onclick="toggleBlank(event, this)">可靠性与优越性</span>。</p>
+                            <p>对比竞品数据，系统<span class="blank keyword-adj" onclick="toggleBlank(event, this)">综合性能</span>远超行业同类产品。经 <span class="blank keyword-name" onclick="toggleBlank(event, this)">中国机械工业联合会</span> 检测，我们的系统关键指标也远超<span class="blank keyword-term" onclick="toggleBlank(event, this)">国家标准</span>：充分验证系统的<span class="blank keyword-adj" onclick="toggleBlank(event, this)">可靠性与优越性</span>。</p>
                         </div>
                     </div>
                 </div>
@@ -3704,6 +3841,64 @@
         let speechPitch = 1.0;            // 音调 (0.5-2.0)
         let chineseVoice = null;          // 中文语音
         let originalMusicVolume = 30;     // 原始音乐音量
+        let userBaseRate = 1.0;           // 用户设置的基础语速
+        let voiceQuality = 'standard';    // 语音质量: 'neural', 'enhanced', 'standard'
+
+        // ========== 智能语音配置 ==========
+        // 段落语音参数配置 (根据内容类型动态调整)
+        const paragraphSpeechConfig = {
+            // 开场介绍 - 庄重热情
+            1: { rateMultiplier: 0.90, pitchOffset: 0.05, pauseMultiplier: 1.2, emotion: 'formal' },
+            // 数据背景 - 稳重清晰
+            2: { rateMultiplier: 0.85, pitchOffset: 0.0, pauseMultiplier: 1.3, emotion: 'informative' },
+            // 行业痛点 - 略带严肃
+            3: { rateMultiplier: 0.92, pitchOffset: -0.03, pauseMultiplier: 1.1, emotion: 'serious' },
+            // 技术选型 - 专业自信
+            4: { rateMultiplier: 0.95, pitchOffset: 0.0, pauseMultiplier: 1.0, emotion: 'confident' },
+            // TRIZ组件分析
+            5: { rateMultiplier: 0.95, pitchOffset: 0.0, pauseMultiplier: 1.0, emotion: 'analytical' },
+            // 功能分析
+            6: { rateMultiplier: 0.95, pitchOffset: 0.0, pauseMultiplier: 1.0, emotion: 'analytical' },
+            // 因果分析 - 逻辑递进
+            7: { rateMultiplier: 0.93, pitchOffset: 0.0, pauseMultiplier: 1.1, emotion: 'logical' },
+            // 九屏分析
+            8: { rateMultiplier: 0.95, pitchOffset: 0.0, pauseMultiplier: 1.0, emotion: 'analytical' },
+            // 资源分析
+            9: { rateMultiplier: 0.95, pitchOffset: 0.0, pauseMultiplier: 1.0, emotion: 'analytical' },
+            // IFR理想解 - 重点强调
+            10: { rateMultiplier: 0.90, pitchOffset: 0.02, pauseMultiplier: 1.2, emotion: 'emphasis' },
+            // 嵌套原理 - TRIZ方法
+            11: { rateMultiplier: 0.92, pitchOffset: 0.0, pauseMultiplier: 1.1, emotion: 'technical' },
+            // 分离原理
+            12: { rateMultiplier: 0.92, pitchOffset: 0.0, pauseMultiplier: 1.1, emotion: 'technical' },
+            // 物场模型 - 数据亮点
+            13: { rateMultiplier: 0.88, pitchOffset: 0.02, pauseMultiplier: 1.3, emotion: 'highlight' },
+            // 裁剪法
+            14: { rateMultiplier: 0.92, pitchOffset: 0.0, pauseMultiplier: 1.1, emotion: 'technical' },
+            // 金鱼法
+            15: { rateMultiplier: 0.92, pitchOffset: 0.0, pauseMultiplier: 1.1, emotion: 'technical' },
+            // STC算子
+            16: { rateMultiplier: 0.92, pitchOffset: 0.0, pauseMultiplier: 1.1, emotion: 'technical' },
+            // 方案筛选
+            17: { rateMultiplier: 0.93, pitchOffset: 0.0, pauseMultiplier: 1.0, emotion: 'summary' },
+            // 最终方案 - 自信展示
+            18: { rateMultiplier: 0.90, pitchOffset: 0.03, pauseMultiplier: 1.2, emotion: 'confident' },
+            // 算法改进
+            19: { rateMultiplier: 0.92, pitchOffset: 0.02, pauseMultiplier: 1.1, emotion: 'highlight' },
+            // 竞品对比 - 自豪展示
+            20: { rateMultiplier: 0.88, pitchOffset: 0.03, pauseMultiplier: 1.3, emotion: 'proud' },
+            // 专利成果 - 成就感
+            21: { rateMultiplier: 0.88, pitchOffset: 0.03, pauseMultiplier: 1.2, emotion: 'achievement' },
+            // 结束语 - 热情收尾
+            22: { rateMultiplier: 0.85, pitchOffset: 0.05, pauseMultiplier: 1.4, emotion: 'conclusion' }
+        };
+
+        // 高质量语音关键词（按优先级排序）
+        const preferredVoiceKeywords = [
+            'Neural', 'neural', '神经', 'Natural', 'natural', '自然',
+            'Xiaoxiao', 'Yunyang', 'Xiaoyi', 'Yunxi', 'Xiaomo',
+            'Enhanced', 'Premium', 'HD', 'Online'
+        ];
 
         // 鼓励语列表
         const encourageMessages = [
@@ -4399,13 +4594,32 @@
         }
 
         // 覆盖原有的 changeVolume 函数
-        function changeVolume(value) {
+        /**
+         * 更改背景音乐音量
+         * @param {number} value - 音量值 (0-100)
+         * @param {boolean} showToast - 是否显示提示
+         */
+        function changeVolume(value, showToast = false) {
             const music1 = document.getElementById('bg-music-1');
             const music2 = document.getElementById('bg-music-2');
             const volume = value / 100;
             if (music1) music1.volume = volume;
             if (music2) music2.volume = volume;
             localStorage.setItem('musicVolume', value);
+
+            // 更新音量显示
+            const volumeDisplay = document.getElementById('music-volume-display');
+            if (volumeDisplay) {
+                volumeDisplay.textContent = value + '%';
+                volumeDisplay.classList.remove('value-flash');
+                void volumeDisplay.offsetWidth;
+                volumeDisplay.classList.add('value-flash');
+            }
+
+            // 显示提示（带防抖，避免拖动时频繁提示）
+            if (showToast) {
+                showToastDebounced('🎵 音乐音量：' + value + '%');
+            }
         }
 
         // ========== 初始化 ==========
@@ -4478,10 +4692,15 @@
             if (savedVolume) {
                 const volumeSlider = document.getElementById('volume-slider');
                 volumeSlider.value = savedVolume;
-                changeVolume(savedVolume);
+                changeVolume(savedVolume, false);
+                // 更新音量显示
+                const volumeDisplay = document.getElementById('music-volume-display');
+                if (volumeDisplay) volumeDisplay.textContent = savedVolume + '%';
             } else {
                 // 初始化默认音量
-                changeVolume(30);
+                changeVolume(30, false);
+                const volumeDisplay = document.getElementById('music-volume-display');
+                if (volumeDisplay) volumeDisplay.textContent = '30%';
             }
 
             // ===== 初始化语音朗读功能 =====
@@ -4507,17 +4726,73 @@
 
             speechSynth = window.speechSynthesis;
 
+            /**
+             * 评估语音质量分数
+             * @param {SpeechSynthesisVoice} voice - 语音对象
+             * @returns {number} 质量分数 (0-100)
+             */
+            function scoreVoice(voice) {
+                let score = 0;
+                const name = voice.name.toLowerCase();
+                const lang = voice.lang;
+
+                // 语言匹配度
+                if (lang === 'zh-CN') score += 30;
+                else if (lang.includes('zh')) score += 20;
+                else if (lang.includes('cmn')) score += 15;
+
+                // 检查高质量关键词
+                preferredVoiceKeywords.forEach((keyword, index) => {
+                    if (voice.name.includes(keyword)) {
+                        // 优先级越高分数越高
+                        score += Math.max(25 - index * 2, 5);
+                    }
+                });
+
+                // 本地语音优先（更稳定）
+                if (voice.localService) score += 5;
+
+                // 微软和谷歌语音通常质量较高
+                if (name.includes('microsoft') || name.includes('google')) score += 10;
+
+                return score;
+            }
+
             // 加载语音列表（需要等待语音加载完成）
             function loadVoices() {
                 const voices = speechSynth.getVoices();
-                // 优先选择中文语音
-                chineseVoice = voices.find(voice => voice.lang.includes('zh-CN')) ||
-                               voices.find(voice => voice.lang.includes('zh')) ||
-                               voices.find(voice => voice.lang.includes('cmn')) ||
-                               voices[0];
+                if (voices.length === 0) return;
 
-                if (chineseVoice) {
-                    console.log('已加载中文语音:', chineseVoice.name);
+                // 筛选中文语音
+                const chineseVoices = voices.filter(v =>
+                    v.lang.includes('zh-CN') || v.lang.includes('zh') || v.lang.includes('cmn')
+                );
+
+                if (chineseVoices.length > 0) {
+                    // 按质量分数排序
+                    chineseVoices.sort((a, b) => scoreVoice(b) - scoreVoice(a));
+                    chineseVoice = chineseVoices[0];
+
+                    // 判断语音质量等级
+                    const bestScore = scoreVoice(chineseVoice);
+                    if (bestScore >= 50) {
+                        voiceQuality = 'neural';
+                    } else if (bestScore >= 35) {
+                        voiceQuality = 'enhanced';
+                    } else {
+                        voiceQuality = 'standard';
+                    }
+
+                    console.log('🎤 已选择最佳中文语音:', chineseVoice.name, '(质量分数:', bestScore, ', 等级:', voiceQuality, ')');
+
+                    // 如果语音质量较低，显示提示
+                    if (voiceQuality === 'standard') {
+                        console.info('💡 提示: 当前语音质量一般，建议使用 Chrome 或 Edge 浏览器以获得更好的朗读效果');
+                    }
+                } else if (voices.length > 0) {
+                    chineseVoice = voices[0];
+                    voiceQuality = 'standard';
+                    console.warn('未找到中文语音，使用默认语音:', chineseVoice.name);
                 }
             }
 
@@ -4535,8 +4810,11 @@
 
             if (savedRate) {
                 speechRate = parseFloat(savedRate);
+                userBaseRate = speechRate; // 同步恢复用户基础语速
                 document.getElementById('speech-rate').value = speechRate;
                 document.getElementById('rate-value').textContent = speechRate.toFixed(1) + 'x';
+            } else {
+                userBaseRate = speechRate; // 初始化用户基础语速
             }
 
             if (savedSpeechVolume) {
@@ -4579,6 +4857,64 @@
             // 清理多余空白
             text = text.replace(/\s+/g, ' ').trim();
 
+            // 应用智能断句优化
+            text = enhanceTextForSpeech(text, paragraphIndex);
+
+            return text;
+        }
+
+        /**
+         * 智能文本预处理 - 为语音朗读优化文本
+         * @param {string} text - 原始文本
+         * @param {number} paragraphIndex - 段落索引
+         * @returns {string} 优化后的文本
+         */
+        function enhanceTextForSpeech(text, paragraphIndex) {
+            const config = paragraphSpeechConfig[paragraphIndex] || { pauseMultiplier: 1.0 };
+            const pauseLevel = config.pauseMultiplier;
+
+            // 1. 在数字和百分比前后添加微停顿（用空格模拟）
+            // 匹配数字、百分比、年份、金额等
+            text = text.replace(/(\d+(?:\.\d+)?%?亿?元?项?个?分?段?)/g, ' $1 ');
+
+            // 2. 根据标点符号添加自然停顿
+            // 句号、问号、感叹号后添加较长停顿
+            if (pauseLevel >= 1.2) {
+                text = text.replace(/([。！？])/g, '$1   ');
+            } else {
+                text = text.replace(/([。！？])/g, '$1  ');
+            }
+
+            // 分号、冒号后添加中等停顿
+            text = text.replace(/([；：])/g, '$1  ');
+
+            // 逗号、顿号后添加短停顿
+            if (pauseLevel >= 1.1) {
+                text = text.replace(/([，、])/g, '$1 ');
+            }
+
+            // 3. 为TRIZ专业术语添加强调（前后加微停顿）
+            const trizTerms = [
+                'TRIZ理论', 'TRIZ', '九屏分析', 'IFR', '理想解', '物理矛盾', '技术矛盾',
+                '嵌套原理', '分离原理', '物场模型', '物-场模型', '裁剪法', '金鱼法',
+                'STC算子', 'NPU', 'AI算法', '标准解', '组件分析', '功能分析', '因果分析'
+            ];
+            trizTerms.forEach(term => {
+                const regex = new RegExp(`(${term})`, 'g');
+                text = text.replace(regex, ' $1 ');
+            });
+
+            // 4. 为关键动词添加微停顿
+            const emphasisVerbs = ['提出', '解决', '实现', '提升', '达到', '超越', '验证', '整合'];
+            emphasisVerbs.forEach(verb => {
+                const regex = new RegExp(`(${verb})`, 'g');
+                text = text.replace(regex, ' $1');
+            });
+
+            // 5. 清理多余空格（但保留必要的停顿空格）
+            text = text.replace(/\s{4,}/g, '   '); // 最多保留3个空格
+            text = text.replace(/^\s+/, '').replace(/\s+$/, ''); // 去掉首尾空格
+
             return text;
         }
 
@@ -4601,6 +4937,33 @@
         }
 
         /**
+         * 计算段落的智能语音参数
+         * @param {number} paragraphIndex - 段落索引
+         * @returns {object} 语音参数 { rate, pitch }
+         */
+        function getSmartSpeechParams(paragraphIndex) {
+            const config = paragraphSpeechConfig[paragraphIndex] || {
+                rateMultiplier: 1.0,
+                pitchOffset: 0,
+                pauseMultiplier: 1.0
+            };
+
+            // 基于用户设置的语速进行调整
+            const baseRate = userBaseRate || speechRate;
+            const adjustedRate = Math.max(0.5, Math.min(2.0, baseRate * config.rateMultiplier));
+
+            // 基于基础音调进行调整
+            const basePitch = speechPitch || 1.0;
+            const adjustedPitch = Math.max(0.5, Math.min(2.0, basePitch + config.pitchOffset));
+
+            return {
+                rate: adjustedRate,
+                pitch: adjustedPitch,
+                emotion: config.emotion || 'neutral'
+            };
+        }
+
+        /**
          * 开始朗读指定段落
          * @param {number} paragraphIndex - 段落索引 (1-22)
          */
@@ -4618,16 +4981,24 @@
                 return;
             }
 
+            // 获取智能语音参数
+            const smartParams = getSmartSpeechParams(paragraphIndex);
+
             // 创建新的 utterance
             currentUtterance = new SpeechSynthesisUtterance(text);
             currentUtterance.lang = 'zh-CN';
-            currentUtterance.rate = speechRate;
+
+            // 应用智能语音参数
+            currentUtterance.rate = smartParams.rate;
             currentUtterance.volume = speechVolume;
-            currentUtterance.pitch = speechPitch;
+            currentUtterance.pitch = smartParams.pitch;
 
             if (chineseVoice) {
                 currentUtterance.voice = chineseVoice;
             }
+
+            // 调试信息
+            console.log(`🎤 第${paragraphIndex}段 | 情感: ${smartParams.emotion} | 语速: ${smartParams.rate.toFixed(2)}x | 音调: ${smartParams.pitch.toFixed(2)}`);
 
             // 朗读开始事件
             currentUtterance.onstart = function() {
@@ -4642,13 +5013,25 @@
             currentUtterance.onend = function() {
                 isSpeaking = false;
                 isPaused = false;
+                clearSentenceHighlight(); // 清除句子高亮
+
+                // 获取段落间停顿时间
+                const pauseConfig = paragraphSpeechConfig[paragraphIndex] || { pauseMultiplier: 1.0 };
+                const basePause = continuousMode ? 800 : 500;
+                const adjustedPause = Math.round(basePause * pauseConfig.pauseMultiplier);
 
                 if (loopMode) {
                     // 单段循环模式：重新朗读当前段落
-                    setTimeout(() => startSpeech(paragraphIndex), 500);
+                    setTimeout(() => startSpeech(paragraphIndex), adjustedPause);
                 } else if (continuousMode && paragraphIndex < totalSteps) {
-                    // 连续模式：自动朗读下一段
-                    setTimeout(() => startSpeech(paragraphIndex + 1), 800);
+                    // 连续模式：自动朗读下一段（根据段落情感调整间隔）
+                    setTimeout(() => startSpeech(paragraphIndex + 1), adjustedPause);
+                } else if (continuousMode && paragraphIndex >= totalSteps) {
+                    // 连续模式朗读完所有段落
+                    showToast('🎉 已完成全部 ' + totalSteps + ' 段朗读！', 'complete', 3000);
+                    updateSpeechUI();
+                    removeHighlight();
+                    restoreMusicVolume();
                 } else {
                     // 朗读结束
                     updateSpeechUI();
@@ -4657,11 +5040,23 @@
                 }
             };
 
+            // 朗读边界事件（用于逐句高亮）
+            currentUtterance.onboundary = function(event) {
+                if (event.name === 'sentence' || event.name === 'word') {
+                    try {
+                        highlightCurrentSentence(paragraphIndex, text, event.charIndex);
+                    } catch (e) {
+                        console.warn('逐句高亮不支持:', e);
+                    }
+                }
+            };
+
             // 朗读错误事件
             currentUtterance.onerror = function(event) {
                 console.error('朗读错误:', event.error);
                 isSpeaking = false;
                 isPaused = false;
+                clearSentenceHighlight();
                 updateSpeechUI();
                 removeHighlight();
                 restoreMusicVolume();
@@ -4746,6 +5141,13 @@
             }
 
             localStorage.setItem('speechContinuousMode', continuousMode.toString());
+
+            // 显示提示
+            if (continuousMode) {
+                showToast('✅ 已开启连续朗读模式', 'success');
+            } else {
+                showToast('已关闭连续朗读模式');
+            }
         }
 
         /**
@@ -4764,26 +5166,99 @@
             }
 
             localStorage.setItem('speechLoopMode', loopMode.toString());
+
+            // 显示提示
+            if (loopMode) {
+                showToast('✅ 已开启单段循环模式', 'success');
+            } else {
+                showToast('已关闭单段循环模式');
+            }
         }
 
         /**
          * 更新语速
          * @param {number} value - 语速值 (0.5-2.0)
+         * @param {boolean} showToast - 是否显示提示
          */
-        function updateSpeechRate(value) {
+        function updateSpeechRate(value, showToastFlag = false) {
             speechRate = parseFloat(value);
-            document.getElementById('rate-value').textContent = speechRate.toFixed(1) + 'x';
+            userBaseRate = speechRate; // 同步更新用户基础语速
+            const rateEl = document.getElementById('rate-value');
+            rateEl.textContent = speechRate.toFixed(1) + 'x';
+            rateEl.classList.remove('value-flash');
+            void rateEl.offsetWidth; // 触发重排以重新开始动画
+            rateEl.classList.add('value-flash');
             localStorage.setItem('speechRate', speechRate.toString());
+
+            // 如果正在朗读，提示用户参数将在下次生效
+            if (showToastFlag && isSpeaking) {
+                showToastDebounced('语速已调整为 ' + speechRate.toFixed(1) + 'x（智能调节后下段生效）', 'warning');
+            } else if (showToastFlag) {
+                showToastDebounced('语速已调整为 ' + speechRate.toFixed(1) + 'x（智能模式）');
+            }
         }
 
         /**
-         * 更新音量
+         * 更新语音音量
          * @param {number} value - 音量值 (0-1)
+         * @param {boolean} showToast - 是否显示提示
          */
-        function updateSpeechVolume(value) {
+        function updateSpeechVolume(value, showToast = false) {
             speechVolume = parseFloat(value);
-            document.getElementById('volume-value').textContent = Math.round(speechVolume * 100) + '%';
+            const volumeEl = document.getElementById('volume-value');
+            volumeEl.textContent = Math.round(speechVolume * 100) + '%';
+            volumeEl.classList.remove('value-flash');
+            void volumeEl.offsetWidth;
+            volumeEl.classList.add('value-flash');
             localStorage.setItem('speechVolume', speechVolume.toString());
+
+            if (showToast) {
+                showToastDebounced('语音音量已调整为 ' + Math.round(speechVolume * 100) + '%');
+            }
+        }
+
+        // ========== Toast 提示功能 ==========
+        let toastQueue = [];
+        let isShowingToast = false;
+        let toastDebounceTimer = null;
+
+        /**
+         * 显示 Toast 提示（带防抖）
+         * @param {string} message - 提示内容
+         * @param {string} type - 类型：default, success, warning, complete
+         */
+        function showToastDebounced(message, type = 'default') {
+            clearTimeout(toastDebounceTimer);
+            toastDebounceTimer = setTimeout(() => {
+                showToast(message, type);
+            }, 100);
+        }
+
+        /**
+         * 显示 Toast 提示
+         * @param {string} message - 提示内容
+         * @param {string} type - 类型：default, success, warning, complete
+         * @param {number} duration - 显示时长（毫秒）
+         */
+        function showToast(message, type = 'default', duration = 2000) {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = 'toast' + (type !== 'default' ? ' ' + type : '');
+            toast.textContent = message;
+
+            container.appendChild(toast);
+
+            // 自动移除
+            setTimeout(() => {
+                toast.classList.add('hiding');
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }, duration);
         }
 
         /**
@@ -4843,6 +5318,78 @@
             document.querySelectorAll('.timeline-item.speaking').forEach(item => {
                 item.classList.remove('speaking');
             });
+            clearSentenceHighlight();
+        }
+
+        // ========== 逐句高亮功能 ==========
+        let lastHighlightedSentence = null;
+
+        /**
+         * 高亮当前正在朗读的句子
+         * @param {number} paragraphIndex - 段落索引
+         * @param {string} fullText - 完整段落文本
+         * @param {number} charIndex - 当前朗读字符索引
+         */
+        function highlightCurrentSentence(paragraphIndex, fullText, charIndex) {
+            const timelineItem = document.querySelector(`.timeline-item[data-step="${paragraphIndex}"]`);
+            if (!timelineItem) return;
+
+            const scriptText = timelineItem.querySelector('.script-text');
+            if (!scriptText) return;
+
+            // 查找当前句子的边界（以中文标点为分隔）
+            const sentenceEnders = ['。', '！', '？', '；', '：', '，'];
+            let sentenceStart = 0;
+            let sentenceEnd = fullText.length;
+
+            // 找到当前句子的起始位置
+            for (let i = charIndex - 1; i >= 0; i--) {
+                if (sentenceEnders.includes(fullText[i])) {
+                    sentenceStart = i + 1;
+                    break;
+                }
+            }
+
+            // 找到当前句子的结束位置
+            for (let i = charIndex; i < fullText.length; i++) {
+                if (sentenceEnders.includes(fullText[i])) {
+                    sentenceEnd = i + 1;
+                    break;
+                }
+            }
+
+            const currentSentence = fullText.substring(sentenceStart, sentenceEnd).trim();
+
+            // 如果和上次高亮的句子相同，不重复处理
+            if (lastHighlightedSentence === currentSentence) return;
+
+            // 清除之前的高亮
+            clearSentenceHighlight();
+
+            // 在 DOM 中查找并高亮匹配的文本
+            // 注意：这里采用简化方案，直接在 script-text 上添加视觉效果
+            const scriptTextContent = scriptText.innerHTML;
+            if (currentSentence && currentSentence.length > 2) {
+                // 为 script-text 添加当前句子指示
+                scriptText.setAttribute('data-speaking-sentence', currentSentence.substring(0, 20));
+            }
+
+            lastHighlightedSentence = currentSentence;
+        }
+
+        /**
+         * 清除句子高亮
+         */
+        function clearSentenceHighlight() {
+            document.querySelectorAll('.speaking-highlight').forEach(el => {
+                el.classList.remove('speaking-highlight');
+                el.classList.add('speaking-highlight-fade-out');
+                setTimeout(() => el.classList.remove('speaking-highlight-fade-out'), 200);
+            });
+            document.querySelectorAll('[data-speaking-sentence]').forEach(el => {
+                el.removeAttribute('data-speaking-sentence');
+            });
+            lastHighlightedSentence = null;
         }
 
         /**

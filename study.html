@@ -2221,6 +2221,248 @@
             display: none !important;
         }
 
+        /* ========== 语音朗读控制区样式 ========== */
+        .speech-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 15px;
+            background: linear-gradient(135deg, rgba(116, 185, 255, 0.15), rgba(162, 155, 254, 0.15));
+            border-radius: 10px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .speech-section .section-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #74b9ff;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .speech-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .speech-btn {
+            background: linear-gradient(135deg, #74b9ff, #a29bfe);
+            border: none;
+            padding: 8px 14px;
+            border-radius: 20px;
+            color: white;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        .speech-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(116, 185, 255, 0.4);
+        }
+
+        .speech-btn:active {
+            transform: translateY(0);
+        }
+
+        .speech-btn.active {
+            background: linear-gradient(135deg, #00cec9, #00b894);
+            animation: speechPulse 1.5s infinite;
+        }
+
+        .speech-btn.playing {
+            background: linear-gradient(135deg, #fd79a8, #e84393);
+        }
+
+        .speech-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        @keyframes speechPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(0, 206, 201, 0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(0, 206, 201, 0); }
+        }
+
+        .speech-status {
+            font-size: 13px;
+            color: #dfe6e9;
+            padding: 5px 12px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .speech-status .status-icon {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #636e72;
+        }
+
+        .speech-status.playing .status-icon {
+            background: #00cec9;
+            animation: statusBlink 1s infinite;
+        }
+
+        .speech-status.paused .status-icon {
+            background: #fdcb6e;
+        }
+
+        @keyframes statusBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .speech-settings {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .speech-setting-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #b2bec3;
+        }
+
+        .speech-setting-item label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .speech-setting-item input[type="range"] {
+            width: 70px;
+            height: 4px;
+            -webkit-appearance: none;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        .speech-setting-item input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: linear-gradient(135deg, #74b9ff, #a29bfe);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .speech-setting-item input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .speech-mode-toggles {
+            display: flex;
+            gap: 8px;
+        }
+
+        .mode-toggle-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 6px 12px;
+            border-radius: 15px;
+            color: #b2bec3;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mode-toggle-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .mode-toggle-btn.active {
+            background: linear-gradient(135deg, #00cec9, #00b894);
+            color: white;
+            border-color: transparent;
+        }
+
+        /* 波形动画 */
+        .speech-wave {
+            display: none;
+            align-items: center;
+            gap: 2px;
+            height: 20px;
+            margin-left: 8px;
+        }
+
+        .speech-wave.active {
+            display: flex;
+        }
+
+        .speech-wave span {
+            display: block;
+            width: 3px;
+            background: linear-gradient(to top, #74b9ff, #a29bfe);
+            border-radius: 2px;
+            animation: waveAnim 0.8s ease-in-out infinite;
+        }
+
+        .speech-wave span:nth-child(1) { height: 8px; animation-delay: 0s; }
+        .speech-wave span:nth-child(2) { height: 14px; animation-delay: 0.1s; }
+        .speech-wave span:nth-child(3) { height: 10px; animation-delay: 0.2s; }
+        .speech-wave span:nth-child(4) { height: 16px; animation-delay: 0.3s; }
+        .speech-wave span:nth-child(5) { height: 12px; animation-delay: 0.4s; }
+
+        @keyframes waveAnim {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(0.4); }
+        }
+
+        /* 正在朗读的段落高亮 */
+        .timeline-item.speaking {
+            border-left: 4px solid #74b9ff !important;
+            background: linear-gradient(135deg, rgba(116, 185, 255, 0.2), rgba(162, 155, 254, 0.1)) !important;
+            box-shadow: 0 0 20px rgba(116, 185, 255, 0.3);
+        }
+
+        .timeline-item.speaking .timeline-title {
+            color: #74b9ff;
+        }
+
+        /* 正在朗读的文字高亮 */
+        .speaking-highlight {
+            background: linear-gradient(135deg, rgba(116, 185, 255, 0.3), rgba(162, 155, 254, 0.3));
+            border-radius: 4px;
+            padding: 2px 4px;
+            animation: highlightPulse 1s infinite;
+        }
+
+        @keyframes highlightPulse {
+            0%, 100% { background: rgba(116, 185, 255, 0.3); }
+            50% { background: rgba(116, 185, 255, 0.5); }
+        }
+
+        /* 语音不支持提示 */
+        .speech-unsupported {
+            background: linear-gradient(135deg, rgba(225, 112, 85, 0.2), rgba(214, 48, 49, 0.2));
+            border: 1px solid rgba(225, 112, 85, 0.3);
+            border-radius: 10px;
+            padding: 10px 15px;
+            color: #fab1a0;
+            font-size: 13px;
+            text-align: center;
+        }
+
         /* ========== 移动端响应式适配 ========== */
         @media (max-width: 1024px) {
             .unified-bottom-bar {
@@ -2282,6 +2524,23 @@
                 width: 100%;
                 justify-content: center;
             }
+
+            .speech-section {
+                width: 100%;
+                flex-direction: column;
+                gap: 10px;
+                padding: 10px;
+            }
+
+            .speech-controls {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .speech-settings {
+                width: 100%;
+                justify-content: center;
+            }
         }
 
         @media (max-width: 480px) {
@@ -2330,6 +2589,37 @@
             .music-section .switch-track-btn {
                 display: none;
             }
+
+            .speech-section {
+                padding: 8px 10px;
+            }
+
+            .speech-btn {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+
+            .speech-status {
+                font-size: 11px;
+                padding: 4px 8px;
+            }
+
+            .speech-setting-item {
+                font-size: 11px;
+            }
+
+            .speech-setting-item input[type="range"] {
+                width: 50px;
+            }
+
+            .mode-toggle-btn {
+                padding: 5px 8px;
+                font-size: 11px;
+            }
+
+            .speech-wave span {
+                width: 2px;
+            }
         }
 
         /* 触摸设备优化 */
@@ -2340,7 +2630,8 @@
             }
 
             .defense-nav-section .nav-btn,
-            .music-section .music-btn {
+            .music-section .music-btn,
+            .speech-btn {
                 min-width: 44px;
                 min-height: 44px;
             }
@@ -2447,6 +2738,73 @@
                         <span>✨ 粒子</span>
                     </label>
                 </div>
+            </div>
+
+            <!-- 语音朗读控制区（仅在答辩模式显示） -->
+            <div class="speech-section" id="speech-section" style="display: none;">
+                <span class="section-label">🔊 语音朗读</span>
+
+                <!-- 朗读控制按钮 -->
+                <div class="speech-controls">
+                    <button class="speech-btn" id="speech-play-btn" onclick="event.stopPropagation(); toggleSpeech()" title="播放/暂停朗读">
+                        🔊 朗读
+                    </button>
+                    <button class="speech-btn" onclick="event.stopPropagation(); stopSpeech()" title="停止朗读">
+                        ⏹️ 停止
+                    </button>
+                    <button class="speech-btn" onclick="event.stopPropagation(); prevParagraphSpeech()" title="上一段">
+                        ⬅️
+                    </button>
+                    <button class="speech-btn" onclick="event.stopPropagation(); nextParagraphSpeech()" title="下一段">
+                        ➡️
+                    </button>
+                </div>
+
+                <!-- 朗读状态 -->
+                <div class="speech-status" id="speech-status">
+                    <span class="status-icon"></span>
+                    <span id="speech-status-text">未开始</span>
+                </div>
+
+                <!-- 波形动画 -->
+                <div class="speech-wave" id="speech-wave">
+                    <span></span><span></span><span></span><span></span><span></span>
+                </div>
+
+                <!-- 模式切换 -->
+                <div class="speech-mode-toggles">
+                    <button class="mode-toggle-btn" id="continuous-mode-btn" onclick="event.stopPropagation(); toggleContinuousMode()" title="连续朗读">
+                        🔁 连续
+                    </button>
+                    <button class="mode-toggle-btn" id="loop-mode-btn" onclick="event.stopPropagation(); toggleLoopMode()" title="单段循环">
+                        🔂 循环
+                    </button>
+                </div>
+
+                <!-- 语音设置 -->
+                <div class="speech-settings">
+                    <div class="speech-setting-item" onclick="event.stopPropagation()">
+                        <label>🐢
+                            <input type="range" id="speech-rate" min="0.5" max="2" step="0.1" value="1"
+                                   onchange="updateSpeechRate(this.value)">
+                            🐇
+                        </label>
+                        <span id="rate-value">1.0x</span>
+                    </div>
+                    <div class="speech-setting-item" onclick="event.stopPropagation()">
+                        <label>🔇
+                            <input type="range" id="speech-volume" min="0" max="1" step="0.1" value="0.8"
+                                   onchange="updateSpeechVolume(this.value)">
+                            🔊
+                        </label>
+                        <span id="volume-value">80%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 语音不支持提示（默认隐藏） -->
+            <div class="speech-unsupported" id="speech-unsupported" style="display: none;">
+                ⚠️ 您的浏览器不支持语音朗读功能，建议使用 Chrome/Edge 浏览器
             </div>
         </div>
     </div>
@@ -3333,6 +3691,20 @@
         let lastEyeReminder = 0;
         let lastWaterReminder = 0;
 
+        // ========== 语音朗读全局变量 ==========
+        let speechSynth = null;           // SpeechSynthesis 实例
+        let currentUtterance = null;      // 当前朗读的 utterance
+        let speechParagraphIndex = 1;     // 当前朗读的段落索引 (1-22)
+        let isSpeaking = false;           // 是否正在朗读
+        let isPaused = false;             // 是否暂停
+        let continuousMode = false;       // 连续朗读模式
+        let loopMode = false;             // 单段循环模式
+        let speechRate = 1.0;             // 语速 (0.5-2.0)
+        let speechVolume = 0.8;           // 音量 (0-1)
+        let speechPitch = 1.0;            // 音调 (0.5-2.0)
+        let chineseVoice = null;          // 中文语音
+        let originalMusicVolume = 30;     // 原始音乐音量
+
         // 鼓励语列表
         const encourageMessages = [
             "太棒了！继续加油💪",
@@ -3814,15 +4186,25 @@
             const defenseNavSection = document.getElementById('defense-nav-section');
             const barModeLabel = document.getElementById('bar-mode-label');
             const stepDisplay = document.getElementById('bar-step-display');
+            const speechSection = document.getElementById('speech-section');
 
             if (mode === 'defense') {
                 defenseNavSection.style.display = 'flex';
                 barModeLabel.textContent = '答辩控制';
                 stepDisplay.style.display = 'inline';
+                // 显示语音朗读区域（如果浏览器支持）
+                if (speechSection && window.speechSynthesis) {
+                    speechSection.style.display = 'flex';
+                }
             } else {
                 defenseNavSection.style.display = 'none';
                 barModeLabel.textContent = '控制面板';
                 stepDisplay.style.display = 'none';
+                // 隐藏语音朗读区域，并停止朗读
+                if (speechSection) {
+                    speechSection.style.display = 'none';
+                }
+                stopSpeech();
             }
         }
 
@@ -4101,7 +4483,391 @@
                 // 初始化默认音量
                 changeVolume(30);
             }
+
+            // ===== 初始化语音朗读功能 =====
+            initSpeechSynthesis();
         });
+
+        // ========== 语音朗读功能 ==========
+
+        /**
+         * 初始化语音朗读功能
+         * 检测浏览器支持性并加载中文语音
+         */
+        function initSpeechSynthesis() {
+            // 检查浏览器是否支持 Web Speech API
+            if (!('speechSynthesis' in window)) {
+                console.warn('浏览器不支持 Web Speech API');
+                const speechSection = document.getElementById('speech-section');
+                const unsupportedMsg = document.getElementById('speech-unsupported');
+                if (speechSection) speechSection.style.display = 'none';
+                if (unsupportedMsg) unsupportedMsg.style.display = 'block';
+                return;
+            }
+
+            speechSynth = window.speechSynthesis;
+
+            // 加载语音列表（需要等待语音加载完成）
+            function loadVoices() {
+                const voices = speechSynth.getVoices();
+                // 优先选择中文语音
+                chineseVoice = voices.find(voice => voice.lang.includes('zh-CN')) ||
+                               voices.find(voice => voice.lang.includes('zh')) ||
+                               voices.find(voice => voice.lang.includes('cmn')) ||
+                               voices[0];
+
+                if (chineseVoice) {
+                    console.log('已加载中文语音:', chineseVoice.name);
+                }
+            }
+
+            // Chrome 需要等待 onvoiceschanged 事件
+            if (speechSynth.onvoiceschanged !== undefined) {
+                speechSynth.onvoiceschanged = loadVoices;
+            }
+            loadVoices();
+
+            // 从 localStorage 恢复语音设置
+            const savedRate = localStorage.getItem('speechRate');
+            const savedSpeechVolume = localStorage.getItem('speechVolume');
+            const savedContinuousMode = localStorage.getItem('speechContinuousMode');
+            const savedLoopMode = localStorage.getItem('speechLoopMode');
+
+            if (savedRate) {
+                speechRate = parseFloat(savedRate);
+                document.getElementById('speech-rate').value = speechRate;
+                document.getElementById('rate-value').textContent = speechRate.toFixed(1) + 'x';
+            }
+
+            if (savedSpeechVolume) {
+                speechVolume = parseFloat(savedSpeechVolume);
+                document.getElementById('speech-volume').value = speechVolume;
+                document.getElementById('volume-value').textContent = Math.round(speechVolume * 100) + '%';
+            }
+
+            if (savedContinuousMode === 'true') {
+                continuousMode = true;
+                document.getElementById('continuous-mode-btn').classList.add('active');
+            }
+
+            if (savedLoopMode === 'true') {
+                loopMode = true;
+                document.getElementById('loop-mode-btn').classList.add('active');
+            }
+        }
+
+        /**
+         * 获取指定段落的朗读文本
+         * @param {number} paragraphIndex - 段落索引 (1-22)
+         * @returns {string} 段落文本内容
+         */
+        function getParagraphText(paragraphIndex) {
+            const timelineItem = document.querySelector(`.timeline-item[data-step="${paragraphIndex}"]`);
+            if (!timelineItem) return '';
+
+            const scriptText = timelineItem.querySelector('.script-text');
+            if (!scriptText) return '';
+
+            // 先显示所有填空答案，确保能获取完整文本
+            const blanks = scriptText.querySelectorAll('.blank');
+            blanks.forEach(blank => {
+                blank.classList.add('revealed');
+            });
+
+            // 获取纯文本内容
+            let text = scriptText.textContent || scriptText.innerText;
+            // 清理多余空白
+            text = text.replace(/\s+/g, ' ').trim();
+
+            return text;
+        }
+
+        /**
+         * 开始/暂停朗读切换
+         */
+        function toggleSpeech() {
+            if (!speechSynth) {
+                alert('您的浏览器不支持语音朗读功能');
+                return;
+            }
+
+            if (isSpeaking && !isPaused) {
+                pauseSpeech();
+            } else if (isPaused) {
+                resumeSpeech();
+            } else {
+                startSpeech(speechParagraphIndex);
+            }
+        }
+
+        /**
+         * 开始朗读指定段落
+         * @param {number} paragraphIndex - 段落索引 (1-22)
+         */
+        function startSpeech(paragraphIndex) {
+            if (!speechSynth) return;
+
+            // 停止当前朗读
+            speechSynth.cancel();
+
+            speechParagraphIndex = paragraphIndex;
+            const text = getParagraphText(paragraphIndex);
+
+            if (!text) {
+                console.warn('无法获取段落文本:', paragraphIndex);
+                return;
+            }
+
+            // 创建新的 utterance
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            currentUtterance.lang = 'zh-CN';
+            currentUtterance.rate = speechRate;
+            currentUtterance.volume = speechVolume;
+            currentUtterance.pitch = speechPitch;
+
+            if (chineseVoice) {
+                currentUtterance.voice = chineseVoice;
+            }
+
+            // 朗读开始事件
+            currentUtterance.onstart = function() {
+                isSpeaking = true;
+                isPaused = false;
+                updateSpeechUI();
+                highlightParagraph(paragraphIndex);
+                lowerMusicVolume();
+            };
+
+            // 朗读结束事件
+            currentUtterance.onend = function() {
+                isSpeaking = false;
+                isPaused = false;
+
+                if (loopMode) {
+                    // 单段循环模式：重新朗读当前段落
+                    setTimeout(() => startSpeech(paragraphIndex), 500);
+                } else if (continuousMode && paragraphIndex < totalSteps) {
+                    // 连续模式：自动朗读下一段
+                    setTimeout(() => startSpeech(paragraphIndex + 1), 800);
+                } else {
+                    // 朗读结束
+                    updateSpeechUI();
+                    removeHighlight();
+                    restoreMusicVolume();
+                }
+            };
+
+            // 朗读错误事件
+            currentUtterance.onerror = function(event) {
+                console.error('朗读错误:', event.error);
+                isSpeaking = false;
+                isPaused = false;
+                updateSpeechUI();
+                removeHighlight();
+                restoreMusicVolume();
+            };
+
+            // 开始朗读
+            speechSynth.speak(currentUtterance);
+        }
+
+        /**
+         * 暂停朗读
+         */
+        function pauseSpeech() {
+            if (speechSynth && isSpeaking) {
+                speechSynth.pause();
+                isPaused = true;
+                updateSpeechUI();
+            }
+        }
+
+        /**
+         * 继续朗读
+         */
+        function resumeSpeech() {
+            if (speechSynth && isPaused) {
+                speechSynth.resume();
+                isPaused = false;
+                updateSpeechUI();
+            }
+        }
+
+        /**
+         * 停止朗读
+         */
+        function stopSpeech() {
+            if (speechSynth) {
+                speechSynth.cancel();
+                isSpeaking = false;
+                isPaused = false;
+                speechParagraphIndex = 1;
+                updateSpeechUI();
+                removeHighlight();
+                restoreMusicVolume();
+            }
+        }
+
+        /**
+         * 朗读下一段
+         */
+        function nextParagraphSpeech() {
+            if (speechParagraphIndex < totalSteps) {
+                stopSpeech();
+                speechParagraphIndex++;
+                startSpeech(speechParagraphIndex);
+            }
+        }
+
+        /**
+         * 朗读上一段
+         */
+        function prevParagraphSpeech() {
+            if (speechParagraphIndex > 1) {
+                stopSpeech();
+                speechParagraphIndex--;
+                startSpeech(speechParagraphIndex);
+            }
+        }
+
+        /**
+         * 切换连续朗读模式
+         */
+        function toggleContinuousMode() {
+            continuousMode = !continuousMode;
+            const btn = document.getElementById('continuous-mode-btn');
+            btn.classList.toggle('active', continuousMode);
+
+            // 如果开启连续模式，关闭循环模式
+            if (continuousMode && loopMode) {
+                loopMode = false;
+                document.getElementById('loop-mode-btn').classList.remove('active');
+                localStorage.setItem('speechLoopMode', 'false');
+            }
+
+            localStorage.setItem('speechContinuousMode', continuousMode.toString());
+        }
+
+        /**
+         * 切换单段循环模式
+         */
+        function toggleLoopMode() {
+            loopMode = !loopMode;
+            const btn = document.getElementById('loop-mode-btn');
+            btn.classList.toggle('active', loopMode);
+
+            // 如果开启循环模式，关闭连续模式
+            if (loopMode && continuousMode) {
+                continuousMode = false;
+                document.getElementById('continuous-mode-btn').classList.remove('active');
+                localStorage.setItem('speechContinuousMode', 'false');
+            }
+
+            localStorage.setItem('speechLoopMode', loopMode.toString());
+        }
+
+        /**
+         * 更新语速
+         * @param {number} value - 语速值 (0.5-2.0)
+         */
+        function updateSpeechRate(value) {
+            speechRate = parseFloat(value);
+            document.getElementById('rate-value').textContent = speechRate.toFixed(1) + 'x';
+            localStorage.setItem('speechRate', speechRate.toString());
+        }
+
+        /**
+         * 更新音量
+         * @param {number} value - 音量值 (0-1)
+         */
+        function updateSpeechVolume(value) {
+            speechVolume = parseFloat(value);
+            document.getElementById('volume-value').textContent = Math.round(speechVolume * 100) + '%';
+            localStorage.setItem('speechVolume', speechVolume.toString());
+        }
+
+        /**
+         * 更新语音朗读UI状态
+         */
+        function updateSpeechUI() {
+            const playBtn = document.getElementById('speech-play-btn');
+            const statusEl = document.getElementById('speech-status');
+            const statusText = document.getElementById('speech-status-text');
+            const waveEl = document.getElementById('speech-wave');
+
+            if (isSpeaking && !isPaused) {
+                playBtn.innerHTML = '⏸️ 暂停';
+                playBtn.classList.add('playing');
+                statusEl.classList.add('playing');
+                statusEl.classList.remove('paused');
+                statusText.textContent = `第 ${speechParagraphIndex}/${totalSteps} 段`;
+                waveEl.classList.add('active');
+            } else if (isPaused) {
+                playBtn.innerHTML = '▶️ 继续';
+                playBtn.classList.remove('playing');
+                statusEl.classList.remove('playing');
+                statusEl.classList.add('paused');
+                statusText.textContent = `已暂停 - 第 ${speechParagraphIndex}/${totalSteps} 段`;
+                waveEl.classList.remove('active');
+            } else {
+                playBtn.innerHTML = '🔊 朗读';
+                playBtn.classList.remove('playing');
+                statusEl.classList.remove('playing', 'paused');
+                statusText.textContent = '未开始';
+                waveEl.classList.remove('active');
+            }
+        }
+
+        /**
+         * 高亮正在朗读的段落
+         * @param {number} paragraphIndex - 段落索引
+         */
+        function highlightParagraph(paragraphIndex) {
+            // 移除之前的高亮
+            removeHighlight();
+
+            const timelineItem = document.querySelector(`.timeline-item[data-step="${paragraphIndex}"]`);
+            if (timelineItem) {
+                timelineItem.classList.add('speaking');
+                timelineItem.classList.add('active'); // 确保展开
+
+                // 滚动到可见区域
+                timelineItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        /**
+         * 移除朗读高亮
+         */
+        function removeHighlight() {
+            document.querySelectorAll('.timeline-item.speaking').forEach(item => {
+                item.classList.remove('speaking');
+            });
+        }
+
+        /**
+         * 降低背景音乐音量（朗读时）
+         */
+        function lowerMusicVolume() {
+            const volumeSlider = document.getElementById('volume-slider');
+            if (volumeSlider) {
+                originalMusicVolume = parseInt(volumeSlider.value);
+                // 降低到20%
+                const loweredVolume = Math.min(originalMusicVolume, 20);
+                changeVolume(loweredVolume);
+            }
+        }
+
+        /**
+         * 恢复背景音乐音量
+         */
+        function restoreMusicVolume() {
+            const volumeSlider = document.getElementById('volume-slider');
+            if (volumeSlider && originalMusicVolume > 0) {
+                volumeSlider.value = originalMusicVolume;
+                changeVolume(originalMusicVolume);
+            }
+        }
 
         // 键盘快捷键
         document.addEventListener('keydown', function(e) {
@@ -4117,13 +4883,44 @@
                     e.preventDefault();
                     prevStep();
                 } else if (e.key === 'r' || e.key === 'R') {
-                    resetDefense();
+                    if (!e.ctrlKey) {
+                        resetDefense();
+                    }
                 } else if (e.key === 's' || e.key === 'S') {
-                    revealAllBlanks();
+                    if (!e.ctrlKey) {
+                        revealAllBlanks();
+                    }
                 } else if (e.key === 'h' || e.key === 'H') {
                     hideAllBlanks();
                 } else if (e.key === 't' || e.key === 'T') {
                     toggleCurrentStepBlanks();
+                }
+
+                // ===== 语音朗读快捷键 =====
+                // P 键：播放/暂停朗读
+                if (e.key === 'p' || e.key === 'P') {
+                    e.preventDefault();
+                    toggleSpeech();
+                }
+                // Ctrl + → ：下一段朗读
+                if (e.ctrlKey && e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    nextParagraphSpeech();
+                }
+                // Ctrl + ← ：上一段朗读
+                if (e.ctrlKey && e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    prevParagraphSpeech();
+                }
+                // Ctrl + S ：停止朗读
+                if (e.ctrlKey && (e.key === 's' || e.key === 'S')) {
+                    e.preventDefault();
+                    stopSpeech();
+                }
+                // Ctrl + R ：切换连续朗读模式
+                if (e.ctrlKey && (e.key === 'r' || e.key === 'R')) {
+                    e.preventDefault();
+                    toggleContinuousMode();
                 }
             }
         });

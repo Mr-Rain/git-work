@@ -760,12 +760,14 @@
         }
 
         .data-value {
-            font-size: 2.5em;
+            font-size: 2em;
             font-weight: bold;
             background: linear-gradient(90deg, #00d4ff, #7b2cbf);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            white-space: nowrap;
+            overflow: visible;
         }
 
         .data-label {
@@ -3073,7 +3075,7 @@
                         <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">5</span> 已完成</div>
                         <div class="script-text">
                             <p>尊敬的各位评委、老师：</p>
-                            <p>大家好！我们的项目是 "基于 <span class="blank triz-method" onclick="toggleBlank(event, this)">TRIZ理论</span> 的 <span class="blank keyword-term" onclick="toggleBlank(event, this)">工业旋转类设备故障监测</span>。我是来自 <span class="blank keyword-name" onclick="toggleBlank(event, this)">重庆工程职业技术学院</span> 的 <span class="blank keyword-name" onclick="toggleBlank(event, this)">智鉴先锋</span> 团队项目负责人 <span class="blank keyword-name" onclick="toggleBlank(event, this)">刘凤琴</span></p>
+                            <p>大家好！我是来自 <span class="blank keyword-name" onclick="toggleBlank(event, this)">重庆工程职业技术学院</span> 的 <span class="blank keyword-name" onclick="toggleBlank(event, this)">智鉴先锋</span> 团队项目负责人 <span class="blank keyword-name" onclick="toggleBlank(event, this)">刘凤琴</span>，我们的项目是 "基于 <span class="blank triz-method" onclick="toggleBlank(event, this)">TRIZ理论</span> 的 <span class="blank keyword-term" onclick="toggleBlank(event, this)">工业旋转类设备故障监测</span>。</p>
                         </div>
                     </div>
                 </div>
@@ -3104,10 +3106,10 @@
                 <div class="timeline-item" data-step="4" onclick="toggleTimelineItem(this)">
                     <div class="timeline-title">🔬 第4段：技术选型</div>
                     <div class="timeline-content">
-                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">6</span> 已完成</div>
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">5</span> 已完成</div>
                         <div class="script-text">
                             <p>团队<span class="blank keyword-verb" onclick="toggleBlank(event, this)">调研</span>了近年来工业旋转设备故障领域的相关资料，<span class="blank keyword-verb" onclick="toggleBlank(event, this)">对比技术优势分析技术缺点</span></p>
-                            <p>最终选取一个 <span class="blank keyword-adj" onclick="toggleBlank(event, this)">典型专利</span> 同时也是发表于 <span class="blank keyword-name" onclick="toggleBlank(event, this)">SCI期刊</span> 上的"<span class="blank keyword-term" onclick="toggleBlank(event, this)">旋转系统中的振动监测与故障诊断</span>"作为初始系统，并在论文中得到多项指标。</p>
+                            <p>最终选取一个 <span class="blank keyword-adj" onclick="toggleBlank(event, this)">典型专利</span> 同时也是发表于 <span class="blank keyword-name" onclick="toggleBlank(event, this)">SCI期刊</span> 上的<span class="blank keyword-term" onclick="toggleBlank(event, this)">核心论文</span>作为初始系统，并在论文中得到多项指标。</p>
                         </div>
                     </div>
                 </div>
@@ -3116,9 +3118,9 @@
                 <div class="timeline-item" data-step="5" onclick="toggleTimelineItem(this)">
                     <div class="timeline-title">🧠 第5段：TRIZ组件分析</div>
                     <div class="timeline-content">
-                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">10</span> 已完成</div>
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">8</span> 已完成</div>
                         <div class="script-text">
-                            <p><span class="blank keyword-connector" onclick="toggleBlank(event, this)">依托</span> <span class="blank triz-method" onclick="toggleBlank(event, this)">TRIZ理论</span>，我们对系统进行了 <span class="blank keyword-term" onclick="toggleBlank(event, this)">全方位剖析</span>。通过 <span class="blank triz-method" onclick="toggleBlank(event, this)">组件分析</span>，<span class="blank keyword-verb" onclick="toggleBlank(event, this)">梳理出</span> <span class="blank keyword-term" onclick="toggleBlank(event, this)">传感器</span>、<span class="blank keyword-term" onclick="toggleBlank(event, this)">边缘计算单元</span> 等核心组件，以及 <span class="blank" onclick="toggleBlank(event, this)">环境电磁干扰</span> 等 <span class="blank keyword-term" onclick="toggleBlank(event, this)">超系统影响因素</span>；</p>
+                            <p><span class="blank keyword-connector" onclick="toggleBlank(event, this)">依托</span> <span class="blank triz-method" onclick="toggleBlank(event, this)">TRIZ理论</span>，我们对系统进行 <span class="blank triz-method" onclick="toggleBlank(event, this)">组件分析</span>，<span class="blank keyword-verb" onclick="toggleBlank(event, this)">梳理出</span> <span class="blank keyword-term" onclick="toggleBlank(event, this)">传感器</span>、<span class="blank keyword-term" onclick="toggleBlank(event, this)">边缘计算单元</span> 等核心组件，以及 <span class="blank" onclick="toggleBlank(event, this)">环境电磁干扰</span> 等 <span class="blank keyword-term" onclick="toggleBlank(event, this)">超系统影响因素</span>；</p>
                         </div>
                     </div>
                 </div>
@@ -3164,7 +3166,7 @@
                         <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">7</span> 已完成</div>
                         <div class="script-text">
                             <p><span class="blank keyword-connector" onclick="toggleBlank(event, this)">更进一步</span>通过 <span class="blank" onclick="toggleBlank(event, this)">价值</span> <span class="blank" onclick="toggleBlank(event, this)">数量</span> <span class="blank" onclick="toggleBlank(event, this)">质量</span> <span class="blank" onclick="toggleBlank(event, this)">可用性</span> 等多层面评估分析可用资源</p>
-                            <p>在求解过程中以 <span class="blank triz-method" onclick="toggleBlank(event, this)">IFR</span> 为牵引解决更具体问题，确定最终理想解为"设备自主实现 <span class="blank keyword-term" onclick="toggleBlank(event, this)">零误报漏报</span> 的健康监测"，结合可用资源，我们提出 <span class="blank" onclick="toggleBlank(event, this)">方案4</span> 为后续技术设计提供理想方向</p>
+                            <p>在求解过程中以 <span class="blank triz-method" onclick="toggleBlank(event, this)">IFR</span> 为牵引解决更具体问题，确定<span class="blank keyword-term" onclick="toggleBlank(event, this)">最终理想解</span>，结合可用资源，我们提出 <span class="blank" onclick="toggleBlank(event, this)">方案4</span> 为后续技术设计提供理想方向</p>
                         </div>
                     </div>
                 </div>
@@ -3184,9 +3186,9 @@
                 <div class="timeline-item" data-step="11" onclick="toggleTimelineItem(this)">
                     <div class="timeline-title">⚡ 第11段：分离原理 → 方案6</div>
                     <div class="timeline-content">
-                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">6</span> 已完成</div>
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">7</span> 已完成</div>
                         <div class="script-text">
-                            <p><span class="blank keyword-connector" onclick="toggleBlank(event, this)">针对</span>方案2分析出系统模型既要保持 <span class="blank" onclick="toggleBlank(event, this)">稳定</span>，又要持续 <span class="blank" onclick="toggleBlank(event, this)">进化</span> 的 <span class="blank keyword-term" onclick="toggleBlank(event, this)">技术矛盾</span>，基于 <span class="blank triz-method" onclick="toggleBlank(event, this)">分离原理</span> 提出 <span class="blank" onclick="toggleBlank(event, this)">方案6</span></p>
+                            <p><span class="blank keyword-connector" onclick="toggleBlank(event, this)">针对</span>方案2分析出系统模型既要保持 <span class="blank" onclick="toggleBlank(event, this)">稳定</span>，又要持续 <span class="blank" onclick="toggleBlank(event, this)">进化</span> 的 <span class="blank keyword-term" onclick="toggleBlank(event, this)">技术矛盾</span>，基于 <span class="blank triz-method" onclick="toggleBlank(event, this)">分离原理</span> 提出 <span class="blank" onclick="toggleBlank(event, this)">方案6</span>，实现<span class="blank keyword-term" onclick="toggleBlank(event, this)">自主模型动态迭代</span></p>
                         </div>
                     </div>
                 </div>
@@ -3217,9 +3219,9 @@
                 <div class="timeline-item" data-step="14" onclick="toggleTimelineItem(this)">
                     <div class="timeline-title">🐟 第14段：金鱼法 → 方案9</div>
                     <div class="timeline-content">
-                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">5</span> 已完成</div>
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">4</span> 已完成</div>
                         <div class="script-text">
-                            <p><span class="blank keyword-connector" onclick="toggleBlank(event, this)">同时结合</span> <span class="blank triz-method" onclick="toggleBlank(event, this)">金鱼法</span>，提出幻想方案，再区分现实与幻想最终提出解决 <span class="blank" onclick="toggleBlank(event, this)">方案9</span>——<span class="blank keyword-verb" onclick="toggleBlank(event, this)">构建</span>设备 <span class="blank keyword-term" onclick="toggleBlank(event, this)">全生命周期故障档案</span>。</p>
+                            <p><span class="blank keyword-connector" onclick="toggleBlank(event, this)">同时结合</span> <span class="blank triz-method" onclick="toggleBlank(event, this)">金鱼法</span>，提出<span class="blank keyword-term" onclick="toggleBlank(event, this)">幻想方案</span>，再区分现实与幻想最终提出解决 <span class="blank" onclick="toggleBlank(event, this)">方案9</span></p>
                         </div>
                     </div>
                 </div>
@@ -3262,10 +3264,10 @@
                 <div class="timeline-item" data-step="18" onclick="toggleTimelineItem(this)">
                     <div class="timeline-title">🧮 第18段：算法改进</div>
                     <div class="timeline-content">
-                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">6</span> 已完成</div>
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">5</span> 已完成</div>
                         <div class="script-text">
-                            <p>改进<span class="blank keyword-term" onclick="toggleBlank(event, this)">多模态模型混合融合算法</span>，通过 <span class="blank keyword-term" onclick="toggleBlank(event, this)">三层融合架构</span>，让 <span class="blank keyword-adj" onclick="toggleBlank(event, this)">识别精度</span>、<span class="blank keyword-adj" onclick="toggleBlank(event, this)">泛化能力</span>、<span class="blank keyword-adj" onclick="toggleBlank(event, this)">故障预测能力</span> 全面提升；</p>
-                            <p style="margin-top: 10px;">打造工业监测系统，提供专业的数据分析支持，<span class="blank keyword-verb" onclick="toggleBlank(event, this)">全方位保障</span>工业设备的安全。</p>
+                            <p>改进<span class="blank keyword-term" onclick="toggleBlank(event, this)">多模态模型混合融合算法</span>，通过 <span class="blank keyword-term" onclick="toggleBlank(event, this)">三层融合架构</span>，实现<span class="blank keyword-term" onclick="toggleBlank(event, this)">系统性能全面提升</span>；</p>
+                            <p style="margin-top: 10px;">打造工业监测系统，提供专业的数据分析，<span class="blank keyword-verb" onclick="toggleBlank(event, this)">全方位保障</span>工业设备的安全。</p>
                         </div>
                     </div>
                 </div>
@@ -3274,9 +3276,9 @@
                 <div class="timeline-item" data-step="19" onclick="toggleTimelineItem(this)">
                     <div class="timeline-title">📈 第19段：竞品对比与验证</div>
                     <div class="timeline-content">
-                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">4</span> 已完成</div>
+                        <div class="blank-counter">本段填空：<span class="current-count">0</span>/<span class="total-count">3</span> 已完成</div>
                         <div class="script-text">
-                            <p>对比竞品数据，<span class="blank keyword-name" onclick="toggleBlank(event, this)">智鉴先锋</span> 系统<span class="blank keyword-adj" onclick="toggleBlank(event, this)">综合性能</span>远超行业同类产品。</p>
+                            <p>对比竞品数据，系统<span class="blank keyword-adj" onclick="toggleBlank(event, this)">综合性能</span>远超行业同类产品。</p>
                             <p style="margin-top: 10px;">经 <span class="blank keyword-name" onclick="toggleBlank(event, this)">中国机械工业联合会</span> 检测，我们的系统关键指标也远超国家标准：充分验证系统的<span class="blank keyword-adj" onclick="toggleBlank(event, this)">可靠性与优越性</span>。</p>
                         </div>
                     </div>
